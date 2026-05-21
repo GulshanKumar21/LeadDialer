@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Premium Floating Island Nav Bar Footer -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- Gorgeous Milky Pill Shape with Elevation Shadow -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_island_nav_pill"
+            android:elevation="12dp"
+            android:outlineAmbientShadowColor="#44000000"
+            android:outlineSpotShadowColor="#66000000" />
+
+        <!-- Sibling container for navigation items (Ensures center elevated FAB doesn't get clipped) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="12dp"
+            android:elevation="14dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Sliding bubble indicator (kept for compatibility, normally hidden in simple style) -->
+            <View
+                android:id="@+id/slidingBubble"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_nav_bubble_circle"
+                android:alpha="0" />
+
+            <!-- Items row (height wraps content, allowing center item to be elevated/taller) -->
+            <LinearLayout
+                android:id="@+id/islandNavContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingBottom="4dp" />
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+</merge>

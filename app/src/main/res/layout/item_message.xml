@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp">
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top row: from + time -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvMsgFrom"
+                android:text="👤 Admin"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FF6A00"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tvMsgTime"
+                android:text="2 min ago"
+                android:textSize="11sp"
+                android:textColor="#9CA3AF"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Unread dot -->
+            <View
+                android:id="@+id/viewUnreadDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_icon_circle_red"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <!-- Message text -->
+        <TextView
+            android:id="@+id/tvMsgText"
+            android:text="Please submit your daily report by 6 PM."
+            android:textSize="14sp"
+            android:textColor="#1A1A2E"
+            android:lineSpacingMultiplier="1.4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Bottom row: reply count + reply button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tvReplyCount"
+                android:text="0 replies"
+                android:textSize="11sp"
+                android:textColor="#9CA3AF"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReply"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:text="💬 Reply"
+                android:textSize="12sp"
+                android:textColor="#FF6A00"
+                app:strokeColor="#FF6A00"
+                app:cornerRadius="20dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

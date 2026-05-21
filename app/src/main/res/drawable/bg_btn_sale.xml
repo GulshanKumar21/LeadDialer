@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium green pill for "Mark as Sale Done" button -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Soft shadow layer -->
+    <item
+        android:top="3dp"
+        android:left="1dp"
+        android:right="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#33148023" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <!-- Main pill -->
+    <item android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#22C55E"
+                android:endColor="#16A34A"
+                android:angle="135"
+                android:type="linear" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+</layer-list>

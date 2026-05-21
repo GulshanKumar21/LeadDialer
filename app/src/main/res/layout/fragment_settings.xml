@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_milky_white"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="48dp">
+
+
+        <!-- ── APPEARANCE & STYLE SECTION ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="APPEARANCE &amp; STYLE"
+            android:textColor="#888888"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="@font/nunito_extrabold"/>
+
+        <androidx.cardview.widget.CardView
+            style="@style/IPhoneCardView"
+            android:id="@+id/cardDarkMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_icon_orange_light">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="🌙"
+                        android:textSize="18sp"/>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dark Theme"
+                        android:fontFamily="@font/nunito_extrabold"
+                        android:textColor="#111111"
+                        android:textSize="15sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:text="Comfortable reading at night"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textColor="#888888"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchDarkMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:thumbTint="@color/brand_orange"
+                    android:trackTint="#FFD5B0"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── CALL PREFERENCES SECTION (Dual-SIM only) ── -->
+        <TextView
+            android:id="@+id/tvCallSettingsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="CALL PREFERENCES"
+            android:textColor="#888888"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="@font/nunito_extrabold"
+            android:visibility="gone"/>
+
+        <androidx.cardview.widget.CardView
+            style="@style/IPhoneCardView"
+            android:id="@+id/cardSimSelection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Header row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_blue">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_phone"
+                            app:tint="#3B82F6"/>
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Outgoing SIM Card"
+                            android:fontFamily="@font/nunito_extrabold"
+                            android:textColor="#111111"
+                            android:textSize="15sp"/>
+
+                        <TextView
+                            android:id="@+id/tvCurrentSimSelection"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Ask Every Time"
+                            android:fontFamily="@font/nunito_semibold"
+                            android:textColor="#3B82F6"
+                            android:textSize="12sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Info Hint -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_section_frosted"
+                    android:padding="10dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💡"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="6dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Select a default SIM for calling to avoid showing the SIM selection popup on every dial."
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textColor="#374151"
+                        android:textSize="11sp"/>
+                </LinearLayout>
+
+                <!-- Choice Buttons container filled dynamically -->
+                <LinearLayout
+                    android:id="@+id/llSimButtons"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:divider="@null"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── DATA & SYNCHRONIZATION SECTION ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="DATA &amp; SYNCHRONIZATION"
+            android:textColor="#888888"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="@font/nunito_extrabold"/>
+
+        <androidx.cardview.widget.CardView
+            style="@style/IPhoneCardView"
+            android:id="@+id/cardDatabase"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="28dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Local Database Storage Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="12dp">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_blue">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_group"
+                            app:tint="#3B82F6"/>
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Local CRM Database"
+                            android:fontFamily="@font/nunito_extrabold"
+                            android:textColor="#111111"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/tvSettingsTotalLeads"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="0 leads stored locally"
+                            android:fontFamily="@font/nunito_semibold"
+                            android:textColor="#888888"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EFEFEA"/>
+
+                <!-- Google Sheets Sync Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/cardSheetsSync"
+                    android:orientation="vertical"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <FrameLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_icon_green">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="📊"
+                                android:textSize="18sp"/>
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Google Sheets Backup"
+                                android:fontFamily="@font/nunito_extrabold"
+                                android:textColor="#111111"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:text="Synchronize local database in real-time"
+                                android:fontFamily="@font/nunito_semibold"
+                                android:textColor="#888888"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Beautiful Premium Accent Sync Button -->
+                    <Button
+                        android:id="@+id/btnSyncSheets"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_button_premium"
+                        android:text="🔄  Sync to Google Sheets"
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/nunito_extrabold"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        app:backgroundTint="@null"/>
+
+                    <!-- Sync Status Container -->
+                    <TextView
+                        android:id="@+id/tvSyncStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:padding="10dp"
+                        android:background="@drawable/bg_success_subtle"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="11sp"
+                        android:textColor="#059669"
+                        android:gravity="center"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EFEFEA"/>
+
+                <!-- Danger: Clear Data Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/cardClearData"
+                    android:orientation="vertical"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <FrameLayout
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_icon_red">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="⚠️"
+                                android:textSize="18sp"/>
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Clear Offline Cache"
+                                android:fontFamily="@font/nunito_extrabold"
+                                android:textColor="#DC2626"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:text="Erase all offline leads from storage"
+                                android:fontFamily="@font/nunito_semibold"
+                                android:textColor="#EF4444"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Warning Hint -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_warning_subtle"
+                        android:padding="10dp"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚠️"
+                            android:textSize="13sp"
+                            android:layout_marginEnd="6dp"/>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="This is a destructive action. Make sure you sync your leads to Google Sheets or Firebase first."
+                            android:fontFamily="@font/nunito_semibold"
+                            android:textColor="#92400E"
+                            android:textSize="11sp"/>
+                    </LinearLayout>
+
+                    <!-- Delete Button -->
+                    <Button
+                        android:id="@+id/btnClearAllLeads"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_delete_premium"
+                        android:text="Delete All Local Leads"
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/nunito_extrabold"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        app:backgroundTint="@null"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── ACCOUNT ACTIONS SECTION ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="ACCOUNT ACTIONS"
+            android:textColor="#888888"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="@font/nunito_extrabold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="32dp">
+
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_logout_btn"
+                android:text="🚪  Sign Out From Device"
+                android:textColor="#DC2626"
+                android:fontFamily="@font/nunito_extrabold"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:backgroundTint="@null"/>
+        </LinearLayout>
+
+        <!-- ── FOOTER BRANDING ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Made with ❤️ by Adyapan Team"
+            android:fontFamily="@font/nunito_semibold"
+            android:textColor="#9CA3AF"
+            android:textSize="12sp"
+            android:alpha="0.6"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="2dp"
+            android:text="© 2026 Adyapan School. All Rights Reserved."
+            android:fontFamily="@font/nunito_semibold"
+            android:textColor="#9CA3AF"
+            android:textSize="11sp"
+            android:alpha="0.4"/>
+
+    </LinearLayout>
+</ScrollView>

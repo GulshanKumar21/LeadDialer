@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_glass"
+    android:padding="24dp">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👎 Not Interested — Reason"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#1A1A2E"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Please write the reason in 10–15 words:"
+        android:textSize="13sp"
+        android:textColor="#6B7280"
+        android:layout_marginBottom="14dp"/>
+
+    <!-- Reason input -->
+    <EditText
+        android:id="@+id/etNotInterestedReason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minLines="3"
+        android:maxLines="5"
+        android:padding="12dp"
+        android:hint="e.g. Student already admitted somewhere else..."
+        android:textSize="13sp"
+        android:textColor="#1A1A2E"
+        android:textColorHint="#9CA3AF"
+        android:inputType="textMultiLine|textCapSentences"
+        android:gravity="top"
+        android:background="@drawable/bg_input_field"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Word count hint -->
+    <TextView
+        android:id="@+id/tvWordCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0 / 15 words"
+        android:textSize="11sp"
+        android:textColor="#9CA3AF"
+        android:gravity="end"
+        android:layout_marginBottom="18dp"/>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btnCancelNotInterested"
+            android:text="Cancel"
+            android:textColor="#6B7280"
+            android:backgroundTint="#F3F4F6"
+            android:textAllCaps="false"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="48dp"/>
+
+        <Button
+            android:id="@+id/btnConfirmNotInterested"
+            android:text="✅ Confirm"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#EF4444"
+            android:textAllCaps="false"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="48dp"/>
+    </LinearLayout>
+
+</LinearLayout>

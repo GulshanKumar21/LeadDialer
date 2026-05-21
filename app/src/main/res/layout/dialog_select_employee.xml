@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Assign leads to:"
+        android:textColor="#2A2A35"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/etSearchEmployee"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_search"
+        android:hint="Search employee name..."
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"
+        android:inputType="textPersonName"/>
+
+    <ListView
+        android:id="@+id/lvEmployees"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp"/>
+
+</LinearLayout>

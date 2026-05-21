@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Center glow ring — semi-transparent orange oval for pulsing aura -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:startColor="#80FF7043"
+        android:endColor="#00FF7043"
+        android:type="radial"
+        android:gradientRadius="50%" />
+</shape>

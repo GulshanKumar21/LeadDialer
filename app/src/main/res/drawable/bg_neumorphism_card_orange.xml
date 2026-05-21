@@ -1,0 +1,30 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Light shadow -->
+    <item android:left="3dp" android:top="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#D1D9E6"/>
+            <corners android:radius="24dp"/>
+        </shape>
+    </item>
+
+    <!-- White base -->
+    <item android:right="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF"/>
+            <corners android:radius="24dp"/>
+        </shape>
+    </item>
+
+    <!-- Soft gradient overlay -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#FFF7F2"
+                android:endColor="#FFEDE5"
+                android:angle="135"/>
+            <corners android:radius="24dp"/>
+        </shape>
+    </item>
+
+</layer-list>

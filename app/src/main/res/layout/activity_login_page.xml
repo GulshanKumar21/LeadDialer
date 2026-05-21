@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_milky_white"
+    android:scrollbars="none">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+
+
+    <FrameLayout
+        android:id="@+id/heroSection"
+        android:layout_width="match_parent"
+        android:layout_height="280dp">
+
+      <View
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:background="@drawable/bg_login_hero_gradient"/>
+
+      <ImageView
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:src="@drawable/mascot_app"
+          android:scaleType="centerCrop"/>
+
+      <!-- Hero text overlay — animated in LoginPage.kt -->
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_gravity="bottom|center_horizontal"
+          android:orientation="vertical"
+          android:gravity="center"
+          android:paddingBottom="20dp"
+          android:paddingStart="24dp"
+          android:paddingEnd="24dp">
+
+        <TextView
+            android:id="@+id/tvHeroBrand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ADYAPAN SCHOOL"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.08"
+            android:shadowColor="#55000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:alpha="0"/>
+
+        <View
+            android:id="@+id/heroAccentLine"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="#FFFFFFFF"
+            android:alpha="0"/>
+
+        <TextView
+            android:id="@+id/tvHeroTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="India's Largest Student Community"
+            android:textColor="#E0FFFFFF"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="0.04"
+            android:alpha="0"/>
+
+      </LinearLayout>
+
+    </FrameLayout>
+
+
+
+    <androidx.cardview.widget.CardView
+    style="@style/IPhoneCardView"
+        android:id="@+id/loginCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="-32dp"
+        android:layout_marginBottom="0dp"
+
+
+        app:cardBackgroundColor="#FFFFFF"
+        android:elevation="36dp"
+        android:translationZ="24dp">
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:paddingStart="24dp"
+          android:paddingEnd="24dp"
+          android:paddingTop="24dp"
+          android:paddingBottom="24dp"
+          android:background="#FFFFFF">
+
+        <!-- Email label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email Address"
+            android:textColor="#555555"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:layout_marginBottom="6dp"/>
+
+        <!-- Email field -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_login_field_modern"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="16dp">
+
+          <ImageView
+              android:layout_width="18dp"
+              android:layout_height="18dp"
+              android:src="@drawable/ic_user"
+              android:scaleType="fitCenter"
+              app:tint="#E64A19"
+              android:layout_marginEnd="12dp"/>
+
+          <EditText
+              android:id="@+id/etEmail"
+              android:layout_width="0dp"
+              android:layout_height="match_parent"
+              android:layout_weight="1"
+              android:background="@null"
+              android:hint="you@adyapan.com"
+              android:textColorHint="#C5C5C5"
+              android:textColor="#1A1A1A"
+              android:textSize="14sp"
+              android:inputType="textEmailAddress"
+              android:imeOptions="actionNext"
+              android:fontFamily="sans-serif"/>
+
+        </LinearLayout>
+
+        <!-- Password label -->
+        <TextView
+            android:id="@+id/tvPasswordLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="#555555"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:layout_marginBottom="6dp"
+            android:visibility="gone"/>
+
+        <!-- Password field -->
+        <LinearLayout
+            android:id="@+id/layoutPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_login_field_modern"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone">
+
+          <ImageView
+              android:layout_width="18dp"
+              android:layout_height="18dp"
+              android:src="@drawable/ic_lock"
+              android:scaleType="fitCenter"
+              app:tint="#E64A19"
+              android:layout_marginEnd="12dp"/>
+
+          <EditText
+              android:id="@+id/etPassword"
+              android:layout_width="0dp"
+              android:layout_height="match_parent"
+              android:layout_weight="1"
+              android:background="@null"
+              android:hint="••••••••"
+              android:textColorHint="#C5C5C5"
+              android:textColor="#1A1A1A"
+              android:textSize="14sp"
+              android:inputType="textPassword"
+              android:imeOptions="actionDone"
+              android:fontFamily="sans-serif"/>
+
+          <ImageButton
+              android:id="@+id/btnTogglePassword"
+              android:layout_width="36dp"
+              android:layout_height="36dp"
+              android:background="@null"
+              android:padding="8dp"
+              android:src="@drawable/ic_eye"
+              app:tint="#BBBBBB"/>
+
+        </LinearLayout>
+
+        <!-- Forgot Password -->
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password?"
+            android:textColor="#E64A19"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_gravity="end"
+            android:paddingTop="4dp"
+            android:paddingBottom="16dp"
+            android:fontFamily="sans-serif-medium"/>
+
+        <!-- Sign In button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="Sign In  →"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:background="@drawable/bg_login_signin_btn"
+            app:backgroundTint="@null"
+            app:cornerRadius="14dp"
+            android:fontFamily="sans-serif-medium"
+            android:elevation="4dp"/>
+
+      </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="48dp"
+        android:paddingBottom="12dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+
+      <TextView
+          android:id="@+id/tvIndiasLargest"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="INDIA'S LARGEST"
+          android:textColor="#111111"
+          android:textSize="26sp"
+          android:textStyle="bold"
+          android:letterSpacing="0.04"
+          android:fontFamily="sans-serif-black"
+          android:layout_marginTop="15dp"
+          android:gravity="center"
+          android:layout_marginBottom="2dp"
+          android:alpha="0"/>
+
+      <TextView
+          android:id="@+id/tvStudentCommunity"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="STUDENT COMMUNITY"
+          android:textColor="#FF6A00"
+          android:textSize="26sp"
+          android:textStyle="bold"
+          android:letterSpacing="0.04"
+          android:fontFamily="sans-serif-black"
+          android:gravity="center"
+          android:layout_marginBottom="12dp"
+          android:alpha="0"/>
+    </LinearLayout>
+
+
+    <androidx.cardview.widget.CardView
+        style="@style/IPhoneCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="48dp"
+        android:layout_marginTop="20dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:gravity="center"
+          android:paddingTop="20dp"
+          android:paddingBottom="20dp"
+          android:paddingStart="12dp"
+           android:layout_marginTop="5dp"
+          android:paddingEnd="12dp"
+          android:background="#FFFFFF">
+
+        <!-- Stat 1: Students -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="5K+"
+              android:textColor="#FF6A00"
+              android:textStyle="bold"
+              android:textSize="24sp"
+              android:fontFamily="sans-serif-black"/>
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Students"
+              android:textColor="#6B7280"
+              android:textSize="12sp"
+              android:layout_marginTop="3dp"
+              android:fontFamily="sans-serif"/>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="42dp"
+            android:background="#E5E5E0"/>
+
+        <!-- Stat 2: Courses -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="100+"
+              android:textColor="#FF6A00"
+              android:textStyle="bold"
+              android:textSize="24sp"
+              android:fontFamily="sans-serif-black"/>
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Courses"
+              android:textColor="#6B7280"
+              android:textSize="12sp"
+              android:layout_marginTop="3dp"
+              android:fontFamily="sans-serif"/>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="42dp"
+            android:background="#E5E5E0"/>
+
+        <!-- Stat 3: Rank -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="#1"
+              android:textColor="#FF6A00"
+              android:textStyle="bold"
+              android:textSize="24sp"
+              android:fontFamily="sans-serif-black"/>
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="In India"
+              android:textColor="#6B7280"
+              android:textSize="12sp"
+              android:layout_marginTop="3dp"
+              android:fontFamily="sans-serif"/>
+        </LinearLayout>
+
+      </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+  </LinearLayout>
+
+</ScrollView>

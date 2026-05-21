@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📲 WhatsApp + Brochure"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textColor="#1A0A00"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Student Name:"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="#1A0A00"
+        android:textSize="13sp"
+        android:layout_marginBottom="4dp"/>
+
+    <EditText
+        android:id="@+id/etWaStudentName"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_input_field"
+        android:inputType="textPersonName"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#1A0A00"
+        android:hint="Enter Name"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- WhatsApp Number Edit -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WhatsApp Number:"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="#1A0A00"
+        android:textSize="13sp"
+        android:layout_marginBottom="4dp"/>
+
+    <EditText
+        android:id="@+id/etWaPhoneNumber"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_input_field"
+        android:inputType="phone"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#1A0A00"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Step 1: Course Select -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📚  Step 1: Select Course"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textColor="#FF6A00"
+        android:textSize="13sp"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Search Box for course -->
+    <EditText
+        android:id="@+id/etCourseSearch"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_input_field"
+        android:hint="🔍 Search course..."
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#1A0A00"
+        android:textColorHint="#C47A50"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:inputType="text"
+        android:imeOptions="actionSearch"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Course Spinner -->
+    <Spinner
+        android:id="@+id/spinnerCourse"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input_field"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Step 2: Language Select -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🌐  Step 2: Select Language"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textColor="#FF6A00"
+        android:textSize="13sp"
+        android:layout_marginBottom="6dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerLanguage"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input_field"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Generate Button -->
+    <Button
+        android:id="@+id/btnGenerateMsg"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_button_login"
+        android:text="✨ Generate Message + Brochure"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/poppins_semibold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:layout_marginBottom="10dp"/>
+
+    <!-- Loading text -->
+    <TextView
+        android:id="@+id/tvGenerating"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⏳ Generating AI message..."
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#993800"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Preview Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👁️  Preview (editable):"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="#1A0A00"
+        android:textSize="13sp"
+        android:layout_marginBottom="6dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_marginBottom="8dp">
+        <EditText
+            android:id="@+id/etMessagePreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_input_field"
+            android:padding="12dp"
+            android:hint="Select course + language, then click 'Generate'"
+            android:textSize="12sp"
+            android:fontFamily="@font/poppins_regular"
+            android:textColor="#1A0A00"
+            android:textColorHint="#C47A50"
+            android:inputType="textMultiLine"
+            android:gravity="top"/>
+    </ScrollView>
+
+    <!-- Copy Message Button -->
+    <Button
+        android:id="@+id/btnCopyMsg"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_button_cancel"
+        android:text="📋 Copy Generated Message"
+        android:textColor="#FF6A00"
+        android:fontFamily="@font/poppins_semibold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Send Message Only Button -->
+    <Button
+        android:id="@+id/btnSendMsgOnly"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_neu_btn_blue"
+        android:text="📲 Send Message Only"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Download status -->
+    <TextView
+        android:id="@+id/tvDownloadStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⬇️ Downloading PDF..."
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#FF6A00"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Send Button -->
+    <Button
+        android:id="@+id/btnSendWa"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_neu_btn_blue"
+        android:text="📲 Send PDF + Message via WhatsApp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Brochure-only button -->
+    <Button
+        android:id="@+id/btnSendBrochure"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_button_login"
+        android:text="📎 Send PDF only (without message)"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/poppins_semibold"
+        android:textSize="13sp"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Cancel -->
+    <Button
+        android:id="@+id/btnCancelWa"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:background="@drawable/bg_button_cancel"
+        android:text="❌ Cancel"
+        android:textColor="#993800"
+        android:textAllCaps="false"/>
+
+    </LinearLayout>
+</ScrollView>

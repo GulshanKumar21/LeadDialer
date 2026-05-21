@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F6FA">
+
+    <!-- ══ CLEAN ADMIN HEADER ══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_admin_hero"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="22dp">
+
+        <!-- Title block -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Admin Panel"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_extrabold"
+                android:letterSpacing="0.01"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Control Center"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp"
+                android:fontFamily="@font/nunito_semibold"
+                android:layout_marginTop="2dp"/>
+
+        </LinearLayout>
+
+        <!-- Thought of Day — text only, pill style -->
+        <TextView
+            android:id="@+id/btnThoughtOfDay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thought"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/nunito_semibold"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@drawable/bg_thought_pill"
+            android:layout_marginEnd="10dp"/>
+
+        <!-- Logout — text only, subtle pill -->
+        <LinearLayout
+            android:id="@+id/btnAdminLogoutWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_logout_pill"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Fragment container — fills remaining space above bottom nav -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#F5F6FA">
+
+        <FrameLayout
+            android:id="@+id/adminFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/adminBottomNav"/>
+
+        <!-- Bottom Navigation -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/adminBottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_alignParentBottom="true"
+            android:background="#FFFFFF"
+            app:elevation="12dp"
+            app:itemIconSize="22dp"
+            app:labelVisibilityMode="labeled"
+            app:itemTextColor="@color/admin_nav_text"
+            app:itemIconTint="@color/admin_nav_text"
+            app:itemTextAppearanceActive="@style/AdminNavTextActive"
+            app:itemTextAppearanceInactive="@style/AdminNavTextInactive"
+            app:itemRippleColor="@android:color/transparent"
+            app:itemBackground="@android:color/transparent"
+            app:menu="@menu/admin_bottom_nav"/>
+
+        <!-- FAB: Upload leads (only on Employees tab) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAdminUpload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_above="@+id/adminBottomNav"
+            android:layout_margin="16dp"
+            android:src="@drawable/outline_add_call_24"
+            app:backgroundTint="#FF6A00"
+            app:tint="#FFFFFF"
+            app:elevation="8dp"
+            app:fabSize="normal"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

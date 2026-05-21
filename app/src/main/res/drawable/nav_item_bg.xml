@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Selected Item -->
+    <item android:state_checked="true">
+        <inset android:insetTop="6dp" android:insetBottom="6dp" android:insetLeft="18dp" android:insetRight="18dp">
+            <layer-list>
+                <!-- Soft Shadow -->
+                <item
+                    android:left="2dp"
+                    android:top="2dp"
+                    android:right="2dp"
+                    android:bottom="2dp">
+                    <shape>
+                        <solid android:color="#12000000"/>
+                        <corners android:radius="22dp"/>
+                    </shape>
+                </item>
+
+                <!-- Main Glass Card -->
+                <item>
+                    <shape>
+                        <!-- Milky White Glass -->
+                        <gradient
+                            android:angle="270"
+                            android:startColor="#66FFFFFF"
+                            android:centerColor="#40FFFFFF"
+                            android:endColor="#22FFFFFF"/>
+
+                        <!-- Rounded Corners -->
+                        <corners android:radius="22dp"/>
+
+                        <!-- Glass Border -->
+                        <stroke
+                            android:width="1dp"
+                            android:color="#88FFFFFF"/>
+
+                        <!-- Inner Padding -->
+                        <padding
+                            android:left="14dp"
+                            android:right="14dp"
+                            android:top="12dp"
+                            android:bottom="12dp"/>
+                    </shape>
+                </item>
+            </layer-list>
+        </inset>
+    </item>
+
+    <!-- Normal Item -->
+    <item>
+        <inset android:insetTop="6dp" android:insetBottom="6dp" android:insetLeft="18dp" android:insetRight="18dp">
+            <shape>
+                <solid android:color="#08FFFFFF"/>
+                <corners android:radius="22dp"/>
+                <stroke
+                    android:width="0.5dp"
+                    android:color="#18FFFFFF"/>
+                <padding
+                    android:left="14dp"
+                    android:right="14dp"
+                    android:top="12dp"
+                    android:bottom="12dp"/>
+            </shape>
+        </inset>
+    </item>
+
+</selector>

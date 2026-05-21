@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center"
+        android:background="#D1D9E6"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvManageProfileTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Manage Profile"
+        android:textColor="#2A2A35"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"/>
+
+    <EditText
+        android:id="@+id/etManageEmpId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Employee ID"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etManageDesignation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Designation"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etManageDepartment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Department"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etManageManager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Reporting Manager"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etManageLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Work Location"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:id="@+id/tvManageDateOfJoining"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Date of Joining (Tap to select)"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- ── Team Leader Assignment ─────────────────────────── -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👥 Assign Team Leader"
+        android:textColor="#2A2A35"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerTl"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_neu_inset"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvManageTls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Create / Manage Team Leaders"
+        android:textColor="#4285F4"
+        android:textSize="13sp"
+        android:layout_marginBottom="20dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"/>
+
+    <Button
+        android:id="@+id/btnSaveProfile"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Save Details"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:backgroundTint="#4285F4"/>
+
+</LinearLayout>

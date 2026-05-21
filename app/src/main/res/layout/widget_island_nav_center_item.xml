@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="64dp"
+    android:layout_height="96dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingTop="8dp">
+
+    <!-- Outer Glow -->
+    <View
+        android:id="@+id/centerGlowRing"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:layout_gravity="top|center_horizontal"
+        android:background="@drawable/bg_center_nav_glow"
+        android:alpha="0.35"
+        android:translationY="0dp" />
+
+    <!-- Inner Glow -->
+    <View
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_gravity="top|center_horizontal"
+        android:background="@drawable/bg_center_nav_glow"
+        android:alpha="0.20"
+        android:translationY="4dp" />
+
+    <!-- Main Button -->
+    <FrameLayout
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_center_nav_btn"
+        android:elevation="10dp">
+
+        <ImageView
+            android:id="@+id/navItemIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:alpha="1.0" />
+
+    </FrameLayout>
+
+    <!-- Label -->
+    <TextView
+        android:id="@+id/navItemLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:textSize="8sp"
+        android:textStyle="bold"
+        android:textColor="#FF7043"
+        android:fontFamily="@font/poppins_semibold"
+        android:alpha="0"
+        android:layout_marginBottom="4dp" />
+
+</FrameLayout>

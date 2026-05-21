@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "279660317288",
+    "firebase_url": "https://leaddialer-4ac7e-default-rtdb.firebaseio.com",
+    "project_id": "leaddialer-4ac7e",
+    "storage_bucket": "leaddialer-4ac7e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:279660317288:android:a80bb864437520c18189dd",
+        "android_client_info": {
+          "package_name": "com.adyapan.leaddialer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCglTPydKZMApQuAVGgdxOozd5-rPeTgVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:279660317288:android:54715929d21a996e8189dd",
+        "android_client_info": {
+          "package_name": "com.example.leaddialer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCglTPydKZMApQuAVGgdxOozd5-rPeTgVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    android:padding="20dp">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚠️ Late Attendance"
+        android:fontFamily="@font/nunito_extrabold"
+        android:textColor="#C62828"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Current time -->
+    <TextView
+        android:id="@+id/tvLateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#7A5C3C"
+        android:textSize="13sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Question -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="11:30 AM tak call shuru nahi ki — wajah batayein:"
+        android:fontFamily="@font/poppins_semibold"
+        android:textColor="#1A0A00"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Radio buttons -->
+    <RadioGroup
+        android:id="@+id/radioGroupReasons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Other reason EditText -->
+    <EditText
+        android:id="@+id/etOtherReason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_input_field"
+        android:padding="12dp"
+        android:hint="Apni wajah likhein..."
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_regular"
+        android:textColor="#1A0A00"
+        android:textColorHint="#C47A50"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Submit button -->
+    <Button
+        android:id="@+id/btnSubmitReason"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_button_login"
+        android:text="✅ Submit"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/poppins_semibold"
+        android:textSize="14sp"/>
+
+</LinearLayout>

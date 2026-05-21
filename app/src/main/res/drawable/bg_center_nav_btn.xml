@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Center FAB button — vivid orange-to-deep-orange radial gradient -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:startColor="#FF8C5A"
+        android:centerColor="#FF6B2F"
+        android:endColor="#E84E00"
+        android:type="radial"
+        android:gradientRadius="60%"
+        android:angle="135" />
+</shape>

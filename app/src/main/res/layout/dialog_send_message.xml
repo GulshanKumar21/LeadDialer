@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+
+
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    app:cardBackgroundColor="@color/card_bg">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Header -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:text="💬"
+                android:textSize="22sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="Send Message"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A2E"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tvMessageTo"
+                    android:text="To: Rahul"
+                    android:textSize="13sp"
+                    android:textColor="#FF6A00"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F0F0"
+            android:layout_marginBottom="18dp"/>
+
+        <!-- Message type chips -->
+        <TextView
+            android:text="Quick Tags"
+            android:textSize="11sp"
+            android:textColor="#9CA3AF"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:id="@+id/layoutTags"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView android:id="@+id/tag1" android:text="⚠️ Urgent"
+                    android:textSize="12sp" android:textColor="#EF4444"
+                    android:background="#FFEEEE" android:paddingStart="12dp"
+                    android:paddingEnd="12dp" android:paddingTop="6dp"
+                    android:paddingBottom="6dp" android:layout_marginEnd="8dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                <TextView android:id="@+id/tag2" android:text="📋 Task"
+                    android:textSize="12sp" android:textColor="#6366F1"
+                    android:background="#EEF2FF" android:paddingStart="12dp"
+                    android:paddingEnd="12dp" android:paddingTop="6dp"
+                    android:paddingBottom="6dp" android:layout_marginEnd="8dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                <TextView android:id="@+id/tag3" android:text="⭐ Good Work"
+                    android:textSize="12sp" android:textColor="#10B981"
+                    android:background="#ECFDF5" android:paddingStart="12dp"
+                    android:paddingEnd="12dp" android:paddingTop="6dp"
+                    android:paddingBottom="6dp" android:layout_marginEnd="8dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                <TextView android:id="@+id/tag4" android:text="📞 Call Now"
+                    android:textSize="12sp" android:textColor="#F59E0B"
+                    android:background="#FFFBEB" android:paddingStart="12dp"
+                    android:paddingEnd="12dp" android:paddingTop="6dp"
+                    android:paddingBottom="6dp" android:layout_marginEnd="8dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                <TextView android:id="@+id/tag5" android:text="📊 Report Submit"
+                    android:textSize="12sp" android:textColor="#0EA5E9"
+                    android:background="#F0F9FF" android:paddingStart="12dp"
+                    android:paddingEnd="12dp" android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Message text input -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="✍️ Write your message..."
+            android:layout_marginBottom="20dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="3"
+                android:maxLines="6"
+                android:textSize="14sp"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Send button -->
+        <Button
+            android:id="@+id/btnSendMsg"
+            android:text="📨 Send Message"
+            android:backgroundTint="#FF6A00"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            app:cornerRadius="12dp"/>
+
+        <Button
+            android:id="@+id/btnCancelMsg"
+            android:text="Cancel"
+            android:backgroundTint="#F3F4F6"
+            android:textColor="#6B7280"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            app:cornerRadius="12dp"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@drawable/bg_milky_white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/transparent"
+            android:elevation="0dp"
+            app:title="Dashboard"
+            app:titleTextColor="#2A2A35"
+            app:titleTextAppearance="@style/ToolbarTitleStyle">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_gravity="end"
+                android:paddingEnd="8dp">
+
+                <ImageButton
+                    android:id="@+id/btnProfile"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_neu_surface"
+                    android:src="@drawable/ic_user"
+                    app:tint="#7A8B99"/>
+            </LinearLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Fragment fills remaining space, has paddingBottom so content
+             doesn't hide under the floating nav bar -->
+        <FrameLayout
+            android:id="@+id/fragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar"
+            android:paddingBottom="90dp"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            tools:layout="@layout/fragment_dashboard" />
+
+        <!-- 🌟 Island Nav Bar — floats over the bottom of the screen -->
+        <com.adyapan.leaddialer.IslandNavBar
+            android:id="@+id/islandNavBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:elevation="24dp" />
+
+       
+        <FrameLayout
+            android:id="@+id/globalDialBtnContainer"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="80dp"
+            android:clipChildren="false"
+            android:elevation="32dp">
+
+            <View
+                android:id="@+id/dialBtnGlow"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_dial_glow_ring"
+                android:alpha="0.5" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabGlobalDial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_menu_call"
+                android:contentDescription="Manual Dial"
+                app:backgroundTint="#22C55E"
+                app:tint="#FFFFFF"
+                app:fabSize="normal"
+                app:elevation="8dp"
+                android:clickable="false"
+                android:focusable="false"
+                app:maxImageSize="28dp" />
+
+        </FrameLayout>
+
+        <!-- Keep BottomNavigationView as invisible fallback (IDs still referenced in code) -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            app:menu="@menu/bottom_menu" />
+
+    </RelativeLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navView"
+        android:layout_width="290dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/bg_drawer_orange_premium"
+        android:elevation="24dp"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/drawer_menu"
+        app:itemTextColor="#333333"
+        app:itemIconTint="#FF6A00"
+        app:itemRippleColor="#1A000000"
+        app:itemBackground="@drawable/nav_item_bg_light"
+        />
+</androidx.drawerlayout.widget.DrawerLayout>

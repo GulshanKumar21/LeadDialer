@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/adminNavEmployees"
+        android:title="Employees"
+        android:icon="@drawable/ic_nav_employees"/>
+
+    <item
+        android:id="@+id/adminNavLeaves"
+        android:title="Leaves"
+        android:icon="@drawable/ic_nav_leaves"/>
+
+    <item
+        android:id="@+id/adminNavAttendance"
+        android:title="Attendance"
+        android:icon="@drawable/ic_nav_attendance"/>
+
+    <item
+        android:id="@+id/adminNavMessages"
+        android:title="Messages"
+        android:icon="@drawable/ic_nav_messages"/>
+
+    <item
+        android:id="@+id/adminNavSales"
+        android:title="Sales"
+        android:icon="@drawable/ic_nav_sales"/>
+
+</menu>

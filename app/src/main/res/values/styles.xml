@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="ToolbarTitleStyle" parent="TextAppearance.AppCompat.Large">
+        <item name="android:textColor">#1A1A1A</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/nunito_extrabold</item>
+    </style>
+
+    <style name="AdminTabTextStyle" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <!-- Admin bottom nav text styles (text-only, no icons) -->
+    <style name="AdminNavTextActive">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/nunito_extrabold</item>
+    </style>
+
+    <style name="AdminNavTextInactive">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">@font/nunito_semibold</item>
+    </style>
+
+    <style name="PremiumDialButton">
+
+        <item name="android:layout_width">90dp</item>
+
+        <item name="android:layout_height">90dp</item>
+
+        <item name="android:layout_margin">9dp</item>
+
+        <item name="android:gravity">center</item>
+
+        <item name="android:textSize">34sp</item>
+
+        <item name="android:textColor">#2A2A35</item>
+
+        <item name="android:textStyle">bold</item>
+
+        <item name="android:fontFamily">sans-serif-medium</item>
+
+        <item name="android:background">@drawable/bg_dialer_btn_glass</item>
+
+        <item name="android:elevation">16dp</item>
+
+        <item name="android:outlineAmbientShadowColor" tools:targetApi="p">#55000000</item>
+
+        <item name="android:outlineSpotShadowColor" tools:targetApi="p">#88000000</item>
+
+    </style>
+
+
+    <style name="IPhonePageCard" parent="Widget.MaterialComponents.CardView"
+        tools:ignore="ResourceName">
+
+        <item name="cardCornerRadius">34dp</item>
+        <item name="cardElevation">40dp</item>
+        <item name="cardMaxElevation">50dp</item>
+
+        <item name="cardBackgroundColor">#FFFFFF</item>
+        <item name="cardUseCompatPadding">false</item>
+        <item name="cardPreventCornerOverlap">false</item>
+
+    </style>
+
+    <style name="NavHeaderImageShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">32dp</item>
+        <item name="cornerSizeTopLeft">32dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,23 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Gradient -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#6A11CB"
+                android:endColor="#2575FC"
+                android:angle="45"/>
+        </shape>
+    </item>
+
+    <!-- Bottom Curve -->
+    <item android:gravity="bottom">
+        <shape>
+            <solid android:color="#FFFFFF"/>
+            <corners
+                android:topLeftRadius="40dp"
+                android:topRightRadius="40dp"/>
+        </shape>
+    </item>
+
+</layer-list>

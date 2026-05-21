@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_glass">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/tvAssignTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="👥 Assign Members"
+            android:textColor="#1A202C"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvAssignCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 selected"
+            android:textColor="#4285F4"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvAssignSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select employees to assign to this TL"
+        android:textColor="#718096"
+        android:textSize="13sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Search -->
+    <EditText
+        android:id="@+id/etSearchAssign"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:hint="🔍 Search employee..."
+        android:background="@drawable/bg_neu_inset"
+        android:padding="12dp"
+        android:textColor="#2A2A35"
+        android:textColorHint="#7A8B99"
+        android:textSize="14sp"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Employee list with checkboxes -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAssignEmployees"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:nestedScrollingEnabled="true"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E2E8F0"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btnCancelAssign"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Cancel"
+            android:textColor="#4A5568"
+            android:backgroundTint="#EDF2F7"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnSaveAssign"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Save Assignment"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:backgroundTint="#4285F4"/>
+    </LinearLayout>
+
+</LinearLayout>

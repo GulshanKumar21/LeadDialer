@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Selected = orange brand color (Instagram accent style) -->
+    <item android:state_checked="true" android:color="#FF6A00"/>
+    <!-- Unselected = muted grey -->
+    <item android:color="#9E9E9E"/>
+</selector>

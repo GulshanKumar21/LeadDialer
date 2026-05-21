@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000">
+
+    <TextView
+        android:id="@+id/tvSalesDetailName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Employee"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#2A2A35"
+        android:fontFamily="@font/poppins_bold"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- Expected Sales -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card_gradient_cream"
+        android:padding="16dp"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🎯 Expected Sales"
+            android:textSize="14sp"
+            android:textColor="#4A5568"
+            android:fontFamily="@font/poppins_semibold"/>
+
+        <TextView
+            android:id="@+id/tvSalesDetailExpected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FF6A00"
+            android:fontFamily="@font/poppins_bold"/>
+
+    </LinearLayout>
+
+    <!-- Sales Done -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card_gradient_cream"
+        android:padding="16dp"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="✅ Sales Done"
+            android:textSize="14sp"
+            android:textColor="#4A5568"
+            android:fontFamily="@font/poppins_semibold"/>
+
+        <TextView
+            android:id="@+id/tvSalesDetailDone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#1B7A34"
+            android:fontFamily="@font/poppins_bold"/>
+
+    </LinearLayout>
+
+    <!-- Difference -->
+    <TextView
+        android:id="@+id/tvSalesDetailDiff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="—"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/poppins_semibold"
+        android:layout_marginTop="4dp"/>
+
+</LinearLayout>

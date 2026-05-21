@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_bg">
+
+    <!-- Soft radial glow behind mascot -->
+    <ImageView
+        android:id="@+id/glowBehind"
+        android:layout_width="380dp"
+        android:layout_height="380dp"
+        android:src="@drawable/bg_splash_glow"
+        android:alpha="0.0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.45" />
+
+    <!-- Main Mascot Image — full screen fit, centered -->
+    <ImageView
+        android:id="@+id/splashMascot"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/img45"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.82"
+        app:layout_constraintHeight_percent="0.72"
+        app:layout_constraintVertical_bias="0.42"
+        app:layout_constraintDimensionRatio="" />
+
+    <!-- Hidden brand group — kept for code compatibility (visibility GONE) -->
+    <LinearLayout
+        android:id="@+id/brandGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/splashMascot"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/logoBall"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:src="@drawable/adyapan1"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true" />
+
+        <TextView
+            android:id="@+id/taglineText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Smart CRM · Lead Dialer"
+            android:textColor="#888888"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <!-- Bottom section: pulsing dots + powered-by -->
+    <LinearLayout
+        android:id="@+id/bottomGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingBottom="44dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Three pulsing orange dots -->
+        <LinearLayout
+            android:id="@+id/dotsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:layout_marginEnd="7dp"
+                android:background="@drawable/bg_splash_dot"
+                android:alpha="1.0" />
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:layout_marginEnd="7dp"
+                android:background="@drawable/bg_splash_dot"
+                android:alpha="0.4" />
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:background="@drawable/bg_splash_dot"
+                android:alpha="0.2" />
+
+        </LinearLayout>
+
+        <!-- Powered by -->
+        <TextView
+            android:id="@+id/poweredBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Powered by Adyapan"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"
+            android:letterSpacing="0.06"
+            android:fontFamily="sans-serif-light" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

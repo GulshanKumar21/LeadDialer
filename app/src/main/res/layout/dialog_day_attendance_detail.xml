@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="#D1D5DB"
+        android:alpha="0.6"/>
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/tvDayDetailDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#111827"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Weekly Off Banner -->
+    <TextView
+        android:id="@+id/tvDayDetailWeeklyOff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:padding="14dp"
+        android:gravity="center"
+        android:textColor="#6366F1"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:background="#EEF2FF"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tvDayDetailStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#374151"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Check In Row -->
+    <LinearLayout
+        android:id="@+id/rowCheckIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#DCFCE7"
+            android:layout_marginEnd="12dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="⏰"
+                android:textSize="18sp"/>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvDayDetailCheckIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <!-- Check Out Row -->
+    <LinearLayout
+        android:id="@+id/rowCheckOut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#FEF3C7"
+            android:layout_marginEnd="12dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🚪"
+                android:textSize="18sp"/>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvDayDetailCheckOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#374151"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+</LinearLayout>

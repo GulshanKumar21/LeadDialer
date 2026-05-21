@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_milky_white"
+    android:overScrollMode="never"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:background="@drawable/bg_neu_surface">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily Attendance"
+                android:textColor="#2A2A35"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Verify your location and presence"
+                android:textColor="#7A8B99"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Selfie Card -->
+        <androidx.cardview.widget.CardView
+    style="@style/IPhoneCardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="24dp"
+
+
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center">
+
+                <FrameLayout
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:background="@drawable/bg_icon_blue"
+                    android:layout_marginBottom="16dp">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_map"
+                        app:tint="#4285F4"/>
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/txtStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Verifying location..."
+                    android:textColor="#2A2A35"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:id="@+id/txtSubStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Please wait while we check your distance from the office."
+                    android:textColor="#7A8B99"
+                    android:textSize="13sp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F1F3F5"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="24dp"/>
+
+                <Button
+                    android:id="@+id/btnAttendance"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Mark Attendance"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_neu_btn_blue"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:enabled="false" />
+
+                <Button
+                    android:id="@+id/btnViewHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="View Attendance History"
+                    android:textColor="#4285F4"
+                    android:background="@android:color/transparent"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ─── Mini Calendar Card ─── -->
+        <androidx.cardview.widget.CardView
+    style="@style/IPhoneCardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="20dp"
+
+
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Month nav row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageButton
+                        android:id="@+id/btnCalPrev"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_back"
+                        android:contentDescription="Previous Month"/>
+
+                    <TextView
+                        android:id="@+id/tvCalMonth"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#2A2A35"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <ImageButton
+                        android:id="@+id/btnCalNext"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_arrow_right"
+                        android:contentDescription="Next Month"/>
+                </LinearLayout>
+
+                <!-- Day-of-week headers (Sun…Sat) — built in code -->
+                <LinearLayout
+                    android:id="@+id/llDayHeaders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"/>
+
+                <!-- Calendar date cells — rows built in code -->
+                <LinearLayout
+                    android:id="@+id/llCalendarGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="6dp"/>
+
+                <!-- Legend -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginTop="12dp">
+
+                    <View android:layout_width="8dp" android:layout_height="8dp"
+                        android:background="#22C55E" android:layout_marginEnd="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Present" android:textSize="10sp" android:textColor="#9CA3AF"
+                        android:layout_marginEnd="12dp"/>
+
+                    <View android:layout_width="8dp" android:layout_height="8dp"
+                        android:background="#F59E0B" android:layout_marginEnd="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Late" android:textSize="10sp" android:textColor="#9CA3AF"
+                        android:layout_marginEnd="12dp"/>
+
+                    <View android:layout_width="8dp" android:layout_height="8dp"
+                        android:background="#EF4444" android:layout_marginEnd="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Absent" android:textSize="10sp" android:textColor="#9CA3AF"
+                        android:layout_marginEnd="12dp"/>
+
+                    <View android:layout_width="8dp" android:layout_height="8dp"
+                        android:background="#D1D5DB" android:layout_marginEnd="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Day Off" android:textSize="10sp" android:textColor="#9CA3AF"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Footer note -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:text="Only one device per employee is allowed"
+            android:textColor="#99AABB"
+            android:textSize="12sp"
+            android:textStyle="italic"/>
+
+    </LinearLayout>
+</ScrollView>

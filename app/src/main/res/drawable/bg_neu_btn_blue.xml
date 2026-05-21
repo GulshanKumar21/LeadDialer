@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Blue Shadow -->
+    <item android:top="4dp" android:left="2dp" android:right="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#994285F4" />
+            <corners android:radius="30dp" />
+        </shape>
+    </item>
+    <!-- Blue Button Surface -->
+    <item android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <gradient 
+                android:startColor="#6A9DF7" 
+                android:endColor="#4285F4" 
+                android:angle="270" />
+            <corners android:radius="30dp" />
+        </shape>
+    </item>
+</layer-list>

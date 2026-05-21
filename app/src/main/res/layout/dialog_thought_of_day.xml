@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+
+
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    app:cardBackgroundColor="@color/card_bg">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="💡 Thought of the Day"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A2E"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:text="This will be shown to all employees on their dashboard instantly."
+            android:textSize="12sp"
+            android:textColor="#9CA3AF"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- Current thought preview -->
+        <TextView
+            android:id="@+id/tvCurrentThought"
+            android:text=""
+            android:textSize="12sp"
+            android:textColor="#6366F1"
+            android:textStyle="italic"
+            android:background="#F5F3FF"
+            android:padding="10dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Thought input -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="✍️ Write your thought..."
+            android:layout_marginBottom="14dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etThought"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="3"
+                android:maxLines="6"
+                android:textSize="14sp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Author input -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="👤 Author (default: Adyapan Team)"
+            android:layout_marginBottom="20dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etThoughtAuthor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:textSize="14sp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btnPublishThought"
+            android:text="🚀 Publish to All Employees"
+            android:backgroundTint="#FF6A00"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            app:cornerRadius="12dp"/>
+
+        <Button
+            android:id="@+id/btnCancelThought"
+            android:text="Cancel"
+            android:backgroundTint="#F3F4F6"
+            android:textColor="#6B7280"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            app:cornerRadius="12dp"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    iPhone-style call history item — symmetric 3D shadow
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Soft all-sides shadow -->
+    <item android:top="1dp" android:bottom="1dp" android:left="1dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#10000000"/>
+            <corners android:radius="18dp"/>
+        </shape>
+    </item>
+
+    <!-- Bottom shadow slightly stronger -->
+    <item android:top="3dp" android:left="1dp" android:bottom="0dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#16000000"/>
+            <corners android:radius="18dp"/>
+        </shape>
+    </item>
+
+    <!-- White card surface -->
+    <item android:top="1dp" android:bottom="1dp" android:left="1dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF"/>
+            <corners android:radius="16dp"/>
+            <stroke android:width="0.5dp" android:color="#EDECE5"/>
+        </shape>
+    </item>
+
+</layer-list>

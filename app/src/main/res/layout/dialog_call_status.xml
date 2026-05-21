@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    android:padding="24dp">
+
+    <!-- Call icon + Name -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="📞"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:background="@drawable/bg_call_circle"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvDialogName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rahul Kumar"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#1A202C"/>
+
+        <TextView
+            android:id="@+id/tvDialogDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2m 30s"
+            android:textSize="13sp"
+            android:textColor="#718096"
+            android:layout_marginTop="4dp"/>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EDF2F7"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Status buttons -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Status"
+        android:textSize="12sp"
+        android:textColor="#A0AEC0"
+        android:textAllCaps="true"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Connected -->
+    <LinearLayout
+        android:id="@+id/btnConnected"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_status_btn"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="✅" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Connected" android:textSize="14sp"
+            android:textColor="#276749" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Not Connected -->
+    <LinearLayout
+        android:id="@+id/btnNotConnected"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_status_btn"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="❌" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Not Connected" android:textSize="14sp"
+            android:textColor="#4A5568" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Busy -->
+    <LinearLayout
+        android:id="@+id/btnBusy"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_status_btn"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="📵" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Busy" android:textSize="14sp"
+            android:textColor="#C05621" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Interested -->
+    <LinearLayout
+        android:id="@+id/btnInterested"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_status_btn"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⭐" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Interested" android:textSize="14sp"
+            android:textColor="#2B6CB0" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Not Interested -->
+    <LinearLayout
+        android:id="@+id/btnNotInterested"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_status_btn"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="👎" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Not Interested" android:textSize="14sp"
+            android:textColor="#C53030" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Skip button -->
+    <TextView
+        android:id="@+id/btnSkip"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:text="Skip"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="#A0AEC0"
+        android:background="@drawable/bg_skip_btn"/>
+
+</LinearLayout>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    style="@style/IPhoneCardView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Top row: Avatar + Name + Time + Unread dot -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Avatar circle -->
+            <TextView
+                android:id="@+id/tvReplyAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_avatar_dark"
+                android:text="E"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="10dp">
+
+                <TextView
+                    android:id="@+id/tvReplyEmployeeName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Employee Name"
+                    android:textColor="#2A2A35"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvReplyTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Just now"
+                    android:textColor="#9AABB7"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp"/>
+            </LinearLayout>
+
+            <!-- Unread indicator -->
+            <View
+                android:id="@+id/viewAdminUnreadDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_card_gradient_orange"
+                android:visibility="visible"/>
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F4F8"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- Original admin message (context) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <View
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:minHeight="30dp"
+                android:background="#4285F4"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tvReplyOriginalMsg"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Original message..."
+                android:textColor="#7A8B99"
+                android:textSize="12sp"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+        </LinearLayout>
+
+        <!-- Employee's reply text -->
+        <TextView
+            android:id="@+id/tvReplyText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reply text here..."
+            android:textColor="#2A2A35"
+            android:textSize="14sp"
+            android:lineSpacingExtra="3dp"/>
+
+        <!-- Bottom: View Thread button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewThread"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginTop="10dp"
+            android:text="💬 View Full Thread"
+            android:textSize="12sp"
+            android:textColor="#FF6A00"
+            app:strokeColor="#FF6A00"
+            app:cornerRadius="20dp"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

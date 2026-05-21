@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode overrides -->
+    <color name="app_bg">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="card_bg">#1E1E1E</color>
+    <color name="text_primary">#F0F0F0</color>
+    <color name="text_secondary">#AAAAAA</color>
+    <color name="divider">#2E2E2E</color>
+    <color name="icon_tint">#DDDDDD</color>
+    <color name="nav_bg">#1A1A1A</color>
+    <color name="input_bg">#2A2A2A</color>
+    <color name="slider_unselected">#444444</color>
+
+    <!-- Brand stays orange in dark mode too -->
+    <color name="brand_orange">#FF6A00</color>
+    <color name="brand_orange_light">#3D2000</color>
+</resources>

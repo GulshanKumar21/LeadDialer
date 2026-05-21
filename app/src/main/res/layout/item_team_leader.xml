@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    style="@style/IPhoneCardView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="12dp"
+    android:layout_marginTop="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- TL Info Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTlName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#1A1A2E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semibold"/>
+
+            <TextView
+                android:id="@+id/tvTlUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/poppins_regular"/>
+
+        </LinearLayout>
+
+        <!-- Assign Members Button -->
+        <TextView
+            android:id="@+id/btnTlAssign"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👥 Add Employee"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_neu_btn_blue"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:elevation="2dp"/>
+
+        <!-- Edit Button -->
+        <TextView
+            android:id="@+id/btnTlEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✏️"
+            android:textSize="18sp"
+            android:padding="8dp"
+            android:gravity="center"/>
+
+        <!-- Delete Button -->
+        <TextView
+            android:id="@+id/btnTlDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🗑️"
+            android:textSize="18sp"
+            android:padding="8dp"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

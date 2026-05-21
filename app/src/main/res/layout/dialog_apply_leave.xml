@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:elevation="32dp"
+    android:outlineAmbientShadowColor="#55000000"
+    android:outlineSpotShadowColor="#88000000"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Apply for Leave"
+                android:textColor="#2A2A35"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_extrabold"/>
+
+            <!-- Orange accent dot -->
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="#FF6A00"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- Leave Type -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Leave Type"
+            android:textColor="#7A8B99"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <Spinner
+            android:id="@+id/spinnerLeaveType"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_input_field"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- From Date -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="From Date"
+            android:textColor="#7A8B99"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_input_field"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvFromDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Select date"
+                android:textColor="#AABBCC"
+                android:textSize="14sp"
+                android:paddingStart="14dp"/>
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                android:layout_marginEnd="14dp"
+                android:alpha="0.5"/>
+        </LinearLayout>
+
+        <!-- To Date -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To Date"
+            android:textColor="#7A8B99"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_input_field"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvToDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Select date"
+                android:textColor="#AABBCC"
+                android:textSize="14sp"
+                android:paddingStart="14dp"/>
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                android:layout_marginEnd="14dp"
+                android:alpha="0.5"/>
+        </LinearLayout>
+
+        <!-- Reason -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reason for Leave"
+            android:textColor="#7A8B99"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <EditText
+            android:id="@+id/etLeaveReason"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@drawable/bg_input_field"
+            android:hint="Describe your reason..."
+            android:textColorHint="#AABBCC"
+            android:textColor="#2A2A35"
+            android:textSize="14sp"
+            android:padding="14dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Admin Email — locked to pre-approved list -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Send To (Admin)"
+                android:textColor="#7A8B99"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔒 Verified Only"
+                android:textColor="#FF6A00"
+                android:textSize="11sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/spinnerAdminEmail"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_input_field"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/btnSubmitLeave"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Submit Leave Request"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pill_orange_dark"
+            android:layout_marginBottom="8dp"/>
+
+    </LinearLayout>
+</ScrollView>

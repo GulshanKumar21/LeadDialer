@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">ADYAPAN</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="total_leads_icon">Total Leads Icon</string>
+    <string name="pending_icon">Pending Icon</string>
+    <string name="connected_icon">Connected Icon</string>
+    <string name="interested_icon">Interested Icon</string>
+</resources>

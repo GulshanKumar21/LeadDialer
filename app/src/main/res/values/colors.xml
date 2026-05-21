@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="slider_selected">#6A4FB3</color>
+    <color name="slider_unselected">#CCCCCC</color>
+
+    <!-- Brand Colors -->
+    <color name="brand_orange">#FF6A00</color>
+    <color name="brand_orange_light">#FFF0E6</color>
+
+    <!-- Light Mode — Milky Warm White (iPhone style) -->
+    <color name="app_bg">#F8F8F5</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="text_primary">#111111</color>
+    <color name="text_secondary">#888888</color>
+    <color name="divider">#EFEFEA</color>
+    <color name="icon_tint">#333333</color>
+    <color name="nav_bg">#FFFFFF</color>
+    <color name="input_bg">#F5F5F2</color>
+
+    <!-- iPhone-style 3D shadow tones -->
+    <color name="shadow_outer">#1A000000</color>
+    <color name="shadow_highlight">#CCFFFFFF</color>
+
+</resources>

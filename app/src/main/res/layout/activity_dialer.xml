@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_milky_white">
+
+    <!-- HEADER TOOLBAR -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_marginTop="16dp">
+
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            app:tint="#2A2A35"
+            android:padding="12dp"
+            android:contentDescription="Back" />
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Dialer"
+            android:textColor="#2A2A35"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+    </RelativeLayout>
+
+    <!-- NUMBER DISPLAY AREA -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
+
+        <TextView
+            android:id="@+id/tvNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text=""
+            android:hint="Enter number"
+            android:textColorHint="#A0AABF"
+            android:textColor="#2A2A35"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:singleLine="true"
+            android:ellipsize="start" />
+
+    </FrameLayout>
+
+    <!-- KEYPAD CONTAINER -->
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true"
+        android:columnCount="3"
+        android:paddingBottom="16dp">
+
+        <!-- ROW 1 -->
+        <!-- btn1 -->
+        <LinearLayout
+            android:id="@+id/btn1"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+
+        <!-- btn2 -->
+        <LinearLayout
+            android:id="@+id/btn2"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ABC"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- btn3 -->
+        <LinearLayout
+            android:id="@+id/btn3"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DEF"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- ROW 2 -->
+        <!-- btn4 -->
+        <LinearLayout
+            android:id="@+id/btn4"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GHI"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- btn5 -->
+        <LinearLayout
+            android:id="@+id/btn5"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="JKL"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- btn6 -->
+        <LinearLayout
+            android:id="@+id/btn6"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="6"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MNO"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- ROW 3 -->
+        <!-- btn7 -->
+        <LinearLayout
+            android:id="@+id/btn7"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="7"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PQRS"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- btn8 -->
+        <LinearLayout
+            android:id="@+id/btn8"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TUV"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- btn9 -->
+        <LinearLayout
+            android:id="@+id/btn9"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WXYZ"
+                android:textColor="#8B95A7"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-2dp" />
+        </LinearLayout>
+
+        <!-- ROW 4 -->
+        <!-- btnStar -->
+        <LinearLayout
+            android:id="@+id/btnStar"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="*"
+                android:textColor="#2A2A35"
+                android:textSize="34sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- btn0 -->
+        <LinearLayout
+            android:id="@+id/btn0"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+"
+                android:textColor="#8B95A7"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:layout_marginTop="-4dp" />
+        </LinearLayout>
+
+        <!-- btnHash -->
+        <LinearLayout
+            android:id="@+id/btnHash"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_margin="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_dialer_btn_milky"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#"
+                android:textColor="#2A2A35"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+
+    </GridLayout>
+
+    <!-- ACTION BUTTONS ROW -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="8dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
+
+        <!-- SAVE CONTACT (Left Slot) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/saveCard"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="24dp"
+            app:cardElevation="6dp"
+            app:cardMaxElevation="10dp"
+            app:cardCornerRadius="28dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            android:outlineAmbientShadowColor="#44000000"
+            android:outlineSpotShadowColor="#66000000">
+
+            <ImageButton
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_dialer_btn_milky"
+                android:padding="14dp"
+                android:src="@android:drawable/ic_menu_save"
+                app:tint="#2A2A35" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- CALL BUTTON (Center Slot) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/callCard"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_centerInParent="true"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="16dp"
+            app:cardCornerRadius="36dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            android:outlineAmbientShadowColor="#44000000"
+            android:outlineSpotShadowColor="#66000000">
+
+            <ImageButton
+                android:id="@+id/btnCall"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_dialer_btn_milky"
+                android:padding="18dp"
+                android:src="@android:drawable/ic_menu_call"
+                app:tint="#22C55E" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- BACKSPACE / DELETE (Right Slot) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/deleteCard"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="24dp"
+            app:cardElevation="6dp"
+            app:cardMaxElevation="10dp"
+            app:cardCornerRadius="28dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            android:outlineAmbientShadowColor="#44000000"
+            android:outlineSpotShadowColor="#66000000">
+
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_dialer_btn_milky"
+                android:padding="14dp"
+                android:src="@android:drawable/ic_input_delete"
+                app:tint="#2A2A35" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </RelativeLayout>
+
+</LinearLayout>

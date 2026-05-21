@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Shadow -->
+    <item
+        android:left="3dp"
+        android:top="5dp">
+
+        <shape>
+            <solid android:color="#12000000"/>
+            <corners android:radius="34dp"/>
+        </shape>
+    </item>
+
+    <!-- Main Glass -->
+    <item>
+
+        <shape>
+
+            <gradient
+                android:angle="270"
+                android:startColor="#F9FFFFFF"
+                android:centerColor="#F1FFFFFF"
+                android:endColor="#EAFFFFFF"/>
+
+            <corners android:radius="34dp"/>
+
+            <stroke
+                android:width="1dp"
+                android:color="#80FFFFFF"/>
+
+        </shape>
+
+    </item>
+
+    <!-- Gloss Reflection -->
+    <item
+        android:left="18dp"
+        android:right="18dp"
+        android:top="10dp"
+        android:bottom="120dp">
+
+        <shape>
+
+            <gradient
+                android:angle="90"
+                android:startColor="#90FFFFFF"
+                android:endColor="#00FFFFFF"/>
+
+            <corners android:radius="26dp"/>
+
+        </shape>
+
+    </item>
+
+</layer-list>

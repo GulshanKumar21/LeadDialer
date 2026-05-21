@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Login hero gradient — warm orange brand colors
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:startColor="#C94E00"
+        android:centerColor="#E85D00"
+        android:endColor="#FF6A00"
+        android:angle="180"/>
+</shape>

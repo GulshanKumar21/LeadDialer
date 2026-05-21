@@ -1,0 +1,53 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.LeadDialer" parent="Theme.Material3.DayNight.NoActionBar">
+
+
+        <item name="colorPrimary">@color/brand_orange</item>
+        <item name="colorPrimaryVariant">@color/brand_orange</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <item name="android:colorBackground">#F8F8F5</item>
+        <item name="android:windowBackground">@drawable/bg_milky_white</item>
+
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <item name="android:statusBarColor">#F8F8F5</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+
+        <item name="android:outlineAmbientShadowColor" tools:targetApi="p">#44000000</item>
+        <item name="android:outlineSpotShadowColor"   tools:targetApi="p">#77000000</item>
+
+        <item name="materialCardViewStyle">@style/IPhoneCardView</item>
+
+    </style>
+
+    <style name="IPhoneCardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">#FFFFFF</item>
+        <item name="cardElevation">36dp</item>
+        <item name="cardMaxElevation">48dp</item>
+        <item name="cardCornerRadius">28dp</item>
+        <item name="cardPreventCornerOverlap">false</item>
+        <item name="cardUseCompatPadding">false</item>
+    </style>
+
+
+    <style name="GlassCardView" parent="IPhoneCardView"/>
+
+    <style name="Theme.LeadDialer" parent="Base.Theme.LeadDialer"/>
+
+    <style name="Theme.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+</resources>
