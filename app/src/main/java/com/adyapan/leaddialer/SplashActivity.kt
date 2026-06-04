@@ -122,16 +122,30 @@ class SplashActivity : AppCompatActivity() {
         dot.startAnimation(pulse)
     }
 
-    // 🔥 Root Detection
+    // 🔥 Enhanced Root Detection
     private fun isRooted(): Boolean {
+        val suPaths = listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/system/su",
+            "/data/local/xbin/su", "/data/local/bin/su", "/data/local/su")
+        if (suPaths.any { File(it).exists() }) return true
 
-        return listOf(
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/sbin/su",
-            "/system/app/Superuser.apk",
-            "/system/app/Magisk.apk"
-        ).any { File(it).exists() }
+        val rootApps = listOf("/system/app/Superuser.apk", "/system/app/SuperSU.apk",
+            "/system/app/Magisk.apk", "/data/app/com.topjohnwu.magisk")
+        if (rootApps.any { File(it).exists() }) return true
+
+        if (android.os.Build.TAGS != null && android.os.Build.TAGS.contains("test-keys")) return true
+
+        try {
+            packageManager.getPackageInfo("com.topjohnwu.magisk", 0)
+            return true
+        } catch (e: PackageManager.NameNotFoundException) { }
+
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
+            val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+            if (reader.readLine() != null) return true
+        } catch (e: Exception) { }
+
+        return false
     }
 
     // 🔥 One Device Login Validation

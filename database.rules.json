@@ -1,0 +1,41 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    
+    "rtdb_leads": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+        "$leadId": {
+          ".validate": "newData.hasChildren(['userId', 'name', 'phone', 'status'])"
+        }
+      }
+    },
+    
+    "callRecords": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+        "$recordId": {
+          ".validate": "newData.hasChildren(['userId', 'name', 'phone', 'calledAt'])"
+        }
+      }
+    },
+    
+    "expectedSales": {
+      "$userId": {
+        "$date": {
+          ".read": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": false
+    }
+  }
+}
