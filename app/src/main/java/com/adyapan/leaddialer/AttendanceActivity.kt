@@ -359,33 +359,70 @@ class AttendanceActivity : AppCompatActivity() {
     // ── Location ──────────────────────────────────────────────────────────
     private fun getLocation() {
         val fused = LocationServices.getFusedLocationProviderClient(this)
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) return
 
-        fused.lastLocation.addOnSuccessListener { location ->
+        status.text    = "Getting your location... 📡"
+        subStatus.text = "Please wait, fetching fresh GPS coordinates."
+        btn.isEnabled  = false
+
+        // ── Use getCurrentLocation for a FRESH reading (not stale lastLocation) ──
+        val cancellationToken = com.google.android.gms.tasks.CancellationTokenSource()
+        fused.getCurrentLocation(
+            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+            cancellationToken.token
+        ).addOnSuccessListener { location ->
             if (location != null) {
-                if (location.isFromMockProvider) {
-                    status.text   = "Mock Location Detected ❌"
-                    subStatus.text = "Fake GPS is not allowed for attendance."
-                    return@addOnSuccessListener
-                }
-                lat = location.latitude
-                lng = location.longitude
-                val result = FloatArray(1)
-                Location.distanceBetween(lat, lng, officeLat, officeLng, result)
-                if (result[0] <= allowedRadius) {
-                    status.text    = "Inside Office ✅"
-                    subStatus.text = "You are within ${result[0].toInt()}m of the office."
-                    btn.isEnabled  = true
-                    checkToday()
-                } else {
-                    status.text    = "Outside Office ❌"
-                    subStatus.text = "You are ${result[0].toInt()}m away. Go inside the office to mark attendance."
-                    btn.isEnabled  = false
-                }
+                handleLocationResult(location)
             } else {
-                status.text    = "Location not found ❌"
-                subStatus.text = "Please ensure your GPS is turned on and try again."
+                // getCurrentLocation returned null → fallback to lastLocation
+                fused.lastLocation.addOnSuccessListener { fallback ->
+                    if (fallback != null) {
+                        handleLocationResult(fallback)
+                    } else {
+                        status.text    = "Location not found ❌"
+                        subStatus.text = "GPS signal unavailable. Please go outdoors, turn on GPS and try again."
+                    }
+                }.addOnFailureListener {
+                    status.text    = "Location error ❌"
+                    subStatus.text = "Failed to get location. Please enable GPS and try again."
+                }
             }
+        }.addOnFailureListener {
+            // Permission error or timeout → fallback to lastLocation
+            fused.lastLocation.addOnSuccessListener { fallback ->
+                if (fallback != null) {
+                    handleLocationResult(fallback)
+                } else {
+                    status.text    = "Location error ❌"
+                    subStatus.text = "Failed to get location. Please enable GPS and try again."
+                }
+            }
+        }
+    }
+
+    private fun handleLocationResult(location: android.location.Location) {
+        if (location.isFromMockProvider) {
+            status.text    = "Mock Location Detected ❌"
+            subStatus.text = "Fake GPS is not allowed for attendance."
+            return
+        }
+        lat = location.latitude
+        lng = location.longitude
+        val result = FloatArray(1)
+        Location.distanceBetween(lat, lng, officeLat, officeLng, result)
+        val distanceMeters = result[0].toInt()
+        if (distanceMeters <= allowedRadius) {
+            status.text    = "Inside Office ✅"
+            subStatus.text = "You are within ${distanceMeters}m of the office."
+            btn.isEnabled  = true
+            checkToday()
+        } else {
+            status.text    = "Outside Office ❌"
+            subStatus.text = "You are ${distanceMeters}m away. Move inside the office to mark attendance."
+            btn.isEnabled  = false
         }
     }
 
