@@ -171,11 +171,7 @@ class MainActivity : AppCompatActivity(),
             }
         }
 
-        FirebaseApp.initializeApp(this)
 
-        val appCheck = FirebaseAppCheck.getInstance()
-        appCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
-        
         val btnProfile = findViewById<ImageButton>(R.id.btnProfile)
         btnProfile.setOnClickListener {
             loadFragment(ProfileFragment(), "Profile")
