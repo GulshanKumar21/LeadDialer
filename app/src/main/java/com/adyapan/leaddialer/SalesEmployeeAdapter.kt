@@ -13,8 +13,9 @@ class SalesEmployeeAdapter(
 ) : ListAdapter<EmployeeSummary, SalesEmployeeAdapter.VH>(DIFF) {
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-        val avatar : TextView = view.findViewById(R.id.tvSalesAvatar)
-        val name   : TextView = view.findViewById(R.id.tvSalesEmpName)
+        val avatar       : TextView = view.findViewById(R.id.tvSalesAvatar)
+        val name         : TextView = view.findViewById(R.id.tvSalesEmpName)
+        val tvSalesCount : TextView = view.findViewById(R.id.tvSalesDoneCount)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -28,6 +29,14 @@ class SalesEmployeeAdapter(
         val name = emp.employeeName.replaceFirstChar { it.uppercase() }
         holder.name.text   = name
         holder.avatar.text = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        
+        holder.tvSalesCount.text = "${emp.salesDone} / ${emp.expectedSales}"
+        if (emp.salesDone >= emp.expectedSales && emp.expectedSales > 0) {
+            holder.tvSalesCount.setTextColor(android.graphics.Color.parseColor("#10B981")) // green
+        } else {
+            holder.tvSalesCount.setTextColor(android.graphics.Color.parseColor("#FF6A00")) // brand orange
+        }
+        
         holder.itemView.setOnClickListener { onClick(emp) }
     }
 

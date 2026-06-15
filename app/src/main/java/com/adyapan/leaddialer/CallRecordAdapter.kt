@@ -209,6 +209,11 @@ class CallRecordAdapter :
                 R.id.tvTime
             )
 
+        private val tvNote =
+            view.findViewById<TextView>(
+                R.id.tvNote
+            )
+
         private val timeFormat =
             SimpleDateFormat(
                 "hh:mm a",
@@ -256,6 +261,14 @@ class CallRecordAdapter :
                     else                                              -> 0xFF9E9E9E.toInt()
                 }
             )
+
+            // Show custom note if status is "Custom" and note is not blank
+            if (record.status == "Custom" && record.note.isNotBlank()) {
+                tvNote.visibility = android.view.View.VISIBLE
+                tvNote.text = "\uD83D\uDCDD ${record.note}"
+            } else {
+                tvNote.visibility = android.view.View.GONE
+            }
         }
     }
 }

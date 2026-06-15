@@ -513,6 +513,19 @@
                 android:textSize="14sp"
                 android:textAllCaps="false"
                 app:backgroundTint="@null"/>
+
+            <Button
+                android:id="@+id/btnRequestDeletion"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_logout_btn"
+                android:text="⚠️  Request Account Deletion"
+                android:textColor="#DC2626"
+                android:fontFamily="@font/nunito_extrabold"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:backgroundTint="@null"/>
         </LinearLayout>
 
         <!-- ── FOOTER BRANDING ── -->

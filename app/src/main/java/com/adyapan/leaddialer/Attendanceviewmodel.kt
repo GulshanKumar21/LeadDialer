@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -89,7 +90,46 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
 
     suspend fun isTodayPunchedIn(): Boolean = withContext(Dispatchers.IO) {
         val today = dateFormat.format(Calendar.getInstance().time)
-        dao.getByDate(today) != null
+        if (dao.getByDate(today) != null) {
+            return@withContext true
+        }
+
+        // If not found in Room SQLite, check Firestore under /attendance/{userId}/dates/{yyyy-MM-dd} (Selfie Check-in)
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(java.util.Date())
+            try {
+                val doc = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("attendance").document(uid)
+                    .collection("dates").document(dateKey)
+                    .get().await()
+                if (doc.exists()) {
+                    val punchInTime = doc.getString("checkIn") ?: "00:00"
+                    val isLateStr = doc.getString("status") ?: "Present"
+                    val isLate = isLateStr == "Late"
+                    val lateReason = doc.getString("lateReason") ?: ""
+                    var employeeName = doc.getString("employeeName") ?: ""
+                    if (employeeName.isEmpty()) {
+                        employeeName = SheetsSync.getEmployeeNameStatic(getApplication())
+                    }
+                    val punchInMs = doc.getLong("timestamp") ?: System.currentTimeMillis()
+
+                    val record = AttendanceRecord(
+                        date         = today,
+                        punchInTime  = punchInTime,
+                        punchInMs    = punchInMs,
+                        isLate       = isLate,
+                        lateReason   = lateReason,
+                        employeeName = employeeName
+                    )
+                    dao.insert(record)
+                    return@withContext true
+                }
+            } catch (e: Exception) {
+                Log.e(TAG_ATTEND, "isTodayPunchedIn Firestore check error: ${e.message}")
+            }
+        }
+        false
     }
 
     suspend fun getTodayAttendance(): AttendanceRecord? = withContext(Dispatchers.IO) {
@@ -114,12 +154,13 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
 
         val hour   = now.get(Calendar.HOUR_OF_DAY)
         val minute = now.get(Calendar.MINUTE)
-        // Office starts at 11:00 AM — grace period till 11:15
-        val isLate = (hour > 11) || (hour == 11 && minute > 15)
+        // Late check-in threshold set to 11:30 AM
+        val isLate = (hour > 11) || (hour == 11 && minute > 30)
 
-        val prefs        = context.getSharedPreferences(LoginPage.PREF_NAME, Context.MODE_PRIVATE)
-        val email        = prefs.getString(LoginPage.KEY_EMAIL, "") ?: ""
-        val employeeName = email.substringBefore("@")
+        var employeeName = SheetsSync.getEmployeeNameStatic(context)
+        if (employeeName == "Unknown" || employeeName.isEmpty()) {
+            employeeName = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.email?.substringBefore("@") ?: "Unknown"
+        }
 
         val record = AttendanceRecord(
             date         = today,
@@ -170,8 +211,8 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         val now    = Calendar.getInstance()
         val hour   = now.get(Calendar.HOUR_OF_DAY)
         val minute = now.get(Calendar.MINUTE)
-        // Office starts at 11:00 AM — grace period till 11:15
-        return (hour > 11) || (hour == 11 && minute > 15)
+        // Late check-in threshold set to 11:30 AM
+        return (hour > 11) || (hour == 11 && minute > 30)
     }
 
     fun getCurrentTime(): String = timeFormat.format(Calendar.getInstance().time)

@@ -18,5 +18,6 @@ data class CallRecord(
     val name: String,
     val duration: Long,
     val calledAt: Long,
-    val status: String = "Pending"
-) : Parcelable
+    val status: String = "Pending",
+    val note: String = ""          // Custom message written by employee (e.g. "Will call back tomorrow")
+) : Parcelable

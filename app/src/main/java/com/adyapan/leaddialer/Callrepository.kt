@@ -20,6 +20,7 @@ class CallRepository(
     suspend fun getLatestByPhone(phone: String)       = dao.getLatestByPhone(phone)
     suspend fun deleteAll()                           = dao.deleteAll()
     suspend fun getAllOnce(): List<CallRecord>         = dao.getAllOnce()
+    suspend fun countTodayCalls(dayStart: Long, dayEnd: Long): Int = dao.countTodayCalls(dayStart, dayEnd)
 
     // ── Insert: Room first → Firestore in background ─────────────────────────
     suspend fun insert(record: CallRecord) {

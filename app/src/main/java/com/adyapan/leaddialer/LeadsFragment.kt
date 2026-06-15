@@ -78,8 +78,6 @@ class LeadsFragment : Fragment() {
         attendanceViewModel = ViewModelProvider(requireActivity(), attFactory)[AttendanceViewModel::class.java]
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvLeads)
-        val fabUpload    = view.findViewById<FloatingActionButton>(R.id.fabUpload)
-        val fabMain      = view.findViewById<FloatingActionButton>(R.id.fabMain)
         val etSearch     = view.findViewById<EditText>(R.id.etSearch)
 
         adapter = LeadAdapter(
@@ -134,16 +132,7 @@ class LeadsFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        fabUpload.setOnClickListener { launchFilePicker() }
 
-        fabMain.setOnClickListener {
-            if (isFabOpen) {
-                fabUpload.visibility = View.GONE
-            } else {
-                fabUpload.visibility = View.VISIBLE
-            }
-            isFabOpen = !isFabOpen
-        }
 
         startAutoRefresh()
     }
@@ -275,6 +264,7 @@ class LeadsFragment : Fragment() {
         // ✅ Call popup is now handled globally in MainActivity.onResume()
         // so the popup shows regardless of which fragment the user is on.
         callInProgress = false
+        leadViewModel.syncFromFirebaseOnce()
     }
 
     private fun initiateCall(lead: Lead) {
@@ -720,9 +710,11 @@ class LeadsFragment : Fragment() {
             val clean = phone.filter { it.isDigit() }
             val fullPhone = if (clean.startsWith("91") && clean.length == 12) clean else "91$clean"
             val encoded = java.net.URLEncoder.encode(message, "UTF-8")
-            startActivity(Intent(Intent.ACTION_VIEW).apply {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("whatsapp://send?phone=$fullPhone&text=$encoded")
-            })
+            }
+            val chooser = Intent.createChooser(intent, "Select WhatsApp Application")
+            startActivity(chooser)
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "WhatsApp is not opening", Toast.LENGTH_SHORT).show()
         }

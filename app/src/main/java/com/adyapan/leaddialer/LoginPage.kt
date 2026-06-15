@@ -47,18 +47,43 @@ class LoginPage : AppCompatActivity() {
         const val KEY_EMPLOYEE_NAME = "employee_name"
 
         fun getEncryptedPrefs(context: Context): SharedPreferences {
-
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
 
-            return EncryptedSharedPreferences.create(
-                context,
-                PREF_NAME,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
+            return try {
+                // Normal path: create / open existing encrypted prefs
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e: Exception) {
+                // ── Crash guard ──────────────────────────────────────────────────────
+                // This happens when a new APK is installed (debug reinstall / update):
+                // the Android Keystore generates a NEW key, but the OLD encrypted data
+                // is still on disk → AEADBadTagException / KeyStoreException.
+                // Fix: delete the corrupted prefs file and create a fresh one.
+                // The user will simply need to log in again — no data is lost because
+                // all lead/call data is in Room DB and Firebase, not in SharedPrefs.
+                android.util.Log.w("LoginPage", "EncryptedSharedPrefs corrupted — resetting (${e.message})")
+                try {
+                    // Delete the corrupted encrypted prefs file from disk
+                    val prefsFile = java.io.File(context.filesDir.parent, "shared_prefs/$PREF_NAME.xml")
+                    if (prefsFile.exists()) prefsFile.delete()
+                } catch (ignored: Exception) { }
+
+                // Create a brand-new clean encrypted prefs
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            }
         }
 
         /**
@@ -473,7 +498,9 @@ class LoginPage : AppCompatActivity() {
 
                                                 "fcmToken" to token,
 
-                                                "role" to role
+                                                "role" to role,
+
+                                                "activeDeviceId" to android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
                                             ),
 
                                             SetOptions.merge()

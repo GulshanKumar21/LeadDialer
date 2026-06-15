@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/bg_milky_white">
+    android:background="@drawable/bg_milky_white"
+    android:fitsSystemWindows="true">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,49 +24,169 @@
             android:textColor="#2A2A35"
             android:textSize="20sp"
             android:textStyle="bold"/>
-
-        <Button
-            android:id="@+id/btnMonthYear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="May 2024"
-            android:backgroundTint="#4285F4"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"/>
     </LinearLayout>
 
+    <!-- Month Navigation Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp"
+        android:gravity="center_vertical">
+
+        <!-- ◀ Prev Month -->
+        <ImageButton
+            android:id="@+id/btnPrevMonth"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_arrow_back"
+            android:background="@drawable/bg_neu_surface"
+            android:padding="8dp"
+            android:contentDescription="Previous month"/>
+
+        <!-- Month Label (tap to go to current month) -->
+        <Button
+            android:id="@+id/btnMonthYear"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="June 2025"
+            android:backgroundTint="#4285F4"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"/>
+
+        <!-- ▶ Next Month -->
+        <ImageButton
+            android:id="@+id/btnNextMonth"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_arrow_forward"
+            android:background="@drawable/bg_neu_surface"
+            android:padding="8dp"
+            android:contentDescription="Next month"/>
+    </LinearLayout>
+
+    <!-- Stats Row: Worked / Present / Late / Absent -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
         android:gravity="center">
 
+        <!-- Days Worked -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_neu_surface"
-            android:padding="16dp"
+            android:padding="10dp"
+            android:layout_marginEnd="6dp"
             android:orientation="vertical"
             android:gravity="center">
-            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total Days Worked"
+                android:text="Worked"
                 android:textColor="#7A8B99"
-                android:textSize="14sp"/>
-
+                android:textSize="11sp"/>
             <TextView
                 android:id="@+id/tvTotalDaysWorked"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="#10B981"
-                android:textSize="24sp"
+                android:textColor="#4285F4"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
+
+        <!-- Present -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_neu_surface"
+            android:padding="10dp"
+            android:layout_marginEnd="6dp"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Present"
+                android:textColor="#7A8B99"
+                android:textSize="11sp"/>
+            <TextView
+                android:id="@+id/tvPresentCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#10B981"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Late -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_neu_surface"
+            android:padding="10dp"
+            android:layout_marginEnd="6dp"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Late"
+                android:textColor="#7A8B99"
+                android:textSize="11sp"/>
+            <TextView
+                android:id="@+id/tvLateCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#F59E0B"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Absent -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_neu_surface"
+            android:padding="10dp"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Absent"
+                android:textColor="#7A8B99"
+                android:textSize="11sp"/>
+            <TextView
+                android:id="@+id/tvAbsentCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#EF4444"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
     </LinearLayout>
 
     <ProgressBar

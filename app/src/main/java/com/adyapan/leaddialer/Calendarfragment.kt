@@ -15,6 +15,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class CalendarFragment : Fragment() {
 
@@ -51,6 +53,10 @@ class CalendarFragment : Fragment() {
         val tvCallCount  = view.findViewById<TextView>(R.id.tvCallCount)
         val tvCallList   = view.findViewById<TextView>(R.id.tvCallList)
 
+        val cardMonthHolidays = view.findViewById<View>(R.id.cardMonthHolidays)
+        val tvMonthHolidaysTitle = view.findViewById<TextView>(R.id.tvMonthHolidaysTitle)
+        val tvMonthHolidaysList = view.findViewById<TextView>(R.id.tvMonthHolidaysList)
+
         val tvTodayCalls = view.findViewById<TextView>(R.id.tvTodayCalls)
         val tvTodayIn    = view.findViewById<TextView>(R.id.tvTodayPunchIn)
         val tvTotalDays  = view.findViewById<TextView>(R.id.tvTotalDays)
@@ -65,12 +71,13 @@ class CalendarFragment : Fragment() {
                 }
         }
 
+        var holidayMap = emptyMap<String, String>()
+        lifecycleScope.launch {
+            holidayMap = FirestoreSource.fetchHolidaysOnce()
+        }
+
         fun isWeeklyOff(cal: Calendar): Boolean {
-            val d = userDesignation.lowercase()
-            return if (d.contains("community developer"))
-                cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
-            else
-                cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
+            return cal.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY
         }
 
         attendanceViewModel.allAttendance.observe(viewLifecycleOwner) { records ->
@@ -96,8 +103,32 @@ class CalendarFragment : Fragment() {
             val displayDate  = displayFmt.format(selected.time)
             val selectedDate = dateFormat.format(selected.time)
 
+            val keyFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val holidayKey = keyFormat.format(selected.time)
+            val holidayName = holidayMap[holidayKey]
+
             detailPanel.visibility = View.VISIBLE
             tvDate.text = "📅 $displayDate"
+
+            val year = selected.get(Calendar.YEAR)
+            val month = selected.get(Calendar.MONTH) + 1
+            val monthPrefix = String.format(Locale.getDefault(), "%04d-%02d-", year, month)
+            val monthlyHolidays = holidayMap.filterKeys { it.startsWith(monthPrefix) }
+            val sortedHolidays = monthlyHolidays.toSortedMap()
+
+            if (sortedHolidays.isNotEmpty()) {
+                val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selected.time)
+                tvMonthHolidaysTitle.text = "🎉 Holidays in $monthName"
+                val listText = sortedHolidays.map { (dateStr, name) ->
+                    val day = dateStr.substringAfterLast("-").toIntOrNull() ?: 0
+                    val dayStr = String.format(Locale.getDefault(), "%02d", day)
+                    "•  $dayStr: $name"
+                }.joinToString("\n")
+                tvMonthHolidaysList.text = listText
+                cardMonthHolidays.visibility = View.VISIBLE
+            } else {
+                cardMonthHolidays.visibility = View.GONE
+            }
 
             tvWeeklyOff.visibility  = View.GONE
             tvPunchIn.visibility    = View.VISIBLE
@@ -105,9 +136,16 @@ class CalendarFragment : Fragment() {
             tvLateReason.visibility = View.GONE
 
             if (isWeeklyOff(selected)) {
-                val offLabel = if (userDesignation.lowercase().contains("community developer"))
-                    "🗓 Weekly Off (Monday)" else "🗓 Weekly Off (Sunday)"
-                tvWeeklyOff.text       = offLabel
+                tvWeeklyOff.text       = "🗓 Weekly Off (Tuesday)"
+                tvWeeklyOff.setTextColor(Color.parseColor("#6366F1"))
+                tvWeeklyOff.setBackgroundColor(Color.parseColor("#EEF2FF"))
+                tvWeeklyOff.visibility = View.VISIBLE
+                tvPunchIn.text  = ""
+                tvLate.text     = ""
+            } else if (holidayName != null) {
+                tvWeeklyOff.text       = "🎉 Holiday: $holidayName"
+                tvWeeklyOff.setTextColor(Color.parseColor("#EA580C"))
+                tvWeeklyOff.setBackgroundColor(Color.parseColor("#FFEDD5"))
                 tvWeeklyOff.visibility = View.VISIBLE
                 tvPunchIn.text  = ""
                 tvLate.text     = ""

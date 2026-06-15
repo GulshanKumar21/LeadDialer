@@ -62,34 +62,13 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 wasRinging = true
                 val isIncomingCall = prefs.getBoolean("is_incoming_call", false)
 
-                // Show lead notification ONLY if this is a true incoming call
+                // Show lead notification ONLY if this is a true incoming call (no outgoing pending call)
                 if (!isPending || (isPending && isIncomingCall)) {
                     val savedPhone = prefs.getString("call_phone", "")
                     
                     if (incomingNumber.isNotBlank() && savedPhone != incomingNumber) {
-                        // We got the real number! (Either on 1st broadcast or a subsequent one)
-                        prefs.edit()
-                            .putBoolean(CallManager.KEY_PENDING, true)
-                            .putBoolean("is_incoming_call", true)
-                            .putString("call_phone", incomingNumber)
-                            .putString("call_name", "Incoming Call")
-                            .apply()
-                            
-                        CallManager.callActive = true
+                        // Trigger async database check. If it is a lead, SharedPreferences will be updated inside.
                         handleIncomingCall(context, incomingNumber)
-                        
-                    } else if (!isPending && lastState == TelephonyManager.CALL_STATE_IDLE) {
-                        // First broadcast, but number is blank
-                        prefs.edit()
-                            .putBoolean(CallManager.KEY_PENDING, true)
-                            .putBoolean("is_incoming_call", true)
-                            .putBoolean(CallManager.KEY_CONNECTED, false)
-                            .putLong("call_start_time", System.currentTimeMillis())
-                            .putString("call_phone", "Unknown Number")
-                            .putString("call_name", "Incoming Call")
-                            .apply()
-                            
-                        CallManager.callActive = true
                     }
                 } else {
                     Log.d(TAG, "RINGING ignored for lead lookup — this is our outgoing call")
@@ -194,6 +173,20 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
                 if (lead != null) {
                     Log.d(TAG, "Lead found for incoming: ${lead.name}")
+                    
+                    // Save to SharedPreferences so the app knows a lead call is active and can show the popup when it ends
+                    val prefs = context.getSharedPreferences(CallManager.PREF_NAME, Context.MODE_PRIVATE)
+                    prefs.edit()
+                        .putBoolean(CallManager.KEY_PENDING, true)
+                        .putBoolean("is_incoming_call", true)
+                        .putBoolean(CallManager.KEY_CONNECTED, false)
+                        .putLong("call_start_time", System.currentTimeMillis())
+                        .putString("call_phone", rawNumber)
+                        .putString("call_name", lead.name)
+                        .apply()
+                        
+                    CallManager.callActive = true
+
                     // Show a Toast over the incoming call screen
                     withContext(Dispatchers.Main) {
                         android.widget.Toast.makeText(

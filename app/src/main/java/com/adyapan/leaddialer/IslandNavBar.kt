@@ -1,31 +1,14 @@
 package com.adyapan.leaddialer
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 
-/**
- * IslandNavBar — a fully custom, floating "Dynamic Island"-inspired
- * bottom navigation bar. No BottomNavigationView under the hood.
- *
- * Items: Home | Leads | [CENTER: Call Log] | Calendar | Attendance
- *
- * Design:
- * - Floating pill shape with soft shadow
- * - A glowing orange "bubble" slides under the selected item
- * - Center item sits elevated (like a mini-FAB) with a pulsing glow ring
- * - Selection triggers springy scale + translate animations
- */
 class IslandNavBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -115,25 +98,44 @@ class IslandNavBar @JvmOverloads constructor(
             val highlight = view.findViewById<android.view.View>(R.id.iconHighlight)
             val isSelected = (i == index)
 
-            // Reset scale/translation
-            icon.scaleX = 1f
-            icon.scaleY = 1f
-            icon.translationY = 0f
-
             if (isSelected) {
                 icon.alpha = 1f
                 label?.alpha = 1f
-                label?.setTextColor(0xFF2A2A35.toInt())
-                icon.setColorFilter(0xFF2A2A35.toInt()) // brand carbon slate icon tint
+                label?.setTextColor(0xFFFF6A00.toInt()) // Brand Orange
+                icon.setColorFilter(0xFFFF6A00.toInt()) // Brand Orange
                 highlight?.setBackgroundResource(R.drawable.bg_nav_bubble_circle)
-                highlight?.elevation = 6f
+                highlight?.elevation = 0f // Flat, clean Material-inspired bubble
+
+                if (animate) {
+                    icon.animate()
+                        .scaleX(1.15f)
+                        .scaleY(1.15f)
+                        .setDuration(250)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(1.4f))
+                        .start()
+                } else {
+                    icon.scaleX = 1.15f
+                    icon.scaleY = 1.15f
+                }
             } else {
-                icon.alpha = 1f
-                label?.alpha = 1f
-                label?.setTextColor(0xFF9E9E9E.toInt())
-                icon.setColorFilter(0xFF757575.toInt()) // simple grey icon tint
+                icon.alpha = 0.7f // Elegant, soft contrast for inactive items
+                label?.alpha = 0.7f
+                label?.setTextColor(0xFF8A8A8F.toInt()) // Neutral slate grey
+                icon.setColorFilter(0xFF8A8A8F.toInt())
                 highlight?.setBackgroundResource(0)
                 highlight?.elevation = 0f
+
+                if (animate) {
+                    icon.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(200)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+                } else {
+                    icon.scaleX = 1.0f
+                    icon.scaleY = 1.0f
+                }
             }
         }
 

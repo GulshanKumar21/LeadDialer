@@ -41,6 +41,31 @@
             android:textColor="#2A2A35"
             android:fontFamily="@font/poppins_semibold"/>
 
+        <!-- Sales Count Badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginEnd="12dp">
+            
+            <TextView
+                android:id="@+id/tvSalesDoneCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 / 0"
+                android:textColor="#FF6A00"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sales done"
+                android:textColor="#9AABB7"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
         <!-- Arrow -->
         <TextView
             android:layout_width="wrap_content"

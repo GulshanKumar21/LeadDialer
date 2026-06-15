@@ -2,107 +2,87 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F6FA">
+    android:background="@drawable/bg_milky_white"
+    android:orientation="vertical">
 
-    <!-- Filter Chip Row -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:elevation="4dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
 
         <TextView
-            android:id="@+id/btnFilterAll"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:text="All"
-            android:gravity="center"
-            android:textSize="13sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Employee Leaves"
+            android:textColor="#1F2937"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/bg_filter_chip_active"
-            android:fontFamily="@font/nunito_extrabold"/>
+            android:layout_marginBottom="8dp"/>
 
-        <TextView
-            android:id="@+id/btnFilterPending"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:text="Pending"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:background="@drawable/bg_filter_chip_inactive"
-            android:fontFamily="@font/nunito_semibold"/>
+        <!-- Search Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_neu_surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/btnFilterApproved"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:text="Approved"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:background="@drawable/bg_filter_chip_inactive"
-            android:fontFamily="@font/nunito_semibold"/>
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_search"
+                android:layout_marginEnd="8dp"/>
 
-        <TextView
-            android:id="@+id/btnFilterRejected"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:text="Rejected"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:background="@drawable/bg_filter_chip_inactive"
-            android:fontFamily="@font/nunito_semibold"/>
-
+            <EditText
+                android:id="@+id/etSearchLeavesEmployee"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="Search employee..."
+                android:textSize="14sp"
+                android:textColor="#1F2937"
+                android:textColorHint="#9CA3AF"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"/>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Counter -->
-    <TextView
-        android:id="@+id/tvLeaveCount"
+    <ProgressBar
+        android:id="@+id/progressLeaves"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginBottom="6dp"
-        android:text="0 requests"
-        android:textColor="#9BA8B5"
-        android:textSize="12sp"
-        android:fontFamily="@font/nunito_semibold"/>
+        android:layout_gravity="center"
+        android:layout_marginTop="32dp"
+        android:visibility="gone" />
 
-    <!-- Leave List -->
+    <TextView
+        android:id="@+id/tvNoLeaves"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="No employees found."
+        android:textColor="#6B7280"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvAdminLeaves"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="16dp"
-        android:clipToPadding="false"/>
-
-    <!-- Empty state -->
-    <TextView
-        android:id="@+id/tvNoAdminLeaves"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="No leave requests found"
-        android:textColor="#C0C8D0"
-        android:textSize="15sp"
-        android:fontFamily="@font/nunito_semibold"
-        android:visibility="gone"/>
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="80dp" />
 
 </LinearLayout>

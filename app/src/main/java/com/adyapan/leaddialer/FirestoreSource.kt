@@ -240,9 +240,63 @@ object FirestoreSource {
         }
     }
 
+    suspend fun performLeadRetentionCleanup(uid: String) {
+        try {
+            val thirtyDaysAgo = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)
+            
+            // 1. Cleanup RTDB Leads older than 30 days that are NOT important (salesDone, Interested, Hot)
+            val targetRef = rtdb.child(uid)
+            val snapshot = targetRef.get().await()
+            val updates = mutableMapOf<String, Any?>()
+            
+            snapshot.children.forEach { leadNode ->
+                val map = leadNode.value as? Map<*, *>
+                if (map != null) {
+                    val calledAt = (map["calledAt"] as? Number)?.toLong() ?: 0L
+                    val salesDone = (map["salesDone"] as? Boolean) ?: false
+                    val status = map["status"]?.toString() ?: "Pending"
+                    
+                    val isImportant = salesDone || status == "Interested" || status == "Hot"
+                    if (calledAt > 0 && calledAt < thirtyDaysAgo && !isImportant) {
+                        updates[leadNode.key ?: ""] = null
+                    }
+                }
+            }
+            if (updates.isNotEmpty()) {
+                targetRef.updateChildren(updates).await()
+                Log.d(TAG, "performLeadRetentionCleanup (RTDB): deleted ${updates.size} old leads for user $uid")
+            }
+
+            // 2. Cleanup Firestore Leads older than 30 days that are NOT important (just in case)
+            val fsSnapshot = leadsCol.whereEqualTo("userId", uid).get().await()
+            val batch = db.batch()
+            var hasFsUpdates = false
+            fsSnapshot.documents.forEach { doc ->
+                val calledAt = doc.getLong("calledAt") ?: 0L
+                val salesDone = doc.getBoolean("salesDone") ?: false
+                val status = doc.getString("status") ?: "Pending"
+                
+                val isImportant = salesDone || status == "Interested" || status == "Hot"
+                if (calledAt > 0 && calledAt < thirtyDaysAgo && !isImportant) {
+                    batch.delete(doc.reference)
+                    hasFsUpdates = true
+                }
+            }
+            if (hasFsUpdates) {
+                batch.commit().await()
+                Log.d(TAG, "performLeadRetentionCleanup (Firestore): deleted old non-important leads")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "performLeadRetentionCleanup error: ${e.message}")
+        }
+    }
+
     /** One-time fetch of all RTDB leads for the current user (used on app start to populate Room DB). */
     suspend fun fetchRtdbLeadsOnce(): List<Lead> {
         val uid = currentUid() ?: return emptyList()
+        if (!isAdmin) {
+            performLeadRetentionCleanup(uid)
+        }
         return try {
             val targetRef = if (isAdmin) rtdb else rtdb.child(uid)
             val snapshot = targetRef.get().await()
@@ -453,7 +507,8 @@ object FirestoreSource {
                 "phone"    to record.phone.filter { it.isDigit() },
                 "status"   to record.status,
                 "duration" to record.duration,
-                "calledAt" to record.calledAt
+                "calledAt" to record.calledAt,
+                "note"     to record.note          // Custom message for admin to see
             )
             rtdbCalls.child(uid).child(docId).setValue(data).await()
             Log.d(TAG, "saveCallRecord (RTDB) OK: $docId")
@@ -489,7 +544,8 @@ object FirestoreSource {
                     "phone"    to record.phone.filter { it.isDigit() },
                     "status"   to record.status,
                     "duration" to record.duration,
-                    "calledAt" to record.calledAt
+                    "calledAt" to record.calledAt,
+                    "note"     to record.note      // Custom message
                 )
             }
             // Single network call — all records at once
@@ -540,7 +596,8 @@ object FirestoreSource {
                 phone    = map["phone"]?.toString() ?: "",
                 status   = map["status"]?.toString() ?: "Not Connected",
                 duration = (map["duration"] as? Number)?.toLong() ?: 0L,
-                calledAt = (map["calledAt"] as? Number)?.toLong() ?: 0L
+                calledAt = (map["calledAt"] as? Number)?.toLong() ?: 0L,
+                note     = map["note"]?.toString() ?: ""  // Custom employee note
             )
         }.getOrNull()
     }
@@ -762,6 +819,32 @@ object FirestoreSource {
         } catch (e: Exception) {
             Log.e(TAG, "updateLeaveStatus error: ${e.message}")
             false
+        }
+    }
+
+    /**
+     * Fetch holidays list from Firestore (collection "holidays").
+     * Document ID is the date key "yyyy-MM-dd", and the document has a field "name" (String).
+     */
+    suspend fun fetchHolidaysOnce(): Map<String, String> {
+        val fallback = mapOf(
+            "2026-01-26" to "Republic Day",
+            "2026-08-15" to "Independence Day",
+            "2026-10-02" to "Gandhi Jayanti",
+            "2026-12-25" to "Christmas"
+        )
+        return try {
+            val snap = db.collection("holidays").get().await()
+            val map = mutableMapOf<String, String>()
+            map.putAll(fallback)
+            for (doc in snap.documents) {
+                val name = doc.getString("name") ?: "Holiday"
+                map[doc.id] = name
+            }
+            map
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchHolidaysOnce error: ${e.message}")
+            fallback
         }
     }
 

@@ -33,4 +33,7 @@ interface CallRecordDao {
     /** Returns today's records sorted oldest-first — used to compute inter-call gaps. */
     @Query("SELECT * FROM call_records WHERE calledAt >= :dayStart AND calledAt < :dayEnd ORDER BY calledAt ASC")
     suspend fun getTodaySortedAsc(dayStart: Long, dayEnd: Long): List<CallRecord>
+
+    @Query("SELECT COUNT(*) FROM call_records WHERE calledAt >= :dayStart AND calledAt < :dayEnd")
+    suspend fun countTodayCalls(dayStart: Long, dayEnd: Long): Int
 }

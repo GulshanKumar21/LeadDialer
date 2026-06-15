@@ -125,14 +125,14 @@ class CallHistoryFragment : Fragment() {
             val records = callViewModel.allRecords.value ?: emptyList()
 
             if (records.isEmpty()) {
-                Toast.makeText(requireContext(), "No call records to export", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "No call records to download", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val options = arrayOf("📞 Export Today Calls", "🕒 Export Yesterday Calls", "📂 Export All Calls")
+            val options = arrayOf("📞 Download Today's Calls", "🕒 Download Yesterday's Calls", "📂 Download All Calls")
 
             AlertDialog.Builder(requireContext())
-                .setTitle("Export Call History")
+                .setTitle("Download Call History")
                 .setItems(options) { _, which ->
                     val filtered = when (which) {
                         0    -> records.filter { getDayHeader(it.calledAt) == "📞 Today" }
@@ -140,12 +140,12 @@ class CallHistoryFragment : Fragment() {
                         else -> records
                     }
                     lifecycleScope.launch {
-                        val success = withContext(Dispatchers.IO) {
+                        val statusMessage = withContext(Dispatchers.IO) {
                             CallExcelWriter.export(requireContext(), filtered)
                         }
                         Toast.makeText(
                             requireContext(),
-                            if (success) "✅ Exported Successfully" else "❌ Export Failed",
+                            statusMessage,
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -168,13 +168,8 @@ class CallHistoryFragment : Fragment() {
      * 3. For each pair of consecutive calls, if the gap > 60 s, inject a GapItem.
      * 4. Reverse the day-sorted list back to descending for display (newest first).
      */
-    private fun buildDisplayList(
-        sortedDesc: List<CallRecord>
-    ): List<CallHistoryItem> {
-
+    private fun buildDisplayList(sortedDesc: List<CallRecord>): List<CallHistoryItem> {
         val result = mutableListOf<CallHistoryItem>()
-
-        // Group by header
         val grouped = linkedMapOf<String, MutableList<CallRecord>>()
         for (record in sortedDesc) {
             val header = getDayHeader(record.calledAt)
@@ -183,30 +178,44 @@ class CallHistoryFragment : Fragment() {
 
         for ((header, dayRecords) in grouped) {
             result.add(CallHistoryItem.Header(header))
-
-            // Sort ascending to compute gaps, then we'll re-reverse for display
-            val asc = dayRecords.sortedBy { it.calledAt }
-
-            // Display: newest first  (last item in asc list appears first)
+            val asc  = dayRecords.sortedBy { it.calledAt }
             val desc = asc.reversed()
 
             for (i in desc.indices) {
                 result.add(CallHistoryItem.CallItem(desc[i]))
 
-                // Gap = time between end of THIS call and start of NEXT (older) call
-                // In descending display: desc[i] is newer, desc[i+1] is older
                 if (i + 1 < desc.size) {
-                    val newerEnd  = desc[i].calledAt + desc[i].duration * 1000L
-                    val olderStart = desc[i + 1].calledAt
-                    val gapMs = newerEnd - olderStart
-                    if (gapMs > 0) {
+                    val newerStart = desc[i].calledAt
+                    val olderEnd = desc[i + 1].calledAt + (desc[i + 1].duration * 1000L)
+
+                    // Get work start and end for the day of this call
+                    val workStart = Calendar.getInstance().apply {
+                        timeInMillis = newerStart
+                        set(Calendar.HOUR_OF_DAY, 11)
+                        set(Calendar.MINUTE, 15)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }.timeInMillis
+
+                    val workEnd = Calendar.getInstance().apply {
+                        timeInMillis = newerStart
+                        set(Calendar.HOUR_OF_DAY, 20)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }.timeInMillis
+
+                    // Only show gap pill if both calls ended/started within working hours (11:15 AM to 8:00 PM)
+                    if (newerStart in workStart..workEnd && olderEnd in workStart..workEnd) {
+                        val gapMs = newerStart - olderEnd
                         val gapSec = gapMs / 1000L
-                        result.add(CallHistoryItem.GapItem(gapSec))
+                        if (gapSec >= 1) {
+                            result.add(CallHistoryItem.GapItem(gapSec))
+                        }
                     }
                 }
             }
         }
-
         return result
     }
 
@@ -239,7 +248,7 @@ class CallHistoryFragment : Fragment() {
      *  2. Between end of each call → start of next call
      *  3. From last call end → current time (live, if today)
      *
-     * This means gap time grows in real-time even when no call is happening.
+     * Capped at 8:00 PM. Deducts 1 hr 30 mins (5400 seconds) for lunch break.
      */
     private fun computeTotalGap(ascRecords: List<CallRecord>, dateMs: Long): Long {
         val isToday = getDayHeader(dateMs) == "📞 Today"
@@ -269,39 +278,105 @@ class CallHistoryFragment : Fragment() {
         // If work hasn't started yet → no gap
         if (nowMs < workStartMs && isToday) return 0L
 
-        var totalGapSec = 0L
+        // Only calculate gap for calls made during working hours (11:15 AM to 8:00 PM)
+        val workingHoursRecords = ascRecords.filter { it.calledAt in workStartMs..workEndMs }
 
-        if (ascRecords.isEmpty()) {
+        val endRef = if (isToday) minOf(nowMs, workEndMs) else workEndMs
+        val deduction = getBreakDeductionSeconds(endRef, dateMs)
+
+        if (workingHoursRecords.isEmpty()) {
             // No calls at all — gap = work_start to now (or work_end for past dates)
-            val endRef = if (isToday) minOf(nowMs, workEndMs) else workEndMs
             val gap = (endRef - workStartMs) / 1000L
-            return maxOf(0L, gap)
+            return maxOf(0L, gap - deduction)
         }
 
+        var totalGapSec = 0L
+
         // 1. Gap: work start → first call
-        val firstCallStart = ascRecords.first().calledAt
+        val firstCallStart = workingHoursRecords.first().calledAt
         if (firstCallStart > workStartMs) {
             totalGapSec += (firstCallStart - workStartMs) / 1000L
         }
 
         // 2. Gaps between consecutive calls
-        for (i in 1 until ascRecords.size) {
-            val prevEnd   = ascRecords[i - 1].calledAt + ascRecords[i - 1].duration * 1000L
-            val nextStart = ascRecords[i].calledAt
+        for (i in 1 until workingHoursRecords.size) {
+            val prevEnd   = workingHoursRecords[i - 1].calledAt + workingHoursRecords[i - 1].duration * 1000L
+            val nextStart = workingHoursRecords[i].calledAt
             val gap = (nextStart - prevEnd) / 1000L
             if (gap > 0) totalGapSec += gap
         }
 
         // 3. Gap: last call end → now (live, only for today)
         if (isToday) {
-            val lastCallEnd = ascRecords.last().calledAt + ascRecords.last().duration * 1000L
+            val lastCallEnd = workingHoursRecords.last().calledAt + workingHoursRecords.last().duration * 1000L
             val capTime = minOf(nowMs, workEndMs)
             if (capTime > lastCallEnd) {
                 totalGapSec += (capTime - lastCallEnd) / 1000L
             }
+        } else {
+            val lastCallEnd = workingHoursRecords.last().calledAt + workingHoursRecords.last().duration * 1000L
+            if (workEndMs > lastCallEnd) {
+                totalGapSec += (workEndMs - lastCallEnd) / 1000L
+            }
         }
 
-        return maxOf(0L, totalGapSec)
+        return maxOf(0L, totalGapSec - deduction)
+    }
+
+    private fun getBreakDeductionSeconds(referenceTimeMs: Long, dateMs: Long): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = dateMs }
+        
+        val lunchStart = Calendar.getInstance().apply {
+            set(Calendar.YEAR, cal.get(Calendar.YEAR))
+            set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR))
+            set(Calendar.HOUR_OF_DAY, 13)
+            set(Calendar.MINUTE, 30)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val lunchEnd = Calendar.getInstance().apply {
+            set(Calendar.YEAR, cal.get(Calendar.YEAR))
+            set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR))
+            set(Calendar.HOUR_OF_DAY, 14)
+            set(Calendar.MINUTE, 30)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val breakStart = Calendar.getInstance().apply {
+            set(Calendar.YEAR, cal.get(Calendar.YEAR))
+            set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR))
+            set(Calendar.HOUR_OF_DAY, 16)
+            set(Calendar.MINUTE, 30)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val breakEnd = Calendar.getInstance().apply {
+            set(Calendar.YEAR, cal.get(Calendar.YEAR))
+            set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR))
+            set(Calendar.HOUR_OF_DAY, 17)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        var deductionMs = 0L
+
+        // 1. Lunch break (max 60 minutes = 3600 seconds)
+        if (referenceTimeMs > lunchStart) {
+            val elapsedLunch = minOf(referenceTimeMs, lunchEnd) - lunchStart
+            deductionMs += elapsedLunch
+        }
+
+        // 2. Short break (max 30 minutes = 1800 seconds)
+        if (referenceTimeMs > breakStart) {
+            val elapsedBreak = minOf(referenceTimeMs, breakEnd) - breakStart
+            deductionMs += elapsedBreak
+        }
+
+        return deductionMs / 1000L
     }
 
     /** Live ticker: updates gap time every minute so it grows even between calls */

@@ -4,100 +4,168 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_milky_white">
+    android:background="#F7F8FA">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:orientation="vertical">
 
+        <!-- Search Bar -->
         <androidx.cardview.widget.CardView
-    style="@style/IPhoneCardView"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
-
-
-            app:cardBackgroundColor="@color/card_bg">
+            android:layout_height="50dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp">
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:src="@android:drawable/ic_menu_search"
-                    app:tint="#993800" />
+                    android:layout_marginEnd="10dp"
+                    app:tint="#9CA3AF"/>
 
                 <EditText
                     android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
                     android:background="@android:color/transparent"
-                    android:hint="Search by name or number"
+                    android:hint="Search by name or number..."
                     android:textSize="14sp"
-                    android:textColor="#1A0A00"
-                    android:textColorHint="#C47A50"
-                    android:fontFamily="@font/poppins_regular"/>
+                    android:textColor="#111827"
+                    android:textColorHint="#9CA3AF"
+                    android:fontFamily="@font/poppins_regular"
+                    android:singleLine="true"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <androidx.cardview.widget.CardView
-    style="@style/IPhoneCardView"
+        <!-- Filter Tabs — horizontal scroll -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:scrollbars="none"
+            android:fadeScrollbars="true">
+
+            <LinearLayout
+                android:id="@+id/llFilterTabs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+
+                <!-- All -->
+                <TextView
+                    android:id="@+id/tabAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="All"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_tab_active_orange"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Connected -->
+                <TextView
+                    android:id="@+id/tabConnected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="✅ Connected"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textColor="#374151"
+                    android:background="@drawable/bg_tab_inactive"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Pending -->
+                <TextView
+                    android:id="@+id/tabPending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="🕐 Pending"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textColor="#374151"
+                    android:background="@drawable/bg_tab_inactive"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Interested -->
+                <TextView
+                    android:id="@+id/tabInterested"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="🔥 Hot"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textColor="#374151"
+                    android:background="@drawable/bg_tab_inactive"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Busy -->
+                <TextView
+                    android:id="@+id/tabBusy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="📵 Busy"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textColor="#374151"
+                    android:background="@drawable/bg_tab_inactive"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Sales Done -->
+                <TextView
+                    android:id="@+id/tabSales"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="💰 Sales"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textColor="#374151"
+                    android:background="@drawable/bg_tab_inactive"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"/>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Leads RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeads"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
-
-            app:cardBackgroundColor="@color/card_bg">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvLeads"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"
-                android:clipToPadding="false"/>
-        </androidx.cardview.widget.CardView>
+            android:paddingTop="4dp"
+            android:paddingBottom="100dp"
+            android:clipToPadding="false"/>
 
     </LinearLayout>
 
-    <!-- Upload FAB only — Manual Dial is now a global button in the nav bar -->
-    <LinearLayout
-        android:id="@+id/fabMenuLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:orientation="vertical"
-        android:layout_margin="20dp"
-        android:layout_marginBottom="100dp"
-        android:gravity="end">
 
-        <!-- Upload FAB -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:id="@+id/fabUpload"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp"
-            android:src="@android:drawable/ic_menu_upload"
-            app:backgroundTint="#FF5722"
-            app:tint="#FFFFFF"/>
-
-        <!-- MAIN FAB -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:id="@+id/fabMain"
-            android:src="@android:drawable/ic_input_add"
-            app:backgroundTint="#993800"
-            app:tint="#FFFFFF"/>
-
-    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

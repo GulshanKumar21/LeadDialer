@@ -11,6 +11,7 @@ import android.os.Looper
 import android.provider.CallLog
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import android.content.pm.ServiceInfo
 import kotlinx.coroutines.*
 
 class CallMonitorService : Service() {
@@ -41,7 +42,15 @@ class CallMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID, 
+                createNotification(), 
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
         startMonitoring()
     }
 

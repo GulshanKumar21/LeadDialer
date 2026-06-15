@@ -333,40 +333,108 @@
                         android:background="@drawable/bg_pill_orange_dark"/>
                 </LinearLayout>
 
-                <!-- Available Leaves Summary -->
+                <!-- Available Leaves Summary (Earned, Taken, Available) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_neu_inset"
-                    android:padding="16dp"
+                    android:padding="12dp"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
-                    
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_clock"
-                        app:tint="#10B981"/>
-                        
-                    <TextView
+                    android:weightSum="3">
+
+                    <!-- Earned Leaves Column -->
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:text="Available Casual Leaves"
-                        android:textColor="#2A2A35"
-                        android:textSize="14sp"
-                        android:textStyle="bold"/>
-                        
-                    <TextView
-                        android:id="@+id/tvCasualLeaves"
-                        android:layout_width="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Leaves Earned"
+                            android:textColor="#64748B"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:gravity="center"/>
+                        <TextView
+                            android:id="@+id/tvLeavesEarned"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#2563EB"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#E2E8F0"/>
+
+                    <!-- Leaves Taken Column -->
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="#10B981"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Leaves Taken"
+                            android:textColor="#64748B"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:gravity="center"/>
+                        <TextView
+                            android:id="@+id/tvLeavesTaken"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#EF4444"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#E2E8F0"/>
+
+                    <!-- Available Leaves Column -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Leaves Available"
+                            android:textColor="#64748B"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:gravity="center"/>
+                        <TextView
+                            android:id="@+id/tvCasualLeaves"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#10B981"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Leave History List -->

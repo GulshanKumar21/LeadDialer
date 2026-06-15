@@ -40,6 +40,7 @@ class AdminEmployeeAdapter(
         val sales         : TextView = view.findViewById(R.id.tvSalesCount)
         val expected      : TextView = view.findViewById(R.id.tvExpectedSales)
         val adminTarget   : TextView = view.findViewById(R.id.tvAdminTarget)
+        val rowAdminTarget: View     = view.findViewById(R.id.rowAdminTarget)
         val spinnerTl     : Spinner  = view.findViewById(R.id.spinnerTlAssign)
         val btnEdit       : View     = view.findViewById(R.id.btnEditProfile)
         val btnMessage    : View     = view.findViewById(R.id.btnSendMessage)
@@ -58,11 +59,11 @@ class AdminEmployeeAdapter(
         holder.avatar.text     = initial
         holder.name.text       = emp.employeeName.replaceFirstChar { it.uppercase() }
         holder.email.text      = emp.userId.take(20)
-        holder.leads.text      = "${emp.totalLeads} Leads"
-        holder.connected.text  = "${emp.connected} Connected"
-        holder.interested.text = "${emp.interested} Interested"
-        holder.sales.text      = "${emp.salesDone} ✅ Sales"
-        holder.expected.text   = "🏃 Self: ${emp.expectedSales}"
+        holder.leads.text      = emp.totalLeads.toString()
+        holder.connected.text  = emp.connected.toString()
+        holder.interested.text = emp.interested.toString()
+        holder.sales.text      = emp.salesDone.toString()
+        holder.expected.text   = emp.expectedSales.toString()
 
         val card = holder.itemView as androidx.cardview.widget.CardView
 
@@ -126,7 +127,7 @@ class AdminEmployeeAdapter(
             onSetTargetClick(emp)
             true
         }
-        holder.adminTarget.setOnClickListener { onSetTargetClick(emp) }
+        holder.rowAdminTarget.setOnClickListener { onSetTargetClick(emp) }
 
         if (showEditButton) {
             holder.btnEdit.visibility = View.VISIBLE

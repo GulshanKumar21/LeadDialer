@@ -153,9 +153,11 @@ object LateReasonDialog {
             val encoded = java.net.URLEncoder.encode(message, "UTF-8")
             val intent  = Intent(Intent.ACTION_VIEW).apply {
                 data  = Uri.parse("whatsapp://send?phone=$MANAGER_PHONE&text=$encoded")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            context.startActivity(intent)
+            val chooser = Intent.createChooser(intent, "Select WhatsApp Application").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(chooser)
         } catch (e: Exception) {
             Log.e(TAG, "WhatsApp error: ${e.message}")
         }
@@ -166,8 +168,10 @@ object LateReasonDialog {
     }
 
     private fun getEmployeeName(context: Context): String {
-        val prefs = context.getSharedPreferences(LoginPage.PREF_NAME, Context.MODE_PRIVATE)
-        val email = prefs.getString(LoginPage.KEY_EMAIL, "") ?: ""
-        return email.substringBefore("@").ifEmpty { "Unknown" }
+        var name = SheetsSync.getEmployeeNameStatic(context)
+        if (name == "Unknown" || name.isEmpty()) {
+            name = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.email?.substringBefore("@") ?: "Unknown"
+        }
+        return name
     }
 }

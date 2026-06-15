@@ -5,10 +5,10 @@ data class LeaveRequest(
     val uid: String = "",
     val employeeName: String = "",
     val employeeEmail: String = "",
-    val leaveType: String = "",      // Sick Leave / Casual Leave / Annual Leave
+    val leaveType: String = "",
     val fromDate: String = "",
     val toDate: String = "",
     val reason: String = "",
-    val status: String = "Pending",  // Pending / Approved / Rejected
+    val status: String = "Pending",
     val appliedAt: Long = 0L
 )

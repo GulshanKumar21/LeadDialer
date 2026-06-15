@@ -121,7 +121,45 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
+        // ── Request Account Deletion ───────────────────────────────────────────
+        val btnRequestDeletion = view.findViewById<Button>(R.id.btnRequestDeletion)
+        btnRequestDeletion.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("⚠️ Request Account Deletion")
+                .setMessage("Are you sure you want to submit an account deletion request? This will compose an email to support@adyapan.com requesting the permanent removal of your account and all associated data.")
+                .setPositiveButton("Submit Request") { _, _ ->
+                    val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email ?: "N/A"
+                    val emailSubject = "Adyapan CRM - Account Deletion Request"
+                    val emailBody = """
+                        Dear Support Team,
 
+                        I am writing to request the permanent deletion of my Adyapan CRM account and all associated personal data from your systems.
+
+                        Account Details:
+                        - Registered Email Address: $currentUserEmail
+
+                        Please let me know once the deletion has been successfully processed.
+
+                        Regards,
+                        $currentUserEmail
+                    """.trimIndent()
+
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = android.net.Uri.parse("mailto:")
+                        putExtra(Intent.EXTRA_EMAIL, arrayOf("support@adyapan.com"))
+                        putExtra(Intent.EXTRA_SUBJECT, emailSubject)
+                        putExtra(Intent.EXTRA_TEXT, emailBody)
+                    }
+
+                    try {
+                        startActivity(Intent.createChooser(intent, "Send email..."))
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "No email application found", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
 
         // ── SIM Selection (dual-SIM only) ──────────────────────────────────────
         setupSimSelection(view)

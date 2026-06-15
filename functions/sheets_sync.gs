@@ -9,7 +9,7 @@ function getOrCreateSheet(name) {
 }
 
 function setupLeadHeaders(sheet) {
-  // Added "Sales Done" as column 10
+  // Kept for legacy compatibility
   const headers = ["Name","Phone","Status","Duration","Called At","Called By","College Name","College City","Notes","Sales Done"];
   sheet.getRange(1,1,1,10).setValues([headers])
        .setBackground("#2D3748").setFontColor("#FFFFFF").setFontWeight("bold");
@@ -18,15 +18,16 @@ function setupLeadHeaders(sheet) {
 }
 
 function setupCallHeaders(sheet) {
-  const headers = ["Name","Phone","Status","Duration","Called At","Gap (Idle)","_ms"]; // col G = hidden ms key
-  sheet.getRange(1,1,1,7).setValues([headers])
+  // 🌟 New column layout:
+  // 1:Name, 2:Phone Number, 3:Called At, 4:Called End Time, 5:Duration, 6:Gap (Idle), 7:Status, 8:Notes, 9:Sales Done, 10:_ms (hidden)
+  const headers = ["Name","Phone Number","Called At","Called End Time","Duration","Gap (Idle)","Status","Notes","Sales Done","_ms"];
+  sheet.getRange(1,1,1,10).setValues([headers])
        .setBackground("#1A365D").setFontColor("#FFFFFF").setFontWeight("bold");
   sheet.setFrozenRows(1);
-  // Force columns E, F, G to TEXT — prevent date auto-conversion
-  sheet.getRange("E:G").setNumberFormat("@STRING@");
-  // Hide col G (raw ms — used only for dedup)
-  sheet.hideColumns(7);
-  [180,140,140,100,170,110,1].forEach((w,i) => sheet.setColumnWidth(i+1,w));
+  sheet.getRange("C:D").setNumberFormat("@STRING@");
+  sheet.getRange("J:J").setNumberFormat("@STRING@");
+  sheet.hideColumns(10);
+  [180,140,170,170,100,110,140,250,100,1].forEach((w,i) => sheet.setColumnWidth(i+1,w));
 }
 
 function setupAttendanceHeaders(sheet) {
@@ -38,10 +39,161 @@ function setupAttendanceHeaders(sheet) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  KEY FIX: Normalize a cell value that may be a Date object or string.
-//  Google Sheets auto-converts "2026-05-09 18:26" → Date object.
-//  Reading it back with String() gives "Mon May 09 2026..." → dedup breaks.
-//  This function always returns "yyyy-MM-dd HH:mm" string.
+//  Migration Helper: Automatically renames and upgrades old sheets
+// ════════════════════════════════════════════════════════════════════
+function migrateEmployeeSheet(employeeName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const leadsSheet = ss.getSheetByName(employeeName);
+  const callsSheet = ss.getSheetByName(employeeName + "_calls");
+  
+  if (callsSheet) {
+    // If the leads sheet exists, delete it first
+    if (leadsSheet) {
+      try {
+        ss.deleteSheet(leadsSheet);
+      } catch(e) {
+        Logger.log("Failed to delete old leads sheet: " + e.message);
+      }
+    }
+    // Rename calls sheet to employeeName
+    callsSheet.setName(employeeName);
+  }
+  
+  const sheet = ss.getSheetByName(employeeName);
+  if (sheet) {
+    const lastRow = sheet.getLastRow();
+    const maxCols = sheet.getMaxColumns();
+    
+    // Check if this sheet is in old lead format and needs resetting
+    if (lastRow > 0) {
+      const headerVal = sheet.getRange(1, 6).getValue(); // F1 (Called By in leads layout)
+      if (headerVal === "Called By" || headerVal === "College Name") {
+        sheet.clearContents().clearFormats();
+        setupCallHeaders(sheet);
+        return;
+      }
+    }
+    
+    // Check if we need to migrate from old formats to the new 10-column layout
+    if (lastRow > 0) {
+      const headers = sheet.getRange(1, 1, 1, maxCols).getValues()[0].map(h => String(h).trim());
+      
+      const expected = ["Name", "Phone Number", "Called At", "Called End Time", "Duration", "Gap (Idle)", "Status", "Notes", "Sales Done", "_ms"];
+      let isUpToDate = true;
+      if (headers.length < expected.length) {
+        isUpToDate = false;
+      } else {
+        for (let i = 0; i < expected.length; i++) {
+          if (headers[i] !== expected[i]) {
+            isUpToDate = false;
+            break;
+          }
+        }
+      }
+      
+      if (!isUpToDate) {
+        if (lastRow > 1) {
+          // Read existing rows
+          const oldData = sheet.getRange(2, 1, lastRow - 1, maxCols).getValues();
+          const newData = [];
+          
+          // Find column indices dynamically
+          const nameIdx = headers.indexOf("Name");
+          let phoneIdx = headers.indexOf("Phone Number");
+          if (phoneIdx === -1) phoneIdx = headers.indexOf("Phone");
+          
+          const calledAtIdx = headers.indexOf("Called At");
+          const calledEndIdx = headers.indexOf("Called End Time");
+          const durationIdx = headers.indexOf("Duration");
+          
+          let gapIdx = headers.indexOf("Gap (Idle)");
+          if (gapIdx === -1) gapIdx = headers.indexOf("Gap");
+          
+          const statusIdx = headers.indexOf("Status");
+          const notesIdx = headers.indexOf("Notes");
+          const salesIdx = headers.indexOf("Sales Done");
+          const msIdx = headers.indexOf("_ms");
+          
+          oldData.forEach(row => {
+            const name = nameIdx !== -1 ? String(row[nameIdx]) : "";
+            const phone = phoneIdx !== -1 ? String(row[phoneIdx]) : "";
+            const status = statusIdx !== -1 ? String(row[statusIdx]) : "—";
+            const durationStr = durationIdx !== -1 ? String(row[durationIdx]) : "—";
+            const calledAtStr = calledAtIdx !== -1 ? normalizeCalledAt(row[calledAtIdx]) : "—";
+            const gapStr = gapIdx !== -1 ? String(row[gapIdx]) : "—";
+            const notes = notesIdx !== -1 ? String(row[notesIdx]) : "";
+            const salesDone = salesIdx !== -1 ? String(row[salesIdx]) : "";
+            const msValStr = msIdx !== -1 ? String(row[msIdx]) : "";
+            const msVal = parseInt(msValStr) || 0;
+            
+            // Calculate Called End Time if missing or invalid
+            let endTimeStr = "—";
+            if (calledEndIdx !== -1 && row[calledEndIdx] && String(row[calledEndIdx]).trim() !== "—") {
+              endTimeStr = normalizeCalledAt(row[calledEndIdx]);
+            } else if (msVal > 0) {
+              const hMatch = durationStr.match(/(\d+)h/);
+              const mMatch = durationStr.match(/(\d+)m/);
+              const sMatch = durationStr.match(/([\d]+)s/);
+              const durationSec = (hMatch ? parseInt(hMatch[1]) * 3600 : 0)
+                                + (mMatch ? parseInt(mMatch[1]) * 60 : 0)
+                                + (sMatch ? parseInt(sMatch[1]) : 0);
+              const endMs = msVal + (durationSec * 1000);
+              endTimeStr = Utilities.formatDate(new Date(endMs), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm");
+            } else if (calledAtStr && calledAtStr !== "—" && calledAtStr !== "Not called") {
+              endTimeStr = calledAtStr;
+            }
+            
+            newData.push([
+              name,
+              phone,
+              calledAtStr, // Called At
+              endTimeStr,  // Called End Time
+              durationStr, // Duration
+              gapStr,      // Gap (Idle)
+              status,      // Status
+              notes,       // Notes
+              salesDone,   // Sales Done
+              msValStr     // _ms
+            ]);
+          });
+          
+          sheet.clearContents().clearFormats();
+          setupCallHeaders(sheet);
+          if (newData.length > 0) {
+            sheet.getRange(2, 1, newData.length, 10).setValues(newData);
+            const bgColors = [];
+            newData.forEach(row => {
+              const status = row[6];
+              const sales = row[8];
+              const bg = (sales === "✅ Yes") ? "#D4EDDA" : statusColor(status);
+              bgColors.push(Array(9).fill(bg));
+            });
+            sheet.getRange(2, 1, bgColors.length, 9).setBackgrounds(bgColors);
+          }
+        } else {
+          sheet.clearContents().clearFormats();
+          setupCallHeaders(sheet);
+        }
+      }
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Office Working Hours Constants
+// ════════════════════════════════════════════════════════════════════
+const WORK_START_HOUR   = 11;   // 11 AM
+const WORK_START_MIN    = 15;   // 11:15 AM
+const WORK_END_HOUR     = 20;   // 8 PM
+const WORK_END_MIN      = 0;
+const LUNCH_BREAK_MIN   = 60;   // 1 hour lunch
+const SHORT_BREAK_MIN   = 30;   // 30 min break
+const NET_WORK_MIN      = (WORK_END_HOUR * 60 + WORK_END_MIN)
+                        - (WORK_START_HOUR * 60 + WORK_START_MIN)
+                        - LUNCH_BREAK_MIN - SHORT_BREAK_MIN;  // = 435 min
+
+// ════════════════════════════════════════════════════════════════════
+//  Normalize a cell value that may be a Date object or string.
 // ════════════════════════════════════════════════════════════════════
 function normalizeCalledAt(val) {
   if (!val && val !== 0) return "";
@@ -50,19 +202,17 @@ function normalizeCalledAt(val) {
   }
   const s = String(val).trim();
   if (!s || s === "Not called" || s === "—") return s;
-  // Already in sortable format yyyy-MM-dd
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 16); // trim seconds if any
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 16);
   return s;
 }
 
-// Convert Android "dd/MM/yyyy HH:mm" → sortable "yyyy-MM-dd HH:mm"
 function toSortable(str) {
   if (!str || str === "Not called") return "Not called";
   try {
     const s = String(str).trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 16); // already sortable
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 16);
     const parts     = s.split(" ");
-    const dateParts = parts[0].split("/"); // [dd, MM, yyyy]
+    const dateParts = parts[0].split("/");
     if (dateParts.length !== 3) return s;
     const time = parts[1] || "00:00";
     return dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0] + " " + time;
@@ -100,8 +250,7 @@ function checkPhoneInternal(phone) {
   const ss     = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets().filter(s =>
     s.getName() !== "📊 Summary" &&
-    s.getName() !== "📅 Attendance" &&
-    !s.getName().endsWith("_calls")
+    s.getName() !== "📅 Attendance"
   );
   const checkPhone = String(phone).replace(/\D/g,"");
   for (const sheet of sheets) {
@@ -111,10 +260,10 @@ function checkPhoneInternal(phone) {
     for (const row of data) {
       const rowPhone = String(row[1]).replace(/\D/g,"");
       if (rowPhone === checkPhone) {
-        const status = String(row[2]);
+        const status = String(row[6]); // Column G is Status (index 6)
         if (status && status !== "Pending" && status !== "") {
-          return { called:true, calledBy:String(row[5]).trim()||sheet.getName(),
-                   status:status, collegeName:String(row[6]).trim(), collegeCity:String(row[7]).trim() };
+          return { called:true, calledBy:sheet.getName(),
+                   status:status, collegeName:"", collegeCity:"" };
         }
       }
     }
@@ -138,7 +287,7 @@ function doPost(e) {
       syncCallRecords(employeeName, data.records);
     }
     if (type === "attendance" && data.attendance) {
-      syncAttendance(data.attendance);
+      syncAttendance(employeeName, data.attendance);
     }
     if (type === "leaveEmail") {
       return ContentService.createTextOutput(JSON.stringify(handleLeaveEmail(data)))
@@ -157,185 +306,372 @@ function doPost(e) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  syncLeads — now includes salesDone column
+//  syncLeads — Updates notes and sales status on matching call rows
 // ════════════════════════════════════════════════════════════════════
 function syncLeads(employeeName, leads) {
-  const sheet   = getOrCreateSheet(employeeName);
+  if (!leads || leads.length === 0) return;
+  const sheet = getOrCreateSheet(employeeName);
   const lastRow = sheet.getLastRow();
-  if (lastRow === 0) setupLeadHeaders(sheet);
-  else if (lastRow > 1) sheet.getRange(2,1,lastRow-1,10).clearContent().setBackground("#FFFFFF");
-  if (leads.length > 0) {
-    const rows = leads.map(lead => [
-      lead.name        || "",
-      lead.phone       || "",
-      lead.status      || "Pending",
-      formatDuration(lead.duration || 0),
-      lead.calledAt    || "Not called",
-      lead.calledBy    || employeeName,
-      lead.collegeName || "",
-      lead.collegeCity || "",
-      lead.notes       || "",
-      lead.salesDone   ? "✅ Yes" : ""     // NEW: salesDone column
-    ]);
-    sheet.getRange(2,1,rows.length,10).setValues(rows);
-    leads.forEach((_,i) => {
-      const bg = leads[i].salesDone ? "#D4EDDA" : statusColor(leads[i].status);
-      sheet.getRange(i+2,1,1,10).setBackground(bg);
-    });
+  if (lastRow < 2) return;
+  
+  // Read cols A to I (9 columns): Name(0), Phone(1), CalledAt(2), CalledEnd(3), Duration(4), Gap(5), Status(6), Notes(7), SalesDone(8)
+  const range = sheet.getRange(2, 1, lastRow - 1, 9);
+  const data = range.getValues();
+  
+  const leadMap = new Map();
+  leads.forEach(lead => {
+    const cleanPhone = String(lead.phone || "").replace(/\D/g, "");
+    if (cleanPhone) {
+      leadMap.set(cleanPhone, {
+        notes: lead.notes || "",
+        salesDone: lead.salesDone ? "✅ Yes" : ""
+      });
+    }
+  });
+  
+  let modified = false;
+  for (let i = 0; i < data.length; i++) {
+    const phone = String(data[i][1]).replace(/\D/g, "");
+    const match = leadMap.get(phone);
+    if (match) {
+      const existingNotes = String(data[i][7]);
+      const existingSales = String(data[i][8]);
+      if (existingNotes !== match.notes || existingSales !== match.salesDone) {
+        data[i][7] = match.notes;
+        data[i][8] = match.salesDone;
+        modified = true;
+      }
+    }
+  }
+  
+  if (modified) {
+    range.setValues(data);
+    
+    // Batch update background colors
+    const bgColors = [];
+    for (let i = 0; i < data.length; i++) {
+      const status = data[i][6];
+      const sales = data[i][8];
+      const bg = (sales === "✅ Yes") ? "#D4EDDA" : statusColor(status);
+      bgColors.push(Array(9).fill(bg));
+    }
+    sheet.getRange(2, 1, bgColors.length, 9).setBackgrounds(bgColors);
   }
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  syncCallRecords — FIXED dedup (normalizes Date objects back to string)
-//                   FIXED orphan rows (rows where phone is empty)
+//  syncCallRecords
 // ════════════════════════════════════════════════════════════════════
 function syncCallRecords(employeeName, records) {
-  const sheetName = employeeName + "_calls";
+  try {
+    migrateEmployeeSheet(employeeName);
+  } catch(e) {
+    Logger.log("Migration failed for " + employeeName + ": " + e.message);
+  }
+
+  const sheetName = employeeName;
   const sheet     = getOrCreateSheet(sheetName);
   if (sheet.getLastRow() === 0) {
     setupCallHeaders(sheet);
   } else {
-    sheet.getRange("E:G").setNumberFormat("@STRING@");
-    // Ensure col G is hidden (ms key column)
-    try { sheet.hideColumns(7); } catch(e) {}
+    sheet.getRange("C:D").setNumberFormat("@STRING@");
+    sheet.getRange("J:J").setNumberFormat("@STRING@");
+    try { sheet.hideColumns(10); } catch(e) {}
   }
-
+  
   // ── Step 1: Clean orphan rows (Phone column is empty) ──────────────
   const currentLast = sheet.getLastRow();
   if (currentLast >= 2) {
-    const allData = sheet.getRange(2, 1, currentLast - 1, 7).getValues();
+    const allData = sheet.getRange(2, 1, currentLast - 1, 10).getValues();
     for (let i = allData.length - 1; i >= 0; i--) {
       const phone = String(allData[i][1]).replace(/\D/g, "");
       if (!phone) sheet.deleteRow(i + 2);
     }
   }
-
-  // ── Step 2: Build existing key set ─────────────────────────────────
+  
+  // ── Step 2: Build existing key set & phone details map ─────────────
   const existingLastRow = sheet.getLastRow();
   const existingKeys    = new Set();
+  const phoneDetailsMap = new Map();
   if (existingLastRow >= 2) {
-    // Read cols B-G: phone(0), status(1), duration(2), calledAt(3), gap(4), ms(5)
-    const existingData = sheet.getRange(2, 2, existingLastRow - 1, 6).getValues();
+    const existingData = sheet.getRange(2, 1, existingLastRow - 1, 10).getValues();
     existingData.forEach(row => {
-      const phone = String(row[0]).replace(/\D/g, "");
-      const ms    = String(row[5]).trim(); // col G = raw ms
-      const time  = normalizeCalledAt(row[3]); // fallback
-      if (phone) existingKeys.add(phone + "|" + (ms && ms !== "" ? ms : time));
+      const phone   = String(row[1]).replace(/\D/g, "");
+      const rawMs   = String(row[9]).trim(); // Col J (_ms)
+      const time    = normalizeCalledAt(row[2]); // Col C (Called At)
+      const msClean = (rawMs && rawMs !== "" && rawMs !== "0") ? rawMs : "";
+      if (phone) {
+        existingKeys.add(phone + "|" + (msClean || time));
+        if (!phoneDetailsMap.has(phone)) {
+          phoneDetailsMap.set(phone, {
+            notes: String(row[7]).trim(),
+            salesDone: String(row[8]).trim()
+          });
+        }
+      }
     });
   }
-
-  // ── Step 3: Append only NEW records ────────────────────────────────
+  
+  // ── Step 3: Parse and Append new rows ──────────────────────────────
+  const sorted = records
+    .filter(r => String(r.phone||"").replace(/\D/g,""))
+    .map(r => ({
+      ...r,
+      _ms: parseInt(String(r.calledAtMs||"").trim()) || 0
+    }))
+    .sort((a,b) => a._ms - b._ms);
+    
   const newRows = [];
-  records.forEach(r => {
+  sorted.forEach((r, idx) => {
     const phone    = String(r.phone || "").replace(/\D/g, "");
-    const ms       = String(r.calledAtMs || "").trim();
+    const rawMs    = String(r.calledAtMs || "").trim();
     const sortable = toSortable(r.calledAt);
-    const key = phone + "|" + (ms && ms !== "0" ? ms : sortable);
-    if (phone && !existingKeys.has(key)) {
-      // Format gap: if gapSeconds provided, convert to readable string
-      const gapSec = r.gapSeconds || 0;
-      const gapStr = gapSec > 0 ? formatDuration(gapSec) : "—";
-      newRows.push([
-        r.name   || "",
-        r.phone  || "",
-        r.status || "—",
-        formatDuration(r.duration || 0),
-        sortable,    // col E: display "yyyy-MM-dd HH:mm"
-        gapStr,      // col F: gap since last call ended
-        ms           // col G: hidden raw ms for dedup
-      ]);
-      existingKeys.add(key);
+    const msClean  = (rawMs && rawMs !== "" && rawMs !== "0") ? rawMs : "";
+    const key      = phone + "|" + (msClean || sortable);
+    
+    if (!phone || existingKeys.has(key)) return;
+    
+    // ── Gap calculation ────────────────────────────────────────────────
+    let gapSec = 0;
+    const callMs = r._ms;
+    
+    if (callMs > 0) {
+      const workStart = new Date(callMs);
+      workStart.setHours(WORK_START_HOUR, WORK_START_MIN, 0, 0);
+      const workEnd = new Date(callMs);
+      workEnd.setHours(WORK_END_HOUR, WORK_END_MIN, 0, 0);
+      
+      const isWithinHours = (callMs >= workStart.getTime() && callMs <= workEnd.getTime());
+      
+      if (isWithinHours) {
+        if (idx === 0) {
+          // First ever call: gap from 11:15 AM
+          const diffMs = callMs - workStart.getTime();
+          gapSec = diffMs > 0 ? Math.round(diffMs / 1000) : 0;
+        } else {
+          const prev = sorted[idx - 1];
+          const prevDateStr = new Date(prev._ms).toDateString();
+          const currDateStr = new Date(callMs).toDateString();
+          
+          if (prevDateStr === currDateStr) {
+            const prevEndMs = prev._ms + ((prev.duration || 0) * 1000);
+            // Verify if previous call ended within working hours
+            if (prevEndMs >= workStart.getTime() && prevEndMs <= workEnd.getTime()) {
+              const diffMs = callMs - prevEndMs;
+              gapSec = diffMs > 0 ? Math.round(diffMs / 1000) : 0;
+            } else {
+              // If prev call was before workStart, calculate from workStart
+              const diffMs = callMs - workStart.getTime();
+              gapSec = diffMs > 0 ? Math.round(diffMs / 1000) : 0;
+            }
+          } else {
+            const diffMs = callMs - workStart.getTime();
+            gapSec = diffMs > 0 ? Math.round(diffMs / 1000) : 0;
+          }
+        }
+      }
+    } else {
+      gapSec = r.gapSeconds || 0;
     }
+    
+    const gapStr = gapSec > 0 ? formatDuration(gapSec) : "—";
+    
+    // ── Called End Time calculation ────────────────────────────────────
+    let endTimeStr = "—";
+    if (callMs > 0) {
+      const durationSec = r.duration || 0;
+      const endMs = callMs + (durationSec * 1000);
+      endTimeStr = Utilities.formatDate(new Date(endMs), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm");
+    } else {
+      endTimeStr = sortable;
+    }
+    
+    // Get existing details if any
+    const details = phoneDetailsMap.get(phone) || { notes: "", salesDone: "" };
+    
+    // Header order: Name(0), Phone(1), Called At(2), Called End Time(3), Duration(4), Gap(5), Status(6), Notes(7), Sales Done(8), _ms(9)
+    newRows.push([
+      r.name   || "",
+      r.phone  || "",
+      sortable,    // Called At
+      endTimeStr,  // Called End Time
+      formatDuration(r.duration || 0),
+      gapStr,      // Gap (Idle)
+      r.status || "—",
+      r.notes || details.notes || "",
+      details.salesDone,
+      rawMs        // _ms (hidden)
+    ]);
+    existingKeys.add(key);
   });
-
+  
   if (newRows.length > 0) {
     const insertRow = sheet.getLastRow() + 1;
-    const range     = sheet.getRange(insertRow, 1, newRows.length, 7);
+    const range     = sheet.getRange(insertRow, 1, newRows.length, 10);
     range.setNumberFormat("@STRING@");
     range.setValues(newRows);
-    newRows.forEach((row, i) => {
-      sheet.getRange(insertRow + i, 1, 1, 6).setBackground(statusColor(row[2]));
+    
+    // Batch color the new rows
+    const bgColors = [];
+    newRows.forEach(row => {
+      const status = row[6];
+      const sales = row[8];
+      const bg = (sales === "✅ Yes") ? "#D4EDDA" : statusColor(status);
+      bgColors.push(Array(9).fill(bg));
     });
+    sheet.getRange(insertRow, 1, bgColors.length, 9).setBackgrounds(bgColors);
   }
-
-  // ── Step 4: Re-sort all rows by calledAt (col E) newest first ──────
+  
+  // ── Step 4: Re-sort all rows descending (newest at top) ──────
   const totalRows = sheet.getLastRow();
   if (totalRows >= 3) {
-    sheet.getRange(2, 1, totalRows - 1, 7).sort({ column: 5, ascending: false });
+    sheet.getRange(2, 1, totalRows - 1, 10).sort({ column: 3, ascending: false }); // Sort descending by Called At (Col 3)
   }
-
   sheet.setFrozenRows(1);
-  [180,140,140,100,170,110].forEach((w,i) => sheet.setColumnWidth(i+1,w));
-  try { sheet.hideColumns(7); } catch(e) {}
+  [180,140,170,170,100,110,140,250,100].forEach((w,i) => sheet.setColumnWidth(i+1,w));
+  try { sheet.hideColumns(10); } catch(e) {}
+
+  updateSummarySheet();
 }
 
 // ════════════════════════════════════════════════════════════════════
 //  syncAttendance
 // ════════════════════════════════════════════════════════════════════
-function syncAttendance(records) {
+function syncAttendance(employeeName, records) {
+  if (!records || !Array.isArray(records)) {
+    Logger.log("syncAttendance: records is empty or not an array");
+    return;
+  }
+  
   const sheet = getOrCreateSheet("📅 Attendance");
   if (sheet.getLastRow() === 0) setupAttendanceHeaders(sheet);
+  
   records.forEach(rec => {
-    const employee     = rec.employeeName || "Unknown";
+    const employee     = rec.employeeName || employeeName || "Unknown";
     const date         = rec.date         || "";
+    if (!date) return;
+
     const existingLast = sheet.getLastRow();
     let   foundRow     = -1;
+    
     if (existingLast >= 2) {
       const existingData = sheet.getRange(2,1,existingLast-1,2).getValues();
       for (let i = 0; i < existingData.length; i++) {
-        if (existingData[i][0] === employee && existingData[i][1] === date) {
+        const sheetEmployee = String(existingData[i][0]).trim();
+        
+        let sheetDate = existingData[i][1];
+        if (sheetDate instanceof Date) {
+          sheetDate = Utilities.formatDate(sheetDate, Session.getScriptTimeZone(), "dd/MM/yyyy");
+        } else {
+          sheetDate = String(sheetDate).trim();
+        }
+        
+        if (sheetEmployee === employee && sheetDate === date) {
           foundRow = i + 2; break;
         }
       }
     }
+    
     const statusText = rec.isLate ? "🔴 Late" : "🟢 On Time";
     const rowData    = [employee, date, rec.punchInTime||"—", statusText, rec.lateReason||"—", rec.totalCalls||0];
     const bgColor    = rec.isLate ? "#FFF3CD" : "#D4EDDA";
-    if (foundRow !== -1) sheet.getRange(foundRow,1,1,6).setValues([rowData]).setBackground(bgColor);
-    else sheet.getRange(sheet.getLastRow()+1,1,1,6).setValues([rowData]).setBackground(bgColor);
+    
+    if (foundRow !== -1) {
+      sheet.getRange(foundRow, 1, 1, 6).setValues([rowData]).setBackground(bgColor);
+    } else {
+      sheet.getRange(sheet.getLastRow() + 1, 1, 1, 6).setValues([rowData]).setBackground(bgColor);
+    }
   });
-  if (sheet.getLastRow() > 2) sheet.getRange(2,1,sheet.getLastRow()-1,6).sort({column:2,ascending:false});
+  
+  if (sheet.getLastRow() > 2) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).sort({column: 2, ascending: false});
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  updateSummarySheet — updated for 10-column leads
+//  updateSummarySheet
 // ════════════════════════════════════════════════════════════════════
 function updateSummarySheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let summary = ss.getSheetByName("📊 Summary");
   if (!summary) summary = ss.insertSheet("📊 Summary", 0);
   summary.clearContents().clearFormats();
-  const headers = ["Employee","Total","Connected","Interested","Busy","Not Connected","Not Interested","Pending","Sales Done"];
-  summary.getRange(1,1,1,9).setValues([headers])
+  const headers = [
+    "Employee","Total Calls","Wrong No.","Interested","Busy",
+    "Not Connected","Not Interested","Pending/Other","Sales Done",
+    "Call Time","Net Idle Time","Efficiency %"
+  ];
+  summary.getRange(1,1,1,12).setValues([headers])
          .setBackground("#2D3748").setFontColor("#FFFFFF").setFontWeight("bold");
   const sheets = ss.getSheets().filter(s =>
     s.getName() !== "📊 Summary" &&
-    s.getName() !== "📅 Attendance" &&
-    !s.getName().endsWith("_calls")
+    s.getName() !== "📅 Attendance"
   );
   const summaryRows = [];
   sheets.forEach(sheet => {
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return;
-    const data  = sheet.getRange(2,1,lastRow-1,10).getValues();
-    const count = (status) => data.filter(r => r[2] === status).length;
+    const data = sheet.getRange(2,1,lastRow-1,10).getValues();
+    const countExact  = (s)   => data.filter(r => r[6] === s).length;
+    const countPrefix = (pfx) => data.filter(r => String(r[6]).startsWith(pfx)).length;
+    const isKnown     = (s)   => {
+      const ls = String(s).toLowerCase();
+      return s === "Wrong Number" || s === "Interested" || s === "Busy" ||
+             s === "Not Connected" || ls.startsWith("not interested") ||
+             ls.includes("sale") || !s || s === "Pending";
+    };
+    
+    // ── Call time directly from this sheet ──────────────────────────────
+    let totalCallSec = 0;
+    data.forEach(row => {
+      const durStr = String(row[4] || ""); // Col 5 is Duration (index 4)
+      const hMatch = durStr.match(/(\d+)h/);
+      const mMatch = durStr.match(/(\d+)m/);
+      const sMatch = durStr.match(/([\d]+)s/);
+      
+      totalCallSec += (hMatch ? parseInt(hMatch[1]) * 3600 : 0)
+                    + (mMatch ? parseInt(mMatch[1]) * 60 : 0)
+                    + (sMatch ? parseInt(sMatch[1]) : 0);
+    });
+    const totalCallMin = Math.round(totalCallSec / 60);
+    const netIdleMin   = Math.max(0, NET_WORK_MIN - totalCallMin);
+    const efficiency   = NET_WORK_MIN > 0
+      ? Math.min(100, Math.round((totalCallMin / NET_WORK_MIN) * 100))
+      : 0;
+      
+    // Count Sales Done if status contains "sale" or matches "✅ Yes" in col 9 (index 8)
+    const salesCount = data.filter(r => {
+      const status = String(r[6]).toLowerCase();
+      const sales = String(r[8]).trim();
+      return status.includes("sale") || sales === "✅ Yes";
+    }).length;
+
     summaryRows.push([
-      sheet.getName(), data.length,
-      count("Connected"), count("Interested"),
-      count("Busy"),      count("Not Connected"),
-      count("Not Interested"),
-      data.filter(r => !r[2] || r[2] === "Pending").length,
-      data.filter(r => r[9] === "✅ Yes").length   // Sales Done count
+      sheet.getName(),
+      data.length, // Total calls
+      countExact("Wrong Number"),
+      countExact("Interested"),
+      countExact("Busy"),
+      countExact("Not Connected"),
+      countPrefix("Not Interested"),
+      data.filter(r => !isKnown(r[6])).length +
+        data.filter(r => !r[6] || r[6] === "Pending").length,
+      salesCount,                            // Sales Done count
+      formatDuration(totalCallSec),          // Call Time
+      netIdleMin + " min",                   // Net Idle Time
+      efficiency + "%"                       // Efficiency %
     ]);
   });
   if (summaryRows.length > 0) {
-    summary.getRange(2,1,summaryRows.length,9).setValues(summaryRows);
+    summary.getRange(2,1,summaryRows.length,12).setValues(summaryRows);
     summaryRows.forEach((_,i) => {
-      summary.getRange(i+2,3).setBackground("#C6EFCE");
-      summary.getRange(i+2,4).setBackground("#BDD7EE");
-      summary.getRange(i+2,5).setBackground("#FFE699");
-      summary.getRange(i+2,7).setBackground("#FFC7CE");
-      summary.getRange(i+2,9).setBackground("#D4EDDA"); // Sales Done = green
+      summary.getRange(i+2,3).setBackground("#EDEDED");  
+      summary.getRange(i+2,4).setBackground("#BDD7EE");  
+      summary.getRange(i+2,5).setBackground("#FFE699");  
+      summary.getRange(i+2,8).setBackground("#FFC7CE");  
+      summary.getRange(i+2,10).setBackground("#E8DAEF"); 
+      summary.getRange(i+2,11).setBackground("#FFF3CD"); 
+      summary.getRange(i+2,12).setBackground("#D4EDDA"); 
     });
     const totalRow = summaryRows.length + 2;
     summary.getRange(totalRow,1).setValue("✅ TOTAL").setFontWeight("bold");
@@ -345,38 +681,58 @@ function updateSummarySheet() {
         .setFontWeight("bold").setBackground("#F0F4F8");
     }
   }
+  summary.getRange(summaryRows.length+4,1)
+    .setValue("ℹ️ Net Idle = 435 min (7h 15m window) − Call Time | Window: 11:15 AM–8 PM minus 1h lunch & 30m break")
+    .setFontColor("#6B7280").setFontStyle("italic");
   summary.setFrozenRows(1);
   summary.setColumnWidth(1,180);
-  for (let i = 2; i <= 9; i++) summary.setColumnWidth(i,120);
+  for (let i = 2; i <= 9; i++) summary.setColumnWidth(i,110);
+  summary.setColumnWidth(10,120);
+  summary.setColumnWidth(11,130);
+  summary.setColumnWidth(12,110);
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  Leave Email Handlers
+//  handleLeaveEmail
 // ════════════════════════════════════════════════════════════════════
 function handleLeaveEmail(data) {
   try {
     const adminEmail = data.adminEmail || "";
     const empName    = data.empName    || "Employee";
+    const employeeId = data.employeeId || "—";
     const empEmail   = data.empEmail   || "";
     const leaveType  = data.leaveType  || "Leave";
     const fromDate   = data.fromDate   || "—";
     const toDate     = data.toDate     || "—";
     const reason     = data.reason     || "No reason provided";
+    
     if (!adminEmail) return { success:false, error:"No admin email" };
+    
     const subject = "Leave Request — " + empName + " (" + leaveType + ")";
+    
     const htmlBody =
       "<div style='font-family:Arial,sans-serif;max-width:600px'>" +
       "<h2 style='color:#3B82F6'>📋 Leave Request</h2>" +
       "<table style='width:100%;border-collapse:collapse;font-size:14px'>" +
-      row_("Employee",  empName)  + row_("Email",     empEmail) +
-      row_("Leave Type",leaveType)+ row_("From",      fromDate) +
-      row_("To",        toDate)   + row_("Reason",    reason)   +
+      row_("Employee Name", empName)  +
+      row_("Employee ID",   employeeId) +
+      row_("Email",         empEmail) +
+      row_("Leave Type",    leaveType)+
+      row_("From",          fromDate) +
+      row_("To",            toDate)   +
+      row_("Reason",        reason)   +
       "</table>" +
       "<p style='color:#6B7280;font-size:12px;margin-top:16px'>— Adyapan CRM</p></div>";
+      
     const textBody =
-      "Employee  : " + empName   + "\nEmail     : " + empEmail  +
-      "\nLeave Type: " + leaveType + "\nFrom      : " + fromDate +
-      "\nTo        : " + toDate    + "\nReason    : " + reason;
+      "Employee Name: " + empName   +
+      "\nEmployee ID  : " + employeeId + 
+      "\nEmail        : " + empEmail  +
+      "\nLeave Type   : " + leaveType +
+      "\nFrom         : " + fromDate +
+      "\nTo           : " + toDate    +
+      "\nReason       : " + reason;
+      
     GmailApp.sendEmail(adminEmail, subject, textBody, { htmlBody:htmlBody, replyTo:empEmail });
     return { success:true };
   } catch(err) {
@@ -385,6 +741,9 @@ function handleLeaveEmail(data) {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  handleLeaveStatusEmail
+// ════════════════════════════════════════════════════════════════════
 function handleLeaveStatusEmail(data) {
   try {
     const empEmail  = data.empEmail  || "";
@@ -397,9 +756,9 @@ function handleLeaveStatusEmail(data) {
     const isApproved = status === "Approved";
     const emoji      = isApproved ? "✅" : "❌";
     const color      = isApproved ? "#16A34A" : "#DC2626";
-    const message    = isApproved
+    const message = isApproved
       ? "Your leave has been <b>approved</b>. Enjoy your time off! 🎉"
-      : "Your leave has been <b>rejected</b>. Please contact your manager for more details.";
+      : "Your leave has been <b>rejected</b>. Contact your manager for more details.";
     const subject = emoji + " Leave " + status + " — " + leaveType;
     const htmlBody =
       "<div style='font-family:Arial,sans-serif;max-width:600px'>" +
@@ -414,7 +773,7 @@ function handleLeaveStatusEmail(data) {
       "Dear " + empName + ",\n\nYour leave request has been " + status.toLowerCase() + ".\n\n" +
       "Leave Type : " + leaveType + "\nFrom       : " + fromDate +
       "\nTo         : " + toDate   + "\nStatus     : " + status + "\n\n" +
-      (isApproved ? "Enjoy your time off!" : "Please contact your manager for details.") +
+      (isApproved ? "Enjoy your time off!" : " Contact your manager for details.") +
       "\n\n— Adyapan CRM";
     GmailApp.sendEmail(empEmail, subject, textBody, { htmlBody:htmlBody });
     return { success:true };
@@ -425,42 +784,39 @@ function handleLeaveStatusEmail(data) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  ONE-TIME CLEANUP: Run manually from editor to fix existing sheets
-//  Removes duplicate rows and orphan date-only rows from all _calls sheets
+//  fixAllCallSheets
 // ════════════════════════════════════════════════════════════════════
 function fixAllCallSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const exclude = ["📊 Summary", "📅 Attendance"];
   ss.getSheets()
-    .filter(s => s.getName().endsWith("_calls"))
+    .filter(s => !exclude.includes(s.getName()))
     .forEach(sheet => {
       const lastRow = sheet.getLastRow();
       if (lastRow < 2) return;
-
-      // Force column E to text
-      sheet.getRange("E:E").setNumberFormat("@STRING@");
-
-      const data = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+      sheet.getRange("E:H").setNumberFormat("@STRING@");
+      const data = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
       const seen = new Set();
-      // Collect duplicate/orphan rows (process bottom-up for safe deletion)
       const toDelete = [];
       for (let i = data.length - 1; i >= 0; i--) {
         const phone    = String(data[i][1]).replace(/\D/g, "");
-        const calledAt = normalizeCalledAt(data[i][4]);
-        const key      = phone + "|" + calledAt;
+        const rawMs    = String(data[i][9]).trim(); // col J is index 9
+        const calledAt = normalizeCalledAt(data[i][2]); // col C is index 2
+        const msClean  = (rawMs && rawMs !== "" && rawMs !== "0") ? rawMs : "";
+        const key      = phone + "|" + (msClean || calledAt);
         if (!phone || seen.has(key)) {
-          toDelete.push(i + 2); // sheet row index
+          toDelete.push(i + 2);
         } else {
           seen.add(key);
         }
       }
       toDelete.forEach(rowIdx => sheet.deleteRow(rowIdx));
       Logger.log(sheet.getName() + ": removed " + toDelete.length + " rows");
-
-      // Re-sort after cleanup
       const newLast = sheet.getLastRow();
       if (newLast >= 3) {
-        sheet.getRange(2, 1, newLast - 1, 5).sort({ column: 5, ascending: false });
+        sheet.getRange(2, 1, newLast - 1, 10).sort({ column: 3, ascending: false });
       }
+      try { sheet.hideColumns(10); } catch(e) {}
     });
   Logger.log("fixAllCallSheets complete");
 }
@@ -473,34 +829,69 @@ function row_(label, value) {
     "<td style='padding:8px;border:1px solid #E2E8F0;background:#F8FAFC;width:130px'><b>" + label + "</b></td>" +
     "<td style='padding:8px;border:1px solid #E2E8F0'>" + value + "</td></tr>";
 }
+
 function formatDuration(seconds) {
   if (!seconds || seconds <= 0) return "—";
-  const m = Math.floor(seconds / 60);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return m > 0 ? m + "m " + s + "s" : s + "s";
-}
-function col2letter(col) { return String.fromCharCode(64 + col); }
-function statusColor(status) {
-  switch(status) {
-    case "Connected":      return "#C6EFCE";
-    case "Interested":     return "#BDD7EE";
-    case "Busy":           return "#FFE699";
-    case "Not Connected":  return "#EDEDED";
-    case "Not Interested": return "#FFC7CE";
-    default:               return "#FFFFFF";
-  }
+  
+  if (h > 0) return h + "h " + m + "m " + s + "s";
+  if (m > 0) return m + "m " + s + "s";
+  return s + "s";
 }
 
-// ════════════════════════════════════════════════════════════════════
-//  Test / Auth helpers
-// ════════════════════════════════════════════════════════════════════
+function col2letter(col) { return String.fromCharCode(64 + col); }
+
+function statusColor(status) {
+  if (!status) return "#FFFFFF";
+  if (status === "Wrong Number")                      return "#EDEDED";
+  if (status === "Interested")                        return "#BDD7EE";
+  if (status === "Busy")                              return "#FFE699";
+  if (status === "Not Connected")                     return "#EDEDED";
+  if (String(status).startsWith("Not Interested"))    return "#FFC7CE";
+  if (status !== "Pending")                           return "#E8DAEF";
+  return "#FFFFFF";
+}
+
+// Run this manually once from Google Apps Script editor to migrate existing sheets immediately
+function runManualMigrationForAllSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const exclude = ["📊 Summary", "📅 Attendance"];
+  
+  const sheets = ss.getSheets().map(s => s.getName());
+  const employeeNames = new Set();
+  
+  sheets.forEach(name => {
+    if (exclude.indexOf(name) !== -1) return;
+    if (name.endsWith("_calls")) {
+      employeeNames.add(name.replace("_calls", ""));
+    } else {
+      employeeNames.add(name);
+    }
+  });
+  
+  employeeNames.forEach(name => {
+    Logger.log("Migrating sheet for: " + name);
+    try {
+      migrateEmployeeSheet(name);
+    } catch(e) {
+      Logger.log("Error migrating " + name + ": " + e.message);
+    }
+  });
+  
+  updateSummarySheet();
+  Logger.log("All sheets migrated successfully!");
+}
+
 function testLeaveEmail() {
   handleLeaveEmail({
-    adminEmail:"gulshan12216935@gmail.com",
+    adminEmail:"hr@adyapan.com,mounika@adyapan.com,gulshan12216935@gmail.com",
     empName:"Test User", empEmail:"test@gmail.com",
     leaveType:"Sick Leave", fromDate:"10/01/2025", toDate:"11/01/2025", reason:"Testing"
   });
 }
+
 function testLeaveStatusEmail() {
   handleLeaveStatusEmail({
     empEmail:"employee@gmail.com", empName:"Test Employee",
@@ -508,6 +899,7 @@ function testLeaveStatusEmail() {
     status:"Approved"
   });
 }
+
 function forceAuth() {
   GmailApp.getInboxThreads(0,1);
   Logger.log("Auth OK");

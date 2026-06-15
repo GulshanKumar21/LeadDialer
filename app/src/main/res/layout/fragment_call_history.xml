@@ -65,12 +65,12 @@
                     android:textColor="#FFFFFF"
                     android:background="?attr/selectableItemBackgroundBorderless" />
 
-                <!-- Window label 11:30 AM – 8:00 PM -->
+                <!-- Window label 11:15 AM – 8:00 PM -->
                 <TextView
                     android:id="@+id/tvSummaryWindow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="11:30 AM – 8:00 PM"
+                    android:text="11:15 AM – 8:00 PM"
                     android:textSize="10sp"
                     android:textColor="#FFE0B2"
                     android:fontFamily="@font/poppins_regular" />
@@ -268,8 +268,8 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_margin="16dp"
-            android:src="@android:drawable/ic_menu_share"
-            android:contentDescription="Export calls"/>
+            android:src="@android:drawable/stat_sys_download"
+            android:contentDescription="Download call records"/>
 
     </RelativeLayout>
 

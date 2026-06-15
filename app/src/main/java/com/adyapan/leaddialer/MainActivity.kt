@@ -55,12 +55,20 @@ class MainActivity : AppCompatActivity(),
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { /* results handled silently */ }
+    ) { results ->
+        val phoneStateOk = results[Manifest.permission.READ_PHONE_STATE] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+        val callLogOk = results[Manifest.permission.READ_CALL_LOG] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED)
+        if (phoneStateOk && callLogOk) {
+            CallMonitorService.start(this)
+            android.util.Log.d("MainActivity", "CallMonitorService started after permissions granted")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // ── Apply dark/light mode BEFORE setContentView ───────────────────
-        ThemeManager.applyTheme(this)
         super.onCreate(savedInstanceState)
+
+        // Force status bar color to milky-white (prevents fitsSystemWindows DrawerLayout from drawing orange status bar background)
+        window.statusBarColor = android.graphics.Color.parseColor("#F8F8F5")
 
         setContentView(R.layout.activity_main)
 
@@ -112,6 +120,10 @@ class MainActivity : AppCompatActivity(),
             } else {
                 requestPermissionLauncher.launch(permsNeeded.toTypedArray())
             }
+        } else {
+            // Already granted on start
+            CallMonitorService.start(this)
+            android.util.Log.d("MainActivity", "CallMonitorService started on onCreate (permissions already granted)")
         }
 
         // Check for SYSTEM_ALERT_WINDOW (Display over other apps)
@@ -148,6 +160,16 @@ class MainActivity : AppCompatActivity(),
         toggle.syncState()
 
         navView.setNavigationItemSelectedListener(this)
+
+        val tvPrivacyPolicy = findViewById<TextView>(R.id.tvDrawerPrivacyPolicy)
+        tvPrivacyPolicy?.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://sites.google.com/view/adyapan-crm-policy/home"))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "No browser found to open link", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         FirebaseApp.initializeApp(this)
 
@@ -218,6 +240,18 @@ class MainActivity : AppCompatActivity(),
         supportFragmentManager.addOnBackStackChangedListener {
             val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
             android.util.Log.d("MainActivity", "BackStackChanged: currentFragment=$currentFragment")
+            val container = findViewById<android.widget.FrameLayout>(R.id.fragmentContainer)
+            val params = container.layoutParams as android.widget.RelativeLayout.LayoutParams
+            if (currentFragment is DashboardFragment) {
+                supportActionBar?.hide()
+                toolbar.visibility = android.view.View.GONE
+                params.topMargin = 0
+            } else {
+                supportActionBar?.show()
+                toolbar.visibility = android.view.View.VISIBLE
+                params.topMargin = toolbar.layoutParams.height
+            }
+            container.layoutParams = params
             when (currentFragment) {
                 is DashboardFragment -> {
                     supportActionBar?.title = "Dashboard"
@@ -338,6 +372,7 @@ class MainActivity : AppCompatActivity(),
     // ── Global call-popup handler ─────────────────────────────────────────────────
     override fun onResume() {
         super.onResume()
+        window.statusBarColor = android.graphics.Color.parseColor("#F8F8F5")
         checkAndShowCallPopup()
     }
 
@@ -351,8 +386,6 @@ class MainActivity : AppCompatActivity(),
 
         if (record != null) {
             CallManager.callActive = false
-            val todayCount = (callViewModel.allRecords.value?.size ?: 0) + 1
-            attendanceViewModel.updateTodayCallCount(todayCount)
             val calledAtStr = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(record.calledAt))
             showCallStatusDialog(record, calledAtStr)
             CalledNumbersCache.clear(this)
@@ -460,6 +493,18 @@ class MainActivity : AppCompatActivity(),
     }
 
     internal fun loadFragment(fragment: Fragment, title: String) {
+        val container = findViewById<android.widget.FrameLayout>(R.id.fragmentContainer)
+        val params = container.layoutParams as android.widget.RelativeLayout.LayoutParams
+        if (fragment is DashboardFragment) {
+            supportActionBar?.hide()
+            toolbar.visibility = android.view.View.GONE
+            params.topMargin = 0
+        } else {
+            supportActionBar?.show()
+            toolbar.visibility = android.view.View.VISIBLE
+            params.topMargin = toolbar.layoutParams.height
+        }
+        container.layoutParams = params
         supportActionBar?.title = title
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
@@ -468,6 +513,18 @@ class MainActivity : AppCompatActivity(),
 
     /** Load fragment and add to backstack (use for drill-down navigation like Reports → FilteredLeads) */
     internal fun loadFragmentWithBack(fragment: Fragment, title: String) {
+        val container = findViewById<android.widget.FrameLayout>(R.id.fragmentContainer)
+        val params = container.layoutParams as android.widget.RelativeLayout.LayoutParams
+        if (fragment is DashboardFragment) {
+            supportActionBar?.hide()
+            toolbar.visibility = android.view.View.GONE
+            params.topMargin = 0
+        } else {
+            supportActionBar?.show()
+            toolbar.visibility = android.view.View.VISIBLE
+            params.topMargin = toolbar.layoutParams.height
+        }
+        container.layoutParams = params
         supportActionBar?.title = title
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)

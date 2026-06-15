@@ -63,6 +63,22 @@
                     android:textStyle="bold"
                     android:layout_marginTop="4dp"/>
 
+                <!-- Custom note: shown only for Custom status records -->
+                <TextView
+                    android:id="@+id/tvNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="#92400E"
+                    android:background="#FEF9C3"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone"
+                    android:fontFamily="@font/poppins_regular"/>
+
             </LinearLayout>
 
             <!-- Duration + Time -->

@@ -139,40 +139,76 @@ object CallManager {
         }
 
         // KEY guard: only show dialog if receiver confirmed OFFHOOK→IDLE
-        if (actualEnd == 0L) {
-            Log.d(TAG, "actualEnd not set yet — call not ended, skipping dialog")
+        var finalEnd = actualEnd
+        var callLogDuration: Long? = null
+
+        if (finalEnd == 0L) {
+            Log.d(TAG, "actualEnd not set yet — performing call log fallback check")
+            // Try to find the call log entry for this phone number from the last 2 minutes
+            val resolver = context.contentResolver
+            try {
+                val cursor = resolver.query(
+                    android.provider.CallLog.Calls.CONTENT_URI,
+                    arrayOf(android.provider.CallLog.Calls.DATE, android.provider.CallLog.Calls.DURATION),
+                    "${android.provider.CallLog.Calls.NUMBER} = ? AND ${android.provider.CallLog.Calls.TYPE} = ?",
+                    arrayOf(phone, android.provider.CallLog.Calls.OUTGOING_TYPE.toString()),
+                    "${android.provider.CallLog.Calls.DATE} DESC LIMIT 1"
+                )
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val dateIndex = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
+                        val durationIndex = it.getColumnIndex(android.provider.CallLog.Calls.DURATION)
+                        if (dateIndex >= 0 && durationIndex >= 0) {
+                            val timestamp = it.getLong(dateIndex)
+                            val dur = it.getLong(durationIndex)
+                            // If the call log timestamp is after our start time - 30 seconds
+                            if (timestamp > startTime - 30000L && System.currentTimeMillis() - timestamp < 120000L) {
+                                finalEnd = timestamp + (dur * 1000)
+                                callLogDuration = dur
+                                Log.d(TAG, "Fallback call log match found: duration=$dur, timestamp=$timestamp")
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Call log fallback check failed: ${e.message}")
+            }
+        }
+
+        if (finalEnd == 0L) {
+            Log.d(TAG, "actualEnd not set yet and fallback failed — call not ended, skipping dialog")
             return null
         }
 
-        // ━━ Dual-SIM safety guard ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // On dual-SIM phones (Xiaomi, Samsung, Realme etc.) Android often fires:
-        //   OFFHOOK (SIM picker opens) → IDLE (brief) → OFFHOOK (real call) → IDLE (call ends)
-        // The first OFFHOOK→IDLE has connectedMs < 2s → we reject it (correct).
-        //
-        // ⚠️  CRITICAL: We must NOT clear KEY_PENDING or callActive here.
-        //     If we do, the second (real) OFFHOOK→IDLE is permanently ignored and
-        //     the popup never fires on dual-SIM.
-        //
-        // Fix: only reset the timing keys so the receiver can overwrite them when the
-        // real OFFHOOK fires next, while KEY_PENDING and callActive remain armed.
-        val offhookTime = prefs.getLong(KEY_OFFHOOK_TIME, 0L)
-        val connectedMs = if (offhookTime > 0L) actualEnd - offhookTime
-                          else actualEnd - startTime
-        if (connectedMs < 2000L) {
-            Log.d(TAG, "Connected duration ${connectedMs}ms < 2s — dual-SIM false trigger, resetting timings only")
-            prefs.edit()
-                // KEY_PENDING intentionally kept TRUE — real call still may happen
-                .putLong(KEY_ACTUAL_END,   0L)      // receiver will re-write on real call end
-                .putLong(KEY_OFFHOOK_TIME, 0L)      // receiver will re-write on real OFFHOOK
-                .putBoolean(KEY_CONNECTED, false)   // receiver will re-set on real OFFHOOK
-                .apply()
-            // callActive intentionally kept TRUE — MainActivity.onResume re-checks next time
+        val duration = callLogDuration ?: run {
+            val offhookTime = prefs.getLong(KEY_OFFHOOK_TIME, 0L)
+            val connectedMs = if (offhookTime > 0L) finalEnd - offhookTime
+                              else finalEnd - startTime
+            (connectedMs / 1000).toLong().coerceAtLeast(0L)
+        }
+
+        if (duration < 2L) {
+            Log.d(TAG, "Duration ${duration}s < 2s — ignoring short call / picker cancel")
+            if (actualEnd > 0L) {
+                // Reset timing keys only if it was a real receiver trigger (to allow real call later)
+                prefs.edit()
+                    .putLong(KEY_ACTUAL_END,   0L)
+                    .putLong(KEY_OFFHOOK_TIME, 0L)
+                    .putBoolean(KEY_CONNECTED, false)
+                    .apply()
+            } else {
+                // Clear state if it was a fallback match that was too short
+                prefs.edit()
+                    .putBoolean(KEY_PENDING,   false)
+                    .putLong(KEY_ACTUAL_END,   0L)
+                    .putLong(KEY_OFFHOOK_TIME, 0L)
+                    .apply()
+            }
             return null
         }
 
         // All good — compute duration and clear state
-        val duration = (connectedMs / 1000).toLong().coerceAtLeast(0L)
-        Log.d(TAG, "Call confirmed ended — connectedMs=$connectedMs duration=${duration}s")
+        Log.d(TAG, "Call confirmed ended — duration=${duration}s")
 
         prefs.edit()
             .putBoolean(KEY_PENDING,   false)

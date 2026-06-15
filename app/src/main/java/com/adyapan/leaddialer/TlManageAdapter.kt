@@ -32,9 +32,7 @@ class TlManageAdapter(
         val tl = getItem(position)
         holder.tvName.text = "👤 ${tl.name}"
 
-        val urlStatus    = if (tl.sheetUrl.isNotBlank()) "🔗 URL set" else "⚠️ No sheet URL"
-        val userStatus   = if (tl.userId.isNotBlank())  "🟢 User linked" else "🔴 No user linked"
-        holder.tvUrl.text = "$urlStatus  |  $userStatus"
+        holder.tvUrl.visibility = View.GONE
 
         holder.btnAssign.setOnClickListener  { onAssign(tl) }
         holder.btnEdit.setOnClickListener   { onEdit(tl) }

@@ -60,11 +60,12 @@ class CallViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Save a call record to Room DB immediately (instant, offline-first).
+     * Save a call record to Room DB immediately (instant, offline-first)
+     * and trigger an immediate real-time sync to Firebase and Sheets.
      *
-     * Sync rules:
-     *  • Before 7:50 PM  → sync every [BATCH_SYNC_THRESHOLD] (40) calls
-     *  • After  7:50 PM  → sync on EVERY call (admin gets complete end-of-day data)
+     * Flow:
+     *  Step A — Single record pushed to RTDB instantly (~100ms) → Admin sees it LIVE.
+     *  Step B — Full batch sync runs in background (leads + all records + Sheets).
      */
     fun saveRecord(record: CallRecord) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -83,32 +84,42 @@ class CallViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
 
-            // 3. Decide sync strategy
-            if (isAfterEvening()) {
-                // 🌙 After 8:00 PM — sync every call (admin gets real-time end-of-day data)
-                Log.d(TAG_CALL_VM, "Evening mode: syncing immediately after call")
-                _callsUntilSync.postValue(0)
-                batchSyncNow()
-            } else if (isWorkingHours()) {
-                // ☀️ Working hours (11:15 AM–8 PM) — batch sync every 40 calls
-                val totalCallsToday = repo.getAllOnce().count {
-                    it.calledAt >= getTodayStartMs()
-                }
-                val remaining = BATCH_SYNC_THRESHOLD - (totalCallsToday % BATCH_SYNC_THRESHOLD)
-                _callsUntilSync.postValue(if (remaining == BATCH_SYNC_THRESHOLD) 0 else remaining)
-
-                val shouldBatchSync = totalCallsToday > 0 && totalCallsToday % BATCH_SYNC_THRESHOLD == 0
-                if (shouldBatchSync) {
-                    Log.d(TAG_CALL_VM, "Day mode: batch sync at $totalCallsToday calls")
-                    batchSyncNow()
-                } else {
-                    Log.d(TAG_CALL_VM, "Day mode: Room saved. Next sync in $remaining calls.")
-                }
-            } else {
-                // 🌅 Before 11:15 AM — save locally only, no Firebase write
-                Log.d(TAG_CALL_VM, "Off-hours: Room only save, skipping Firebase")
-                _callsUntilSync.postValue(BATCH_SYNC_THRESHOLD)
+            // ── STEP A: Push ONLY this one record to RTDB instantly ──────────────────────
+            // This triggers the admin's ValueEventListener within ~100-300ms.
+            // Admin screen updates in real-time WITHOUT waiting for full batch.
+            try {
+                FirestoreSource.saveCallRecord(record)
+                Log.d(TAG_CALL_VM, "Instant push: single record synced to RTDB → admin updated")
+            } catch (e: Exception) {
+                Log.w(TAG_CALL_VM, "Instant single-record push failed (will retry in batch): ${e.message}")
             }
+
+            // 3. Update today's attendance call count automatically
+            try {
+                val dayStart = getTodayStartMs()
+                val dayEnd = dayStart + 24 * 60 * 60 * 1000L
+                val todayCount = repo.countTodayCalls(dayStart, dayEnd)
+                
+                val todayStr = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(record.calledAt))
+                val attendanceDao = AppDatabase.getInstance(getApplication()).attendanceDao()
+                val existingAttend = attendanceDao.getByDate(todayStr)
+                if (existingAttend != null) {
+                    val updatedAttend = existingAttend.copy(totalCalls = todayCount)
+                    attendanceDao.update(updatedAttend)
+                    try {
+                        FirestoreSource.saveAttendance(updatedAttend)
+                    } catch (fe: Exception) {
+                        Log.e(TAG_CALL_VM, "Failed to sync attendance to Firestore: ${fe.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG_CALL_VM, "Failed to update attendance call count: ${e.message}")
+            }
+
+            // ── STEP B: Full batch sync in background (leads + all records + Sheets) ──
+            Log.d(TAG_CALL_VM, "Background batch sync starting...")
+            _callsUntilSync.postValue(0)
+            batchSyncNow()
         }
     }
 
@@ -155,8 +166,9 @@ class CallViewModel(application: Application) : AndroidViewModel(application) {
 
             // 3. Google Sheets sync (background, non-blocking)
             try {
+                val notesMap = allLeads.associateBy({ it.phone }, { it.notes })
                 SheetsSync.syncAllLeads(getApplication(), allLeads)
-                SheetsSync.syncCallRecords(getApplication(), allRecords)
+                SheetsSync.syncCallRecords(getApplication(), allRecords, notesMap)
             } catch (e: Exception) {
                 Log.w(TAG_CALL_VM, "Sheets sync failed (non-fatal): ${e.message}")
             }

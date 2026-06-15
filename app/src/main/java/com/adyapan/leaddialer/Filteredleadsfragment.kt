@@ -94,7 +94,7 @@ class FilteredLeadsFragment : Fragment() {
                 "SalesDone"   -> leads.filter { it.salesDone }.sortedByDescending { it.calledAt }
                 "Total Leads" -> leads.toList()
                 "Pending"     -> leads.filter { it.status == "Pending" || it.status.isBlank() || it.status.equals("New", ignoreCase = true) }
-                "Connected"   -> leads.filter { it.status != "Pending" && it.status.isNotBlank() && !it.status.equals("New", ignoreCase = true) }
+                "Connected"   -> leads.filter { it.status == "Interested" || it.status == "Connected" }.sortedByDescending { it.calledAt }
                 else          -> leads.filter { it.status == filterStatus }
             }
             adapter.submitList(filtered)

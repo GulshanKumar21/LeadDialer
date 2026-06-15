@@ -14,22 +14,22 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_gravity="bottom"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_island_nav_pill"
             android:elevation="12dp"
-            android:outlineAmbientShadowColor="#44000000"
-            android:outlineSpotShadowColor="#66000000" />
+            android:outlineAmbientShadowColor="#1A000000"
+            android:outlineSpotShadowColor="#24000000" />
 
         <!-- Sibling container for navigation items (Ensures center elevated FAB doesn't get clipped) -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:layout_gravity="bottom"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
             android:elevation="14dp"
             android:clipChildren="false"
             android:clipToPadding="false">
@@ -44,20 +44,19 @@
                 android:background="@drawable/bg_nav_bubble_circle"
                 android:alpha="0" />
 
-            <!-- Items row (height wraps content, allowing center item to be elevated/taller) -->
+            <!-- Items row (height matches parent 64dp, allowing items to center vertically) -->
             <LinearLayout
                 android:id="@+id/islandNavContainer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
+                android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:gravity="bottom"
+                android:gravity="center"
                 android:clipChildren="false"
-                android:clipToPadding="false"
-                android:paddingBottom="4dp" />
+                android:clipToPadding="false" />
 
         </FrameLayout>
 
     </FrameLayout>
 
 </merge>
+

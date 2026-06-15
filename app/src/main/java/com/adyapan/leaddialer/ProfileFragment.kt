@@ -35,6 +35,8 @@ class ProfileFragment : Fragment() {
     private lateinit var tvNoLeaves      : TextView
     private lateinit var tvProfileDoj    : TextView
     private lateinit var tvCasualLeaves  : TextView
+    private lateinit var tvLeavesEarned  : TextView
+    private lateinit var tvLeavesTaken   : TextView
     private lateinit var leaveAdapter    : LeaveRequestAdapter
     
     private var allLeaves = listOf<LeaveRequest>()
@@ -63,6 +65,8 @@ class ProfileFragment : Fragment() {
         tvNoLeaves      = view.findViewById(R.id.tvNoLeaves)
         tvProfileDoj    = view.findViewById(R.id.tvProfileDoj)
         tvCasualLeaves  = view.findViewById(R.id.tvCasualLeaves)
+        tvLeavesEarned  = view.findViewById(R.id.tvLeavesEarned)
+        tvLeavesTaken   = view.findViewById(R.id.tvLeavesTaken)
 
         leaveAdapter = LeaveRequestAdapter(isAdminMode = false)
         rvLeaveRequests.layoutManager = LinearLayoutManager(requireContext())
@@ -123,7 +127,7 @@ class ProfileFragment : Fragment() {
         }
 
         btnApplyLeave.setOnClickListener {
-            showApplyLeaveDialog(uid, defaultEmail, defaultName)
+            showApplyLeaveDialog(uid, defaultEmail, defaultName, currentProfile?.employeeId ?: "")
         }
 
         return view
@@ -133,6 +137,8 @@ class ProfileFragment : Fragment() {
         val dojString = currentProfile?.dateOfJoining
         if (dojString.isNullOrBlank()) {
             tvCasualLeaves.text = "0"
+            tvLeavesEarned.text = "0"
+            tvLeavesTaken.text = "0"
             return
         }
         
@@ -150,19 +156,35 @@ class ProfileFragment : Fragment() {
                 monthsPassed = yearDiff * 12 + monthDiff
             }
             
-            // 1 casual leave per month starting from joining month (so at least 1 if month passed >= 0)
-            val totalEarned = (monthsPassed + 1).coerceAtLeast(0)
+            // 1 leave credit per month starting from joining month
+            val totalEarned = (monthsPassed + 1).toDouble().coerceAtLeast(0.0)
             
-            val taken = allLeaves.count { 
-                it.leaveType == "Casual Leave" && it.status != "Rejected" 
+            // Count all non-rejected, non-LOP leaves. Half Day = 0.5, others = 1.0
+            val taken = allLeaves.sumOf { req ->
+                if (req.status == "Rejected" || req.leaveType.contains("LOP", ignoreCase = true)) {
+                    0.0
+                } else if (req.leaveType.equals("Half Day", ignoreCase = true)) {
+                    0.5
+                } else {
+                    1.0
+                }
             }
             
-            val available = (totalEarned - taken).coerceAtLeast(0)
-            tvCasualLeaves.text = available.toString()
+            val available = (totalEarned - taken).coerceAtLeast(0.0)
+            
+            val fmt: (Double) -> String = { d ->
+                if (d % 1.0 == 0.0) d.toInt().toString() else d.toString()
+            }
+            
+            tvLeavesEarned.text = fmt(totalEarned)
+            tvLeavesTaken.text = fmt(taken)
+            tvCasualLeaves.text = fmt(available)
             
         } catch (e: Exception) {
             e.printStackTrace()
             tvCasualLeaves.text = "0"
+            tvLeavesEarned.text = "0"
+            tvLeavesTaken.text = "0"
         }
     }
 
@@ -210,19 +232,19 @@ class ProfileFragment : Fragment() {
     }
 
     // ── Apply Leave dialog ────────────────────────────────────────────
-    private fun showApplyLeaveDialog(uid: String, empEmail: String, empName: String) {
+    private fun showApplyLeaveDialog(uid: String, empEmail: String, empName: String, empId: String) {
         val dialog = BottomSheetDialog(requireContext())
         val view   = layoutInflater.inflate(R.layout.dialog_apply_leave, null)
         dialog.setContentView(view)
 
         // ── Leave type spinner ────────────────────────────────────────
         val spinnerLeave = view.findViewById<Spinner>(R.id.spinnerLeaveType)
-        val leaveTypes   = arrayOf("Sick Leave", "Casual Leave", "Annual Leave", "Emergency Leave", "Maternity/Paternity Leave")
+        val leaveTypes   = arrayOf("Sick Leave", "Casual Leave", "Half Day", "Emergency Leave", "Maternity Leave")
         spinnerLeave.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, leaveTypes)
 
         // ── Admin email — LOCKED to 2 verified addresses ──────────────
         val spinnerAdmin  = view.findViewById<Spinner>(R.id.spinnerAdminEmail)
-        val adminEmails   = arrayOf("gulshan76542@gmail.com", "gulshan12216935@gmail.com")
+        val adminEmails   = arrayOf("hr@adyapan.com", "mounika@adyapan.com")
         spinnerAdmin.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, adminEmails)
 
         // ── Date pickers (past dates BLOCKED) ────────────────────────
@@ -274,7 +296,55 @@ class ProfileFragment : Fragment() {
         // ── Submit ────────────────────────────────────────────────────
         val btnSubmit = view.findViewById<Button>(R.id.btnSubmitLeave)
         btnSubmit.setOnClickListener {
-            val leaveType  = spinnerLeave.selectedItem.toString()
+            val selectedType = spinnerLeave.selectedItem.toString()
+            
+            // Dynamic check of available balance
+            val dojString = currentProfile?.dateOfJoining
+            var available = 0.0
+            if (!dojString.isNullOrBlank()) {
+                try {
+                    val sdfDoj = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val dojDate = sdfDoj.parse(dojString)
+                    if (dojDate != null) {
+                        val calDoj = Calendar.getInstance().apply { time = dojDate }
+                        val calNow = Calendar.getInstance()
+                        var monthsPassed = 0
+                        if (calNow.after(calDoj)) {
+                            val yearDiff = calNow.get(Calendar.YEAR) - calDoj.get(Calendar.YEAR)
+                            val monthDiff = calNow.get(Calendar.MONTH) - calDoj.get(Calendar.MONTH)
+                            monthsPassed = yearDiff * 12 + monthDiff
+                        }
+                        val totalEarned = (monthsPassed + 1).toDouble().coerceAtLeast(0.0)
+                        val taken = allLeaves.sumOf { req ->
+                            if (req.status == "Rejected" || req.leaveType.contains("LOP", ignoreCase = true)) {
+                                0.0
+                            } else if (req.leaveType.equals("Half Day", ignoreCase = true)) {
+                                0.5
+                            } else {
+                                1.0
+                            }
+                        }
+                        available = (totalEarned - taken).coerceAtLeast(0.0)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            val required = if (selectedType.equals("Half Day", ignoreCase = true)) 0.5 else 1.0
+            val leaveType = if (available < required && 
+                (selectedType.equals("Sick Leave", ignoreCase = true) || 
+                 selectedType.equals("Casual Leave", ignoreCase = true) || 
+                 selectedType.equals("Half Day", ignoreCase = true))) {
+                "LOP"
+            } else {
+                selectedType
+            }
+
+            if (leaveType == "LOP" && !selectedType.equals("LOP", ignoreCase = true)) {
+                Toast.makeText(requireContext(), "⚠️ Out of paid leave balance. Applied as LOP (Loss of Pay).", Toast.LENGTH_LONG).show()
+            }
+
             val fromDate   = tvFrom.text.toString()
             val toDate     = tvTo.text.toString()
             val reason     = etReason.text.toString().trim()
@@ -340,6 +410,7 @@ class ProfileFragment : Fragment() {
                     val gasSent = SheetsSync.sendLeaveEmail(
                         adminEmail = adminEmail,
                         empName    = empName,
+                        empId      = empId,
                         empEmail   = empEmail,
                         leaveType  = leaveType,
                         fromDate   = fromDate,
@@ -359,6 +430,7 @@ class ProfileFragment : Fragment() {
                         openLeaveEmailApp(
                             adminEmail = adminEmail,
                             empName    = empName,
+                            empId      = empId,
                             empEmail   = empEmail,
                             leaveType  = leaveType,
                             fromDate   = fromDate,
@@ -394,10 +466,10 @@ class ProfileFragment : Fragment() {
     }
 
 
-    // ── Open email app with leave details pre-filled (fallback when GAS is offline) ──
     private fun openLeaveEmailApp(
         adminEmail : String,
         empName    : String,
+        empId      : String,
         empEmail   : String,
         leaveType  : String,
         fromDate   : String,
@@ -411,6 +483,7 @@ Dear Admin,
 I would like to request leave. Please find the details below:
 
 Employee Name   : $empName
+Employee ID     : $empId
 Employee Email  : $empEmail
 Leave Type      : $leaveType
 From Date       : $fromDate

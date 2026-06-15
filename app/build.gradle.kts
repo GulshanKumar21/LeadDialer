@@ -6,8 +6,8 @@ plugins {
     id("com.google.devtools.ksp") version "2.0.21-1.0.25"
     id ("kotlin-parcelize")
     alias(libs.plugins.google.gms.google.services)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
 }
-
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties() // Now it works directly
@@ -18,17 +18,15 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.adyapan.leaddialer"
     compileSdk = 36
-
     buildFeatures {
         buildConfig = true
     }
-
     defaultConfig {
         applicationId = "com.adyapan.leaddialer"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -51,8 +49,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled   = true
-            isShrinkResources = true
+            isMinifyEnabled   = false
+            isShrinkResources = false
             isDebuggable      = false
             signingConfig     = signingConfigs.getByName("release")
             proguardFiles(
@@ -61,9 +59,13 @@ android {
             )
         }
         debug {
-            isMinifyEnabled   = true
-            isShrinkResources = true
+            isMinifyEnabled   = false
+            isShrinkResources = false
         }
+    }
+
+    buildFeatures {
+        compose = true
     }
 
     compileOptions {
@@ -109,6 +111,8 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Video
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
@@ -139,7 +143,24 @@ dependencies {
 
     implementation("com.google.guava:guava:31.1-android")
 
+    val composeBom = platform("androidx.compose:compose-bom:2024.10.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
+    implementation("androidx.activity:activity-compose:1.9.3")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    val cameraxVersion = "1.3.4"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
 }

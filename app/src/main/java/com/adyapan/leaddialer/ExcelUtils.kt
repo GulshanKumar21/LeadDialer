@@ -73,21 +73,29 @@ object ExcelUtils {
 
             Log.d(TAG, "✅ CSV loaded: ${lines.size} lines")
 
-            val delimiter    = detectDelimiter(lines[0])
-            val headerValues = lines[0].split(delimiter).map { it.trim().lowercase() }
-            val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumns(headerValues)
+            val delimiter = detectDelimiter(lines[0])
+            val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumnsSmartCsv(lines, delimiter)
+
+            val hasRealHeader = isHeaderRowCsv(lines[0], delimiter, nameCol, phoneCol)
+            val dataStartRow = if (hasRealHeader) 1 else 0
 
             Log.d(TAG, "━━━ Column Detection Results ━━━")
             Log.d(TAG, "Name col: $nameCol  Phone col: $phoneCol")
             Log.d(TAG, "CollegeName col: $collegeNameCol  City col: $collegeCityCol")
+            Log.d(TAG, "Has Real Header: $hasRealHeader")
+            Log.d(TAG, "Data start row: $dataStartRow")
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
             var rowsParsed  = 0
             var rowsSkipped = 0
 
-            for (i in 1 until lines.size) {
+            for (i in dataStartRow until lines.size) {
                 try {
-                    val cols = lines[i].split(delimiter).map { it.trim() }
+                    val line = lines[i]
+                    if (line.isBlank()) {
+                        rowsSkipped++; continue
+                    }
+                    val cols = line.split(delimiter).map { it.trim() }
                     if (cols.size <= maxOf(nameCol, phoneCol)) {
                         rowsSkipped++; continue
                     }
@@ -156,36 +164,22 @@ object ExcelUtils {
             val sheet = workbook.getSheetAt(0)
             Log.d(TAG, "✅ Workbook opened, sheet: ${sheet.sheetName}, rows: ${sheet.lastRowNum}")
 
-            // ── Step 1: Detect column positions from header row ───────────────
-            val headerRow    = sheet.getRow(0)
-            val headerValues = if (headerRow != null) {
-                (0..headerRow.lastCellNum).map { c ->
-                    headerRow.getCell(c)?.toString()?.trim()?.lowercase() ?: ""
-                }
-            } else {
-                Log.w(TAG, "⚠️ No header row found, using defaults")
-                emptyList()
-            }
+            // ── Step 1: Detect column positions using smart scoring ───────────
+            val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumnsSmartExcel(sheet)
 
-            // ✅ FIX: Broader header detection
-            // If ANY cell in row 0 contains letters → treat as header row
-            val hasRealHeader = headerValues.isNotEmpty() &&
-                headerValues.any { h -> h.isNotBlank() && h.any { c -> c.isLetter() } }
-
-            Log.d(TAG, "Has real header row: $hasRealHeader  headerValues=$headerValues")
-
-            val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumns(
-                if (hasRealHeader) headerValues else emptyList()
-            )
+            val headerRow = sheet.getRow(0)
+            val hasRealHeader = isHeaderRowExcel(headerRow, nameCol, phoneCol)
+            val dataStartRow = if (hasRealHeader) 1 else 0
 
             Log.d(TAG, "━━━ Column Detection Results ━━━")
             Log.d(TAG, "Name col: $nameCol  Phone col: $phoneCol")
             Log.d(TAG, "CollegeName col: $collegeNameCol  City col: $collegeCityCol")
+            Log.d(TAG, "Has Real Header: $hasRealHeader")
+            Log.d(TAG, "Data start row: $dataStartRow")
             Log.d(TAG, "Total data rows: ${sheet.lastRowNum}")
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
             // ── Step 2: Parse data rows ───────────────────────────────────────
-            val dataStartRow = if (hasRealHeader && headerRow != null) 1 else 0
             var rowsParsed   = 0
             var rowsSkipped  = 0
 
@@ -309,67 +303,343 @@ object ExcelUtils {
         }
     }
 
-    /**
-     * Detects column indices for name, phone, college name, college city from header strings.
-     * Returns [nameCol, phoneCol, collegeNameCol, collegeCityCol] with safe defaults.
-     */
-    private fun detectColumns(headers: List<String>): IntArray {
-        var nameCol        = 0   // default: first column
-        var phoneCol       = 1   // default: second column
-        var collegeNameCol = -1
-        var collegeCityCol = -1
+    private fun detectColumnsSmartExcel(sheet: org.apache.poi.ss.usermodel.Sheet): IntArray {
+        val maxScanRows = minOf(sheet.lastRowNum + 1, 6) // Scan up to 6 rows (0 to 5)
+        val numCols = 20
+        val phoneScores = IntArray(numCols)
+        val nameScores = IntArray(numCols)
+        val collegeNameScores = IntArray(numCols)
+        val collegeCityScores = IntArray(numCols)
 
-        // Empty headers → return safe defaults immediately
-        if (headers.isEmpty()) {
-            Log.w(TAG, "⚠️ No headers — using defaults: name=0, phone=1")
-            return intArrayOf(nameCol, phoneCol, collegeNameCol, collegeCityCol)
-        }
+        for (r in 0 until maxScanRows) {
+            val row = sheet.getRow(r) ?: continue
+            for (c in 0 until numCols) {
+                val cell = row.getCell(c) ?: continue
+                val rawVal = cellToString(cell).trim()
+                if (rawVal.isEmpty()) continue
 
-        for (c in headers.indices) {
-            val h = headers[c].trim().lowercase()
-            when {
-                // ── Skip serial/index columns ──────────────────────────────────
-                h == "sno" || h == "s.no" || h == "sl.no" || h == "sr.no" ||
-                h == "sr"  || h == "no"   || h == "id"    || h == "#" ||
-                h == "serial" || h == "sl" -> { /* skip */ }
+                val cleanPhone = rawVal
+                    .replace(".0", "").replace(" ", "").replace("-", "")
+                    .replace("(", "").replace(")", "").replace("+", "")
+                    .filter { it.isDigit() }
 
-                // ── Phone — highest priority ───────────────────────────────────
-                h.contains("phone")   || h.contains("mobile")   ||
-                h.contains("contact") || h.contains("number")   ||
-                h.contains("mob")     || h.contains("ph")       ||
-                h.contains("cell")    || h.contains("whatsapp") -> phoneCol = c
-
-                // ── College city (before generic city so it matches first) ──────
-                h.contains("college") && (h.contains("city") || h.contains("location") ||
-                        h.contains("place") || h.contains("where") || h.contains("address")) -> collegeCityCol = c
-
-                h.contains("city")     || h.contains("district") ||
-                h.contains("location") || h.contains("place")    ||
-                h.contains("pincode")  || h.contains("state") -> {
-                    if (collegeCityCol < 0) collegeCityCol = c
+                if (cleanPhone.length in 8..15) {
+                    phoneScores[c] += 5
+                } else if (rawVal.any { it.isLetter() }) {
+                    val lowerVal = rawVal.lowercase()
+                    if (lowerVal.contains("college") || lowerVal.contains("institute") || lowerVal.contains("university") || lowerVal.contains("school")) {
+                        collegeNameScores[c] += 3
+                    } else if (lowerVal.contains("city") || lowerVal.contains("district") || lowerVal.contains("state") || lowerVal.contains("pincode")) {
+                        collegeCityScores[c] += 3
+                    } else {
+                        val isHeaderKeyword = lowerVal == "name" || lowerVal == "phone" || lowerVal == "mobile" || lowerVal == "contact" || lowerVal == "number" || lowerVal == "duration" || lowerVal == "status" || lowerVal == "date"
+                        if (!isHeaderKeyword) {
+                            nameScores[c] += 2
+                        }
+                    }
                 }
-
-                // ── College name ───────────────────────────────────────────────
-                h.contains("college") || h.contains("institute") ||
-                h.contains("school")  || h.contains("university") ||
-                h.contains("institution") -> collegeNameCol = c
-
-                // ── Person / student name ──────────────────────────────────────
-                (h.contains("name") || h.contains("student") || h.contains("candidate") ||
-                 h.contains("applicant") || h.contains("person")) &&
-                !h.contains("college") && !h.contains("institute") &&
-                !h.contains("school")  && !h.contains("university") -> nameCol = c
             }
         }
 
-        // Edge-case: same column for name and phone → reset defaults
+        // Boost first row keywords
+        val firstRow = sheet.getRow(0)
+        if (firstRow != null) {
+            for (c in 0 until numCols) {
+                val cell = firstRow.getCell(c) ?: continue
+                val lowerVal = cellToString(cell).trim().lowercase()
+                when {
+                    lowerVal.contains("phone") || lowerVal.contains("mobile") || lowerVal.contains("contact") || lowerVal.contains("number") || lowerVal.contains("mob") || lowerVal.contains("whatsapp") -> {
+                        phoneScores[c] += 20
+                    }
+                    lowerVal.contains("college") || lowerVal.contains("institute") || lowerVal.contains("university") || lowerVal.contains("school") -> {
+                        collegeNameScores[c] += 20
+                    }
+                    lowerVal.contains("city") || lowerVal.contains("district") || lowerVal.contains("state") || lowerVal.contains("pincode") || lowerVal.contains("location") -> {
+                        collegeCityScores[c] += 20
+                    }
+                    (lowerVal.contains("name") || lowerVal.contains("student") || lowerVal.contains("candidate")) && !lowerVal.contains("college") -> {
+                        nameScores[c] += 20
+                    }
+                }
+            }
+        }
+
+        var phoneCol = -1
+        var maxPhoneScore = -1
+        for (c in 0 until numCols) {
+            if (phoneScores[c] > maxPhoneScore) {
+                maxPhoneScore = phoneScores[c]
+                phoneCol = c
+            }
+        }
+
+        var nameCol = -1
+        var maxNameScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol) continue
+            if (nameScores[c] > maxNameScore) {
+                maxNameScore = nameScores[c]
+                nameCol = c
+            }
+        }
+
+        var collegeNameCol = -1
+        var maxCollegeScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol || c == nameCol) continue
+            if (collegeNameScores[c] > maxCollegeScore) {
+                maxCollegeScore = collegeNameScores[c]
+                collegeNameCol = c
+            }
+        }
+
+        var collegeCityCol = -1
+        var maxCityScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol || c == nameCol || c == collegeNameCol) continue
+            if (collegeCityScores[c] > maxCityScore) {
+                maxCityScore = collegeCityScores[c]
+                collegeCityCol = c
+            }
+        }
+
+        if (phoneCol == -1 || maxPhoneScore <= 0) {
+            phoneCol = 1
+        }
+        if (nameCol == -1 || maxNameScore <= 0) {
+            nameCol = if (phoneCol == 0) 1 else 0
+        }
+        if (collegeNameScores.maxOrNull() ?: 0 <= 0) {
+            collegeNameCol = -1
+        }
+        if (collegeCityScores.maxOrNull() ?: 0 <= 0) {
+            collegeCityCol = -1
+        }
+
         if (nameCol == phoneCol) {
-            Log.w(TAG, "⚠️ name and phone mapped to same column ($nameCol) — resetting defaults")
-            nameCol  = 0
+            nameCol = 0
             phoneCol = 1
         }
 
-        Log.d(TAG, "✅ detectColumns → name=$nameCol, phone=$phoneCol, college=$collegeNameCol, city=$collegeCityCol")
+        Log.d(TAG, "Smart Excel detection results: name=$nameCol (score=$maxNameScore), phone=$phoneCol (score=$maxPhoneScore), college=$collegeNameCol, city=$collegeCityCol")
         return intArrayOf(nameCol, phoneCol, collegeNameCol, collegeCityCol)
+    }
+
+    private fun detectColumnsSmartCsv(lines: List<String>, delimiter: String): IntArray {
+        val maxScanRows = minOf(lines.size, 6)
+        val numCols = 20
+        val phoneScores = IntArray(numCols)
+        val nameScores = IntArray(numCols)
+        val collegeNameScores = IntArray(numCols)
+        val collegeCityScores = IntArray(numCols)
+
+        for (r in 0 until maxScanRows) {
+            val line = lines.getOrNull(r) ?: continue
+            val cols = line.split(delimiter).map { it.trim() }
+            for (c in cols.indices) {
+                if (c >= numCols) continue
+                val rawVal = cols[c]
+                if (rawVal.isEmpty()) continue
+
+                val cleanPhone = rawVal
+                    .replace(".0", "").replace(" ", "").replace("-", "")
+                    .replace("(", "").replace(")", "").replace("+", "")
+                    .filter { it.isDigit() }
+
+                if (cleanPhone.length in 8..15) {
+                    phoneScores[c] += 5
+                } else if (rawVal.any { it.isLetter() }) {
+                    val lowerVal = rawVal.lowercase()
+                    if (lowerVal.contains("college") || lowerVal.contains("institute") || lowerVal.contains("university") || lowerVal.contains("school")) {
+                        collegeNameScores[c] += 3
+                    } else if (lowerVal.contains("city") || lowerVal.contains("district") || lowerVal.contains("state") || lowerVal.contains("pincode")) {
+                        collegeCityScores[c] += 3
+                    } else {
+                        val isHeaderKeyword = lowerVal == "name" || lowerVal == "phone" || lowerVal == "mobile" || lowerVal == "contact" || lowerVal == "number" || lowerVal == "duration" || lowerVal == "status" || lowerVal == "date"
+                        if (!isHeaderKeyword) {
+                            nameScores[c] += 2
+                        }
+                    }
+                }
+            }
+        }
+
+        // Boost first row keywords
+        val firstLine = lines.getOrNull(0)
+        if (firstLine != null) {
+            val cols = firstLine.split(delimiter).map { it.trim().lowercase() }
+            for (c in cols.indices) {
+                if (c >= numCols) continue
+                val lowerVal = cols[c]
+                when {
+                    lowerVal.contains("phone") || lowerVal.contains("mobile") || lowerVal.contains("contact") || lowerVal.contains("number") || lowerVal.contains("mob") || lowerVal.contains("whatsapp") -> {
+                        phoneScores[c] += 20
+                    }
+                    lowerVal.contains("college") || lowerVal.contains("institute") || lowerVal.contains("university") || lowerVal.contains("school") -> {
+                        collegeNameScores[c] += 20
+                    }
+                    lowerVal.contains("city") || lowerVal.contains("district") || lowerVal.contains("state") || lowerVal.contains("pincode") || lowerVal.contains("location") -> {
+                        collegeCityScores[c] += 20
+                    }
+                    (lowerVal.contains("name") || lowerVal.contains("student") || lowerVal.contains("candidate")) && !lowerVal.contains("college") -> {
+                        nameScores[c] += 20
+                    }
+                }
+            }
+        }
+
+        var phoneCol = -1
+        var maxPhoneScore = -1
+        for (c in 0 until numCols) {
+            if (phoneScores[c] > maxPhoneScore) {
+                maxPhoneScore = phoneScores[c]
+                phoneCol = c
+            }
+        }
+
+        var nameCol = -1
+        var maxNameScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol) continue
+            if (nameScores[c] > maxNameScore) {
+                maxNameScore = nameScores[c]
+                nameCol = c
+            }
+        }
+
+        var collegeNameCol = -1
+        var maxCollegeScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol || c == nameCol) continue
+            if (collegeNameScores[c] > maxCollegeScore) {
+                maxCollegeScore = collegeNameScores[c]
+                collegeNameCol = c
+            }
+        }
+
+        var collegeCityCol = -1
+        var maxCityScore = -1
+        for (c in 0 until numCols) {
+            if (c == phoneCol || c == nameCol || c == collegeNameCol) continue
+            if (collegeCityScores[c] > maxCityScore) {
+                maxCityScore = collegeCityScores[c]
+                collegeCityCol = c
+            }
+        }
+
+        if (phoneCol == -1 || maxPhoneScore <= 0) {
+            phoneCol = 1
+        }
+        if (nameCol == -1 || maxNameScore <= 0) {
+            nameCol = if (phoneCol == 0) 1 else 0
+        }
+        if (collegeNameScores.maxOrNull() ?: 0 <= 0) {
+            collegeNameCol = -1
+        }
+        if (collegeCityScores.maxOrNull() ?: 0 <= 0) {
+            collegeCityCol = -1
+        }
+
+        if (nameCol == phoneCol) {
+            nameCol = 0
+            phoneCol = 1
+        }
+
+        Log.d(TAG, "Smart CSV detection results: name=$nameCol (score=$maxNameScore), phone=$phoneCol (score=$maxPhoneScore), college=$collegeNameCol, city=$collegeCityCol")
+        return intArrayOf(nameCol, phoneCol, collegeNameCol, collegeCityCol)
+    }
+
+    private fun isHeaderRowExcel(row: org.apache.poi.ss.usermodel.Row?, nameCol: Int, phoneCol: Int): Boolean {
+        row ?: return false
+        
+        // 1. If any cell in this row contains a valid phone number, then it is NOT a header row!
+        for (c in 0 until row.lastCellNum) {
+            val cell = row.getCell(c) ?: continue
+            val rawVal = cellToString(cell).trim()
+            val cleanPhone = rawVal
+                .replace(".0", "").replace(" ", "").replace("-", "")
+                .replace("(", "").replace(")", "").replace("+", "")
+                .filter { it.isDigit() }
+            if (cleanPhone.length in 8..15) {
+                Log.d(TAG, "Row 0 has a valid phone number '$rawVal' -> Not a header row!")
+                return false
+            }
+        }
+
+        // 2. Check if the cell at nameCol or phoneCol contains common header keywords
+        val nameCellVal = row.getCell(nameCol)?.let { cellToString(it).lowercase().trim() } ?: ""
+        val phoneCellVal = row.getCell(phoneCol)?.let { cellToString(it).lowercase().trim() } ?: ""
+
+        val isNameHeader = nameCellVal.contains("name") || nameCellVal.contains("student") || 
+                           nameCellVal.contains("candidate") || nameCellVal.contains("naam") || nameCellVal.contains("नाम")
+                           
+        val isPhoneHeader = phoneCellVal.contains("phone") || phoneCellVal.contains("mobile") || 
+                            phoneCellVal.contains("contact") || phoneCellVal.contains("number") || 
+                            phoneCellVal.contains("ph") || phoneCellVal.contains("mob") || 
+                            phoneCellVal.contains("whatsapp") || phoneCellVal.contains("मोबाइल")
+
+        if (isNameHeader || isPhoneHeader) {
+            Log.d(TAG, "Row 0 matches header keywords -> Treated as header row!")
+            return true
+        }
+
+        // 3. Fallback: if any cell in the row matches header keywords
+        for (c in 0 until row.lastCellNum) {
+            val cell = row.getCell(c) ?: continue
+            val lower = cellToString(cell).lowercase().trim()
+            if (lower == "name" || lower == "phone" || lower == "mobile" || lower == "contact" || 
+                lower == "number" || lower == "sno" || lower == "s.no" || lower == "id" || lower == "date") {
+                Log.d(TAG, "Row 0 contains generic header keyword '$lower' -> Treated as header row!")
+                return true
+            }
+        }
+
+        Log.d(TAG, "Row 0 does not look like a header -> Treated as data row!")
+        return false
+    }
+
+    private fun isHeaderRowCsv(line: String, delimiter: String, nameCol: Int, phoneCol: Int): Boolean {
+        val cols = line.split(delimiter).map { it.trim() }
+        
+        // 1. If any cell in this row contains a valid phone number, then it is NOT a header row!
+        for (cellVal in cols) {
+            val cleanPhone = cellVal
+                .replace(".0", "").replace(" ", "").replace("-", "")
+                .replace("(", "").replace(")", "").replace("+", "")
+                .filter { it.isDigit() }
+            if (cleanPhone.length in 8..15) {
+                Log.d(TAG, "CSV line 0 has a valid phone number '$cellVal' -> Not a header row!")
+                return false
+            }
+        }
+
+        // 2. Check if the cell at nameCol or phoneCol contains common header keywords
+        val nameCellVal = cols.getOrNull(nameCol)?.lowercase() ?: ""
+        val phoneCellVal = cols.getOrNull(phoneCol)?.lowercase() ?: ""
+
+        val isNameHeader = nameCellVal.contains("name") || nameCellVal.contains("student") || 
+                           nameCellVal.contains("candidate") || nameCellVal.contains("naam") || nameCellVal.contains("नाम")
+                           
+        val isPhoneHeader = phoneCellVal.contains("phone") || phoneCellVal.contains("mobile") || 
+                            phoneCellVal.contains("contact") || phoneCellVal.contains("number") || 
+                            phoneCellVal.contains("ph") || phoneCellVal.contains("mob") || 
+                            phoneCellVal.contains("whatsapp") || phoneCellVal.contains("मोबाइल")
+
+        if (isNameHeader || isPhoneHeader) {
+            Log.d(TAG, "CSV line 0 matches header keywords -> Treated as header row!")
+            return true
+        }
+
+        // 3. Fallback: if any cell in the row matches header keywords
+        for (lower in cols.map { it.lowercase() }) {
+            if (lower == "name" || lower == "phone" || lower == "mobile" || lower == "contact" || 
+                lower == "number" || lower == "sno" || lower == "s.no" || lower == "id" || lower == "date") {
+                Log.d(TAG, "CSV line 0 contains generic header keyword '$lower' -> Treated as header row!")
+                return true
+            }
+        }
+
+        Log.d(TAG, "CSV line 0 does not look like a header -> Treated as data row!")
+        return false
     }
 }

@@ -3,10 +3,14 @@ package com.adyapan.leaddialer
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Typeface
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.util.Base64
 import android.view.Gravity
@@ -16,11 +20,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,18 +67,36 @@ class AttendanceActivity : AppCompatActivity() {
 
     // Map of "yyyy-MM-dd" → attendance status
     private val attendanceMap = mutableMapOf<String, String>() // status: Present/Late/Absent
+    private val checkInTimeMap = mutableMapOf<String, String>() // check-in time for status checking
+    private lateinit var btnRefreshLocation: TextView
 
     private val deviceId: String by lazy {
         Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
     }
 
+    // File URI for camera photo (TakePicture is reliable on all Android versions)
+    private var photoUri: Uri? = null
+
     private val takePictureLauncher =
-        registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-            if (bitmap != null) {
-                val base64 = encodeBitmapToBase64(bitmap)
-                if (isCheckedIn) saveCheckOut(base64) else saveCheckIn(base64)
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val uri = photoUri
+                if (uri != null) {
+                    try {
+                        val base64 = encodeUriToBase64(uri)
+                        if (isCheckedIn) saveCheckOut(base64) else saveCheckIn(base64)
+                    } catch (e: Exception) {
+                        btn.isEnabled = true
+                        Toast.makeText(this, "Photo processing failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    btn.isEnabled = true
+                    Toast.makeText(this, "Photo URI missing, please try again", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Selfie capture cancelled", Toast.LENGTH_SHORT).show()
+                // User cancelled camera
+                btn.isEnabled = true
+                Toast.makeText(this, "Photo cancelled. Please take a selfie to mark attendance.", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -79,6 +108,7 @@ class AttendanceActivity : AppCompatActivity() {
         btnViewHistory  = findViewById(R.id.btnViewHistory)
         status          = findViewById(R.id.txtStatus)
         subStatus       = findViewById(R.id.txtSubStatus)
+        btnRefreshLocation = findViewById(R.id.btnRefreshLocation)
 
         tvCalMonth      = findViewById(R.id.tvCalMonth)
         btnCalPrev      = findViewById(R.id.btnCalPrev)
@@ -87,6 +117,10 @@ class AttendanceActivity : AppCompatActivity() {
         llCalendarGrid  = findViewById(R.id.llCalendarGrid)
 
         btn.isEnabled = false
+
+        btnRefreshLocation.setOnClickListener {
+            getLocation()
+        }
 
         btnViewHistory.setOnClickListener {
             startActivity(android.content.Intent(this, EmployeeAttendanceActivity::class.java))
@@ -129,22 +163,22 @@ class AttendanceActivity : AppCompatActivity() {
             .collection("attendance").document(uid).collection("dates").get()
             .addOnSuccessListener { snap ->
                 attendanceMap.clear()
+                checkInTimeMap.clear()
                 for (doc in snap.documents) {
                     val dateKey = doc.id // "yyyy-MM-dd"
                     val st = doc.getString("status") ?: "Present"
                     attendanceMap[dateKey] = st
+                    val ci = doc.getString("checkIn") ?: ""
+                    checkInTimeMap[dateKey] = ci
                 }
                 renderCalendar()
+                performRetentionCleanup(uid)
             }
     }
 
     // ── Role-based weekly off ─────────────────────────────────────────────
     private fun isWeeklyOff(cal: Calendar): Boolean {
-        val d = userDesignation.lowercase()
-        return if (d.contains("community developer"))
-            cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
-        else
-            cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
+        return cal.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY
     }
 
     // ── Day header row (Sun Mon … Sat) ───────────────────────────────────
@@ -228,6 +262,7 @@ class AttendanceActivity : AppCompatActivity() {
                     isFuture           -> { bgColor = Color.TRANSPARENT;            txtColor = Color.parseColor("#D1D5DB") }
                     recStatus == "Present" -> { bgColor = Color.parseColor("#DCFCE7"); txtColor = Color.parseColor("#22C55E") }
                     recStatus == "Late"    -> { bgColor = Color.parseColor("#FEF3C7"); txtColor = Color.parseColor("#F59E0B") }
+                    recStatus == "Half Day" -> { bgColor = Color.parseColor("#E0F2FE"); txtColor = Color.parseColor("#0284C7") }
                     recStatus != null      -> { bgColor = Color.parseColor("#FEE2E2"); txtColor = Color.parseColor("#EF4444") }
                     else -> { // Past, no record = absent
                         bgColor  = Color.parseColor("#FEF2F2"); txtColor = Color.parseColor("#FCA5A5")
@@ -285,8 +320,7 @@ class AttendanceActivity : AppCompatActivity() {
 
         if (isOff) {
             tvWeeklyOff.visibility = View.VISIBLE
-            tvWeeklyOff.text = if (userDesignation.lowercase().contains("community developer"))
-                "🗓 Weekly Off (Monday)" else "🗓 Weekly Off (Sunday)"
+            tvWeeklyOff.text = "🗓 Weekly Off (Tuesday)"
             tvStatus.visibility   = View.GONE
             tvCheckIn.visibility  = View.GONE
             tvCheckOut.visibility = View.GONE
@@ -309,6 +343,7 @@ class AttendanceActivity : AppCompatActivity() {
                         val stColor = when (st) {
                             "Present" -> "#22C55E"
                             "Late"    -> "#F59E0B"
+                            "Half Day" -> "#0284C7"
                             else      -> "#EF4444"
                         }
                         tvStatus.text  = "Status: $st"
@@ -359,54 +394,36 @@ class AttendanceActivity : AppCompatActivity() {
     // ── Location ──────────────────────────────────────────────────────────
     private fun getLocation() {
         val fused = LocationServices.getFusedLocationProviderClient(this)
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) return
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
-        status.text    = "Getting your location... 📡"
-        subStatus.text = "Please wait, fetching fresh GPS coordinates."
+        status.text    = "Fetching location... ⏳"
+        subStatus.text = "Please wait a moment."
         btn.isEnabled  = false
 
-        // ── Use getCurrentLocation for a FRESH reading (not stale lastLocation) ──
-        val cancellationToken = com.google.android.gms.tasks.CancellationTokenSource()
-        fused.getCurrentLocation(
-            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-            cancellationToken.token
-        ).addOnSuccessListener { location ->
-            if (location != null) {
-                handleLocationResult(location)
-            } else {
-                // getCurrentLocation returned null → fallback to lastLocation
-                fused.lastLocation.addOnSuccessListener { fallback ->
-                    if (fallback != null) {
-                        handleLocationResult(fallback)
-                    } else {
-                        status.text    = "Location not found ❌"
-                        subStatus.text = "GPS signal unavailable. Please go outdoors, turn on GPS and try again."
-                    }
-                }.addOnFailureListener {
-                    status.text    = "Location error ❌"
-                    subStatus.text = "Failed to get location. Please enable GPS and try again."
-                }
-            }
-        }.addOnFailureListener {
-            // Permission error or timeout → fallback to lastLocation
-            fused.lastLocation.addOnSuccessListener { fallback ->
-                if (fallback != null) {
-                    handleLocationResult(fallback)
+        // 1. Try to get a fresh location
+        val cts = com.google.android.gms.tasks.CancellationTokenSource()
+        fused.getCurrentLocation(com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, cts.token)
+            .addOnSuccessListener { loc ->
+                if (loc != null) {
+                    handleLocationResult(loc)
                 } else {
-                    status.text    = "Location error ❌"
-                    subStatus.text = "Failed to get location. Please enable GPS and try again."
+                    // 2. Fallback to last known if null
+                    fused.lastLocation.addOnSuccessListener { fallback ->
+                        if (fallback != null) handleLocationResult(fallback)
+                        else {
+                            status.text    = "Location error ❌"
+                            subStatus.text = "Enable GPS and try again."
+                            btn.isEnabled  = true
+                        }
+                    }
                 }
             }
-        }
     }
 
     private fun handleLocationResult(location: android.location.Location) {
         if (location.isFromMockProvider) {
             status.text    = "Mock Location Detected ❌"
-            subStatus.text = "Fake GPS is not allowed for attendance."
+            subStatus.text = "Fake GPS is not allowed."
             return
         }
         lat = location.latitude
@@ -447,10 +464,18 @@ class AttendanceActivity : AppCompatActivity() {
                     .collection("dates").document(date).get()
                     .addOnSuccessListener { attDoc ->
                         if (attDoc.exists()) {
-                            isCheckedIn = true
-                            btn.text    = "Check-Out"
+                            val checkOutTime = attDoc.getString("checkOut")
+                            if (!checkOutTime.isNullOrEmpty()) {
+                                isCheckedIn   = false
+                                btn.text      = "Attendance Completed"
+                                btn.isEnabled = false
+                            } else {
+                                isCheckedIn   = true
+                                btn.text      = "Check-Out"
+                            }
                         } else {
-                            btn.text = "Check-In"
+                            isCheckedIn   = false
+                            btn.text      = "Check-In"
                         }
                         setupSelfieCapture()
                     }
@@ -458,13 +483,118 @@ class AttendanceActivity : AppCompatActivity() {
     }
 
     private fun setupSelfieCapture() {
-        btn.setOnClickListener { takePictureLauncher.launch(null) }
+        btn.setOnClickListener {
+            // Disable button immediately to prevent double-tap / double-save
+            btn.isEnabled = false
+            // Create a temp file in cache for the photo
+            try {
+                val photoFile = File.createTempFile("selfie_${System.currentTimeMillis()}", ".jpg", cacheDir)
+                photoUri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.provider",
+                    photoFile
+                )
+                val intent = android.content.Intent(this, CustomCameraActivity::class.java).apply {
+                    putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoUri)
+                }
+                takePictureLauncher.launch(intent)
+            } catch (e: Exception) {
+                btn.isEnabled = true
+                Toast.makeText(this, "Cannot open camera: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    // Encode image file URI to Base64 (compressed, ~320px)
+    private fun encodeUriToBase64(uri: Uri): String {
+        val inputStream = contentResolver.openInputStream(uri)
+            ?: throw Exception("Cannot read photo file")
+        val originalBitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream.close()
+
+        // Fix rotation using EXIF
+        val rotatedBitmap = try {
+            val exifStream = contentResolver.openInputStream(uri)
+            val exif = ExifInterface(exifStream!!)
+            exifStream.close()
+            val rotation = when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90  -> 90f
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                else -> 0f
+            }
+            if (rotation != 0f) {
+                val matrix = Matrix().apply { postRotate(rotation) }
+                Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.width, originalBitmap.height, matrix, true)
+            } else originalBitmap
+        } catch (e: Exception) { originalBitmap }
+
+        return encodeBitmapToBase64(rotatedBitmap)
     }
 
     private fun encodeBitmapToBase64(bitmap: Bitmap): String {
+        val maxDimension = 320
+        val width = bitmap.width
+        val height = bitmap.height
+        
+        val scaledBitmap = if (width > maxDimension || height > maxDimension) {
+            val ratio = width.toFloat() / height.toFloat()
+            val newWidth: Int
+            val newHeight: Int
+            if (width > height) {
+                newWidth = maxDimension
+                newHeight = (maxDimension / ratio).toInt()
+            } else {
+                newHeight = maxDimension
+                newWidth = (maxDimension * ratio).toInt()
+            }
+            Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+        } else {
+            bitmap
+        }
+
         val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos)
-        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 45, baos)
+        val byteArray = baos.toByteArray()
+        
+        if (scaledBitmap != bitmap) {
+            scaledBitmap.recycle()
+        }
+        
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
+
+    private fun performRetentionCleanup(uid: String) {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -60)
+        val thresholdDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+
+        val db = FirebaseFirestore.getInstance()
+        db.collection("attendance").document(uid).collection("dates")
+            .whereLessThan(com.google.firebase.firestore.FieldPath.documentId(), thresholdDateStr)
+            .get()
+            .addOnSuccessListener { snap ->
+                val batch = db.batch()
+                var hasUpdates = false
+                for (doc in snap.documents) {
+                    val hasCheckInSelfie = doc.contains("checkInSelfie") && doc.get("checkInSelfie") != null
+                    val hasCheckOutSelfie = doc.contains("checkOutSelfie") && doc.get("checkOutSelfie") != null
+                    if (hasCheckInSelfie || hasCheckOutSelfie) {
+                        val updates = hashMapOf<String, Any?>()
+                        if (hasCheckInSelfie) {
+                            updates["checkInSelfie"] = com.google.firebase.firestore.FieldValue.delete()
+                        }
+                        if (hasCheckOutSelfie) {
+                            updates["checkOutSelfie"] = com.google.firebase.firestore.FieldValue.delete()
+                        }
+                        batch.update(doc.reference, updates)
+                        hasUpdates = true
+                    }
+                }
+                if (hasUpdates) {
+                    batch.commit()
+                }
+            }
     }
 
     // ── Check-In ──────────────────────────────────────────────────────────
@@ -473,13 +603,14 @@ class AttendanceActivity : AppCompatActivity() {
         val userId = user.uid
         val date   = getDate()
         val time   = getTime()
+        val statusVal = determineStatusForTime(time)
         val email  = user.email ?: ""
         val empName = if (email.contains("@")) email.substringBefore("@").replaceFirstChar { it.uppercase() } else "Employee"
 
         val lockData = hashMapOf("userId" to userId, "timestamp" to System.currentTimeMillis())
         val attData  = hashMapOf(
             "userId" to userId, "employeeName" to empName, "date" to date,
-            "checkIn" to time, "checkOut" to null, "status" to getStatus(),
+            "checkIn" to time, "checkOut" to null, "status" to statusVal,
             "lat" to lat, "lng" to lng, "deviceId" to deviceId, "checkInSelfie" to selfieBase64
         )
 
@@ -490,13 +621,16 @@ class AttendanceActivity : AppCompatActivity() {
         batch.commit()
             .addOnSuccessListener {
                 Toast.makeText(this, "Check-In Successful ✅", Toast.LENGTH_SHORT).show()
-                btn.text    = "Check-Out"
-                isCheckedIn = true
+                btn.text      = "Check-Out"
+                btn.isEnabled = true   // re-enable for checkout
+                isCheckedIn   = true
                 // Refresh calendar
-                attendanceMap[date] = getStatus()
+                attendanceMap[date] = statusVal
+                checkInTimeMap[date] = time
                 renderCalendar()
             }
             .addOnFailureListener {
+                btn.isEnabled = true   // re-enable so user can retry
                 Toast.makeText(this, "Failed to save attendance", Toast.LENGTH_SHORT).show()
             }
     }
@@ -510,12 +644,26 @@ class AttendanceActivity : AppCompatActivity() {
         val cal    = Calendar.getInstance()
         val isEarlyLeave = cal.get(Calendar.HOUR_OF_DAY) < 20
 
+        val updates = mutableMapOf<String, Any?>(
+            "checkOut" to time,
+            "checkOutSelfie" to selfieBase64,
+            "earlyLeave" to isEarlyLeave,
+            "earlyLeaveTime" to if (isEarlyLeave) time else null
+        )
+        val todayStatus = attendanceMap[date]
+        if (isEarlyLeave && todayStatus != "Half Day") {
+            updates["status"] = "Late"
+        }
+
         FirebaseFirestore.getInstance()
             .collection("attendance").document(userId)
             .collection("dates").document(date)
-            .update(mapOf("checkOut" to time, "checkOutSelfie" to selfieBase64,
-                "earlyLeave" to isEarlyLeave, "earlyLeaveTime" to if (isEarlyLeave) time else null))
+            .update(updates)
             .addOnSuccessListener {
+                if (isEarlyLeave && todayStatus != "Half Day") {
+                    attendanceMap[date] = "Late"
+                    renderCalendar()
+                }
                 val msg = if (isEarlyLeave) "Check-Out ⚠️ Early Leave at $time" else "Check-Out Successful ✅"
                 Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                 btn.isEnabled = false
@@ -526,11 +674,69 @@ class AttendanceActivity : AppCompatActivity() {
             }
     }
 
+    private fun isLateCheckInTime(timeStr: String): Boolean {
+        if (timeStr.isBlank() || timeStr == "N/A" || timeStr == "--") return false
+        try {
+            val parts = timeStr.split(":")
+            if (parts.size >= 2) {
+                val h = parts[0].toInt()
+                val m = parts[1].toInt()
+                val s = if (parts.size > 2) parts[2].toInt() else 0
+                val totalSeconds = h * 3600 + m * 60 + s
+                // 11:00:01 to 11:05:00
+                // 11:00:00 in seconds is 39600
+                // 11:05:00 in seconds is 39900
+                return totalSeconds in 39601..39900
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        return false
+    }
+
+    private fun getLateCountForCurrentMonth(): Int {
+        val monthPrefix = SimpleDateFormat("yyyy-MM-", Locale.getDefault()).format(Date())
+        var count = 0
+        for ((dateKey, timeStr) in checkInTimeMap) {
+            if (dateKey.startsWith(monthPrefix)) {
+                if (isLateCheckInTime(timeStr)) {
+                    count++
+                }
+            }
+        }
+        return count
+    }
+
+    private fun determineStatusForTime(timeStr: String): String {
+        try {
+            val parts = timeStr.split(":")
+            if (parts.size >= 2) {
+                val h = parts[0].toInt()
+                val m = parts[1].toInt()
+                val s = if (parts.size > 2) parts[2].toInt() else 0
+                val totalSeconds = h * 3600 + m * 60 + s
+                
+                if (totalSeconds <= 39600) { // 11:00:00 or earlier
+                    return "Present"
+                } else if (totalSeconds <= 39900) { // 11:00:01 to 11:05:00
+                    val priorLateCount = getLateCountForCurrentMonth()
+                    return if (priorLateCount >= 3) {
+                        "Half Day"
+                    } else {
+                        "Late"
+                    }
+                } else { // 11:05:01 or later
+                    return "Half Day"
+                }
+            }
+        } catch (e: Exception) {
+            // Fallback if parsing fails
+        }
+        return "Present"
+    }
+
     private fun getStatus(): String {
-        val cal = Calendar.getInstance()
-        val h   = cal.get(Calendar.HOUR_OF_DAY)
-        val m   = cal.get(Calendar.MINUTE)
-        return if (h > 11 || (h == 11 && m > 15)) "Late" else "Present"
+        return determineStatusForTime(getTime())
     }
 
     private fun getDate() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())

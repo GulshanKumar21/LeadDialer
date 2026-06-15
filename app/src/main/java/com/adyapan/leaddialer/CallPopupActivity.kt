@@ -104,9 +104,6 @@ class CallPopupActivity : AppCompatActivity() {
 
             callViewModel.saveRecord(record.copy(status = selected))
 
-            val todayCount = (callViewModel.allRecords.value?.size ?: 0) + 1
-            attendanceViewModel.updateTodayCallCount(todayCount)
-
             CalledNumbersCache.clear(this)
             dialog.dismiss()
 
@@ -314,21 +311,21 @@ class CallPopupActivity : AppCompatActivity() {
             val course  = filteredBrochures.getOrNull(spinnerCourse.selectedItemPosition)
             
             if (waPhone.isEmpty()) {
-                Toast.makeText(this, "WhatsApp number daalein", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter WhatsApp number", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (msg.isEmpty()) {
-                Toast.makeText(this, "Pehle 'Taiyar karo' dabao", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please generate the message first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (course == null) {
-                Toast.makeText(this, "Course select karein", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please select a course", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             btnSend.isEnabled     = false
             btnBrochure.isEnabled = false
             tvDownloadStatus.visibility = android.view.View.VISIBLE
-            tvDownloadStatus.text = "⬇️ PDF download ho raha hai..."
+            tvDownloadStatus.text = "⬇️ Downloading PDF brochure..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -354,11 +351,11 @@ class CallPopupActivity : AppCompatActivity() {
             val msg     = etMessage.text.toString().trim()
             val waPhone = etWaPhone.text.toString().trim()
             if (waPhone.isEmpty()) {
-                Toast.makeText(this, "WhatsApp number daalein", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter WhatsApp number", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (msg.isEmpty()) {
-                Toast.makeText(this, "Pehle 'Taiyar karo' dabao", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please generate the message first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             sendWhatsApp(waPhone, msg)
@@ -370,12 +367,12 @@ class CallPopupActivity : AppCompatActivity() {
         btnBrochure.setOnClickListener {
             val waPhone = etWaPhone.text.toString().trim()
             if (waPhone.isEmpty()) {
-                Toast.makeText(this, "WhatsApp number daalein", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter WhatsApp number", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val course = filteredBrochures.getOrNull(spinnerCourse.selectedItemPosition)
             if (course == null) {
-                Toast.makeText(this, "Pehle course chunein", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please select a course first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val simpleMsg = "Namaste ${record.name} ji! 🙏\n\n" +
@@ -383,7 +380,7 @@ class CallPopupActivity : AppCompatActivity() {
             btnSend.isEnabled     = false
             btnBrochure.isEnabled = false
             tvDownloadStatus.visibility = android.view.View.VISIBLE
-            tvDownloadStatus.text = "⬇️ PDF download ho raha hai..."
+            tvDownloadStatus.text = "⬇️ Downloading PDF brochure..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -412,9 +409,11 @@ class CallPopupActivity : AppCompatActivity() {
         val fullPhone = if (clean.startsWith("91") && clean.length == 12) clean else "91$clean"
         try {
             val encoded = java.net.URLEncoder.encode(message, "UTF-8")
-            startActivity(Intent(Intent.ACTION_VIEW).apply {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("whatsapp://send?phone=$fullPhone&text=$encoded")
-            })
+            }
+            val chooser = Intent.createChooser(intent, "Select WhatsApp Application")
+            startActivity(chooser)
         } catch (e: Exception) {
             Toast.makeText(this, "WhatsApp is not opening", Toast.LENGTH_SHORT).show()
         }
@@ -469,8 +468,6 @@ class CallPopupActivity : AppCompatActivity() {
                 else leadViewModel.insert(lead.copy(status = statusClean, notes = reason, calledAt = System.currentTimeMillis()))
             }
             callViewModel.saveRecord(record.copy(status = statusClean))
-            val todayCount = (callViewModel.allRecords.value?.size ?: 0) + 1
-            attendanceViewModel.updateTodayCallCount(todayCount)
             CalledNumbersCache.clear(this)
 
             niDialog.dismiss()
@@ -528,9 +525,7 @@ class CallPopupActivity : AppCompatActivity() {
                 if (lead.id != 0) leadViewModel.updateStatusAndNotes(lead, statusClean, note)
                 else leadViewModel.insert(lead.copy(status = statusClean, notes = note, calledAt = System.currentTimeMillis()))
             }
-            callViewModel.saveRecord(record.copy(status = statusClean))
-            val todayCount = (callViewModel.allRecords.value?.size ?: 0) + 1
-            attendanceViewModel.updateTodayCallCount(todayCount)
+            callViewModel.saveRecord(record.copy(status = statusClean, note = note))
             CalledNumbersCache.clear(this)
 
             customDialog.dismiss()

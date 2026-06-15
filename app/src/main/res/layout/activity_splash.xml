@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/app_bg">
 
-    <!-- Soft radial glow behind mascot -->
     <ImageView
         android:id="@+id/glowBehind"
         android:layout_width="380dp"
@@ -20,20 +19,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.45" />
 
-    <!-- Main Mascot Image — full screen fit, centered -->
     <ImageView
         android:id="@+id/splashMascot"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="@drawable/img45"
+        android:src="@drawable/img46"
         android:scaleType="fitCenter"
         android:adjustViewBounds="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.82"
-        app:layout_constraintHeight_percent="0.72"
+        app:layout_constraintWidth_percent="0.95"
+        app:layout_constraintHeight_percent="0.82"
         app:layout_constraintVertical_bias="0.42"
         app:layout_constraintDimensionRatio="" />
 

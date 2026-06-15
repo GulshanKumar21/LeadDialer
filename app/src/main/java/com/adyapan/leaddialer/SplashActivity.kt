@@ -57,7 +57,8 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch {
 
             // 🔥 Device Validation
-            validateActiveDevice()
+            val deviceValid = validateActiveDevice()
+            if (!deviceValid) return@launch
 
             // 🔥 Admin Check
             checkAdminStatus()
@@ -149,9 +150,9 @@ class SplashActivity : AppCompatActivity() {
     }
 
     // 🔥 One Device Login Validation
-    private suspend fun validateActiveDevice() {
+    private suspend fun validateActiveDevice(): Boolean {
 
-        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val user = FirebaseAuth.getInstance().currentUser ?: return true
 
         val currentDeviceId = Settings.Secure.getString(
             contentResolver,
@@ -183,7 +184,7 @@ class SplashActivity : AppCompatActivity() {
                     )
                     .await()
 
-                return
+                return true
             }
 
             // 🔥 Another Device Login
@@ -202,12 +203,14 @@ class SplashActivity : AppCompatActivity() {
                 )
 
                 finish()
+                return false
             }
 
         } catch (e: Exception) {
 
             e.printStackTrace()
         }
+        return true
     }
 
     // 🔥 Admin Check

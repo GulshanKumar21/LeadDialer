@@ -23,8 +23,11 @@ interface LeadDao {
     @Query("SELECT COUNT(*) FROM leads WHERE status = 'Interested'")
     suspend fun totalInterested(): Int
 
-    @Query("SELECT COUNT(*) FROM leads WHERE status = 'Wrong Number' OR status = 'Interested' OR status = 'Busy' OR status = 'Not Connected'")
+    @Query("SELECT COUNT(*) FROM leads WHERE status = 'Interested' OR status = 'Connected'")
     suspend fun totalConnected(): Int
+
+    @Query("SELECT COUNT(*) FROM leads WHERE calledAt > 0")
+    suspend fun totalCalled(): Int
 
     @Query("SELECT COUNT(*) FROM leads WHERE status = 'Pending'")
     suspend fun totalPending(): Int

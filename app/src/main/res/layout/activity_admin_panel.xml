@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Admin Panel"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A5276"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/nunito_extrabold"
@@ -40,7 +40,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Control Center"
-                android:textColor="#CCFFFFFF"
+                android:textColor="#64748B"
                 android:textSize="13sp"
                 android:fontFamily="@font/nunito_semibold"
                 android:layout_marginTop="2dp"/>
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Thought"
-            android:textColor="#FFFFFF"
+            android:textColor="#1E3A8A"
             android:textSize="13sp"
             android:textStyle="bold"
             android:fontFamily="@font/nunito_semibold"
@@ -81,7 +81,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Logout"
-                android:textColor="#FFFFFF"
+                android:textColor="#B91C1C"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
         </LinearLayout>

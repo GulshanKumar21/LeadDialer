@@ -253,6 +253,47 @@
             </androidx.cardview.widget.CardView>
 
 
+            <!-- Month's Holidays Card -->
+            <androidx.cardview.widget.CardView
+                style="@style/IPhoneCardView"
+                android:id="@+id/cardMonthHolidays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:id="@+id/tvMonthHolidaysTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎉 Month's Holidays"
+                        android:textColor="#111111"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/nunito_extrabold"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/tvMonthHolidaysList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#D84315"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"
+                        android:fontFamily="@font/poppins_regular"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+
             <!-- Call History -->
             <androidx.cardview.widget.CardView
     style="@style/IPhoneCardView"

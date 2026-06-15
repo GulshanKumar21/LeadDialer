@@ -17,26 +17,13 @@ object SheetsSync {
 
     private const val TAG = "SheetsSync"
 
-    // ── Fallback URL (used only if employee has NO TL assigned) ──────────────
     private const val DEFAULT_SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycbx7q3iVs3h0tVUArSKJ5MF9EaogNPeuGCf6St4jBqDmO1pTC9O6QNhMsJscFH2lXHqRhg/exec"
 
-    // SharedPrefs key to cache TL sheet URL locally (avoids RTDB lookup every sync)
     private const val KEY_TL_SHEET_URL = "tl_sheet_url"
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
-    /**
-     * Returns the correct Google Sheet Script URL for the current employee.
-     *
-     * Priority:
-     *  1. RTDB: teamLeaders/{tlId}/sheetUrl  (always fresh — reflects latest TL assignment)
-     *  2. Cached value in SharedPrefs        (fallback if offline)
-     *  3. DEFAULT_SCRIPT_URL                 (if employee has no TL assigned)
-     *
-     * Also caches the fetched URL locally so repeated syncs don't hit RTDB every time.
-     * When admin reassigns TL → next sync fetches new URL from RTDB automatically.
-     */
     private suspend fun resolveScriptUrl(context: Context, userId: String): String {
         return withContext(Dispatchers.IO) {
             try {
@@ -44,7 +31,6 @@ object SheetsSync {
                 if (tlId != null) {
                     val url = TeamLeaderManager.getSheetUrlForTl(tlId)
                     if (!url.isNullOrBlank()) {
-                        // Cache locally for offline fallback
                         LoginPage.getEncryptedPrefs(context)
                             .edit()
                             .putString(KEY_TL_SHEET_URL, url)
@@ -224,7 +210,7 @@ object SheetsSync {
         }
     }
 
-    suspend fun syncCallRecords(context: Context, records: List<CallRecord>): Boolean {
+    suspend fun syncCallRecords(context: Context, records: List<CallRecord>, notesMap: Map<String, String> = emptyMap()): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 val employeeName = getEmployeeName(context)
@@ -280,6 +266,7 @@ object SheetsSync {
                         put("calledAtMs", record.calledAt)
                         // Gap in seconds (from 11:15 AM for first call, from prev call end for others)
                         put("gapSeconds", gapMap[record.calledAt] ?: 0L)
+                        put("notes",      record.note.ifBlank { notesMap[record.phone] ?: "" })
                     }.also { array.put(it) }
                 }
 
@@ -306,6 +293,7 @@ object SheetsSync {
             try {
                 val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
                 val scriptUrl = resolveScriptUrl(context, uid)
+                val currentEmployeeName = getEmployeeNameStatic(context)
 
                 val array = JSONArray()
                 records.forEach { rec ->
@@ -315,12 +303,19 @@ object SheetsSync {
                         put("isLate", rec.isLate)
                         put("lateReason", rec.lateReason)
                         put("totalCalls", rec.totalCalls)
-                        put("employeeName", rec.employeeName)
+                        
+                        val empName = if (rec.employeeName.isNullOrBlank() || rec.employeeName == "Unknown") {
+                            currentEmployeeName
+                        } else {
+                            rec.employeeName
+                        }
+                        put("employeeName", empName)
                     }.also { array.put(it) }
                 }
 
                 val body = JSONObject()
                     .put("type", "attendance")
+                    .put("employeeName", currentEmployeeName)
                     .put("attendance", array)
                     .put("syncedAt", dateFormat.format(Date()))
                     .toString()
@@ -344,6 +339,7 @@ object SheetsSync {
     suspend fun sendLeaveEmail(
         adminEmail: String,
         empName: String,
+        empId: String,
         empEmail: String,
         leaveType: String,
         fromDate: String,
@@ -356,6 +352,7 @@ object SheetsSync {
                     put("type", "leaveEmail")
                     put("adminEmail", adminEmail)
                     put("empName", empName)
+                    put("employeeId", empId)
                     put("empEmail", empEmail)
                     put("leaveType", leaveType)
                     put("fromDate", fromDate)

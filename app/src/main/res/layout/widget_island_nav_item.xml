@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Regular nav item — icon inside always-visible 3D circle -->
+<!-- Regular nav item — icon inside always-visible circular bubble -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="64dp"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
     android:orientation="vertical"
     android:gravity="center"
-    android:paddingStart="4dp"
-    android:paddingEnd="4dp"
+    android:paddingStart="2dp"
+    android:paddingEnd="2dp"
     android:clipChildren="false"
     android:clipToPadding="false">
 
     <FrameLayout
         android:id="@+id/iconHighlight"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_gravity="center_horizontal"
         android:background="@null"
         android:elevation="0dp">
@@ -33,12 +34,15 @@
         android:id="@+id/navItemLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="9sp"
+        android:textSize="9.5sp"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:textStyle="bold"
-        android:textColor="#9E9E9E"
+        android:textColor="#8A8A8F"
         android:fontFamily="@font/poppins_semibold"
-        android:letterSpacing="0.02"
+        android:letterSpacing="0.01"
         android:layout_marginTop="2dp"
         android:alpha="1.0" />
 
 </LinearLayout>
+

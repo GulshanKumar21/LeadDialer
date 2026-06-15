@@ -8,6 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,6 +17,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val TAG_REPO = "LeadRepository"
 
@@ -31,6 +37,7 @@ class LeadRepository(
     suspend fun totalLeads()                     = dao.totalLeads()
     suspend fun totalInterested()                = dao.totalInterested()
     suspend fun totalConnected()                 = dao.totalConnected()
+    suspend fun totalCalled()                    = dao.totalCalled()
     suspend fun totalPending()                   = dao.totalPending()
     suspend fun getAllLeadsOnce(): List<Lead>     = dao.getAllOnce()
     suspend fun getByPhone(phone: String): Lead? = dao.getByPhone(phone)
@@ -115,7 +122,12 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
     val totalLeads      = MutableLiveData(0)
     val totalInterested = MutableLiveData(0)
     val totalConnected  = MutableLiveData(0)
+    val totalCalled     = MutableLiveData(0)
     val totalPending    = MutableLiveData(0)
+
+    // Expected Sales & Admin Target States
+    val expectedSales   = MutableLiveData(0)
+    val adminTarget     = MutableLiveData("Not Set")
 
     private var syncJob: Job? = null
 
@@ -155,6 +167,46 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
     // which is already in Room DB. No cross-employee sync needed.
     // Firebase reads = 0 during normal operation.
 
+    fun loadTargets() = viewModelScope.launch(Dispatchers.IO) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
+        val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        val dateKey = dateStr.replace("/", "-")
+
+        try {
+            val expectedSalesSnapshot = FirebaseDatabase.getInstance()
+                .getReference("expectedSales")
+                .child(uid)
+                .child(dateKey)
+                .get()
+                .await()
+            val sales = (expectedSalesSnapshot.value as? Number)?.toInt() ?: 0
+            expectedSales.postValue(sales)
+        } catch (e: Exception) {
+            Log.e("LeadVM", "Error loading expected sales: ${e.message}")
+        }
+
+        try {
+            val adminTargetSnapshot = FirebaseDatabase.getInstance()
+                .getReference("adminTargets")
+                .child(uid)
+                .child("target")
+                .get()
+                .await()
+            val target = (adminTargetSnapshot.value as? Number)?.toInt() ?: 0
+            adminTarget.postValue(if (target > 0) target.toString() else "Not Set")
+        } catch (e: Exception) {
+            Log.e("LeadVM", "Error loading admin target: ${e.message}")
+        }
+    }
+
+    fun updateExpectedSales(newVal: Int) = viewModelScope.launch(Dispatchers.IO) {
+        val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        val success = FirestoreSource.saveExpectedSales(dateStr, newVal)
+        if (success) {
+            expectedSales.postValue(newVal)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
     }
@@ -164,6 +216,7 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         totalLeads.postValue(repo.totalLeads())
         totalInterested.postValue(repo.totalInterested())
         totalConnected.postValue(repo.totalConnected())
+        totalCalled.postValue(repo.totalCalled())
         totalPending.postValue(repo.totalPending())
     }
 
@@ -225,14 +278,8 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         // Always update Room DB immediately
         repo.update(updated)
 
-        // Only sync to Firestore immediately if it's a premium lead (hot/sales/interested)
-        // Regular pending leads are batch-synced via CallViewModel.forceSyncNow() on app background
-        val isPremium = updated.salesDone
-            || updated.status == "Interested" || updated.status == "Hot"
-        if (isPremium) {
-            repo.syncLeadToFirestore(updated)  // promote to Firestore
-        }
-        // Note: RTDB update for non-premium leads happens in batch via onStop()
+        // Sync to Firestore/RTDB immediately so that Admin receives real-time updates
+        repo.syncLeadToFirestore(updated)
         refreshStats()
     }
 
@@ -247,10 +294,8 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         // Always update Room DB immediately
         repo.update(updated)
 
-        val isPremium = updated.salesDone || updated.status == "Interested" || updated.status == "Hot"
-        if (isPremium) {
-            repo.syncLeadToFirestore(updated)  // promote to Firestore
-        }
+        // Sync to Firestore/RTDB immediately so that Admin receives real-time updates
+        repo.syncLeadToFirestore(updated)
         refreshStats()
     }
 
