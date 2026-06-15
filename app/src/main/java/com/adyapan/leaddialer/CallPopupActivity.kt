@@ -73,10 +73,11 @@ class CallPopupActivity : AppCompatActivity() {
         view.findViewById<TextView>(R.id.tvCallTime).text = "🕐 Called at: $calledAtStr"
 
         val lead = CallManager.currentLead
+        val isManual = lead == null || lead.name == "Manual Dial"
 
         val layoutSave = view.findViewById<android.view.View>(R.id.layoutSaveLead)
         val btnSave    = view.findViewById<Button>(R.id.btnSaveAsLead)
-        if (lead == null) {
+        if (isManual) {
             layoutSave.visibility = android.view.View.VISIBLE
             btnSave.setOnClickListener {
                 dialog.dismiss()
@@ -185,7 +186,7 @@ class CallPopupActivity : AppCompatActivity() {
             )
             leadViewModel.insert(newLead)
 
-
+            CallManager.currentLead = null
             callViewModel.saveRecord(record.copy(name = name, status = "Connected"))
 
             saveDialog.dismiss()
@@ -195,6 +196,7 @@ class CallPopupActivity : AppCompatActivity() {
 
         dialogView.findViewById<Button>(R.id.btnCancelSaveLead).setOnClickListener {
             saveDialog.dismiss()
+            CallManager.currentLead = null
             finish()
         }
 
@@ -536,5 +538,89 @@ class CallPopupActivity : AppCompatActivity() {
 
         btnCancel.setOnClickListener { customDialog.dismiss(); finish() }
         customDialog.show()
+    }
+
+    override fun finish() {
+        val lead = CallManager.currentLead
+        if (lead != null && lead.name == "Manual Dial" && !isFinishing) {
+            showSaveLeadEndDialog(lead)
+        } else {
+            super.finish()
+        }
+    }
+
+    private fun showSaveLeadEndDialog(lead: Lead) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_save_lead, null)
+
+        val etName    = dialogView.findViewById<EditText>(R.id.etLeadName)
+        val etCollege = dialogView.findViewById<EditText>(R.id.etLeadCollege)
+        val etCity    = dialogView.findViewById<EditText>(R.id.etLeadCity)
+        val tvPhone   = dialogView.findViewById<TextView>(R.id.tvLeadPhone)
+
+        etName.setText("")
+        etName.hint = "Student Name"
+        tvPhone.text = "📱 ${lead.phone}"
+
+        val saveDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        saveDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<Button>(R.id.btnSaveLeadConfirm).setOnClickListener {
+            val name    = etName.text.toString().trim()
+            val college = etCollege.text.toString().trim()
+            val city    = etCity.text.toString().trim()
+
+            if (name.isBlank()) {
+                etName.error = "Name required"
+                return@setOnClickListener
+            }
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                val existing = AppDatabase.getInstance(applicationContext).leadDao().getByPhone(lead.phone)
+                if (existing != null) {
+                    val updated = existing.copy(
+                        name        = name,
+                        collegeName = college,
+                        collegeCity = city
+                    )
+                    leadViewModel.updateLeadDirectly(updated)
+                } else {
+                    val newLead = Lead(
+                        name        = name,
+                        phone       = lead.phone,
+                        status      = lead.status,
+                        collegeName = college,
+                        collegeCity = city,
+                        calledAt    = lead.calledAt
+                    )
+                    leadViewModel.insert(newLead)
+                }
+
+                // Also update CallRecord if any
+                val records = callViewModel.allRecords.value ?: emptyList()
+                val lastRecord = records.find { it.phone == lead.phone }
+                if (lastRecord != null) {
+                    callViewModel.saveRecord(lastRecord.copy(name = name))
+                }
+
+                withContext(Dispatchers.Main) {
+                    saveDialog.dismiss()
+                    Toast.makeText(this@CallPopupActivity, "✅ Lead saved: $name", Toast.LENGTH_SHORT).show()
+                    CallManager.currentLead = null
+                    super@CallPopupActivity.finish()
+                }
+            }
+        }
+
+        dialogView.findViewById<Button>(R.id.btnCancelSaveLead).setOnClickListener {
+            saveDialog.dismiss()
+            CallManager.currentLead = null
+            super@CallPopupActivity.finish()
+        }
+
+        saveDialog.show()
     }
 }

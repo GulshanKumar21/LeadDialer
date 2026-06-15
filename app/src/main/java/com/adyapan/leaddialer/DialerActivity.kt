@@ -8,8 +8,14 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.ContactsContract
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.EditText
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.animateFloatAsState
@@ -89,13 +95,56 @@ class DialerActivity : AppCompatActivity() {
         }
     }
 
-    // Save contact intent launcher
+    // Save lead in-app dialog
     private fun saveContact(number: String) {
-        val intent = Intent(Intent.ACTION_INSERT).apply {
-            type = ContactsContract.Contacts.CONTENT_TYPE
-            putExtra(ContactsContract.Intents.Insert.PHONE, number)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_save_lead, null)
+
+        val etName    = dialogView.findViewById<EditText>(R.id.etLeadName)
+        val etCollege = dialogView.findViewById<EditText>(R.id.etLeadCollege)
+        val etCity    = dialogView.findViewById<EditText>(R.id.etLeadCity)
+        val tvPhone   = dialogView.findViewById<TextView>(R.id.tvLeadPhone)
+
+        etName.setText("")
+        etName.hint = "Student Name"
+        tvPhone.text = "📱 $number"
+
+        val saveDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        saveDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<Button>(R.id.btnSaveLeadConfirm).setOnClickListener {
+            val name    = etName.text.toString().trim()
+            val college = etCollege.text.toString().trim()
+            val city    = etCity.text.toString().trim()
+
+            if (name.isBlank()) {
+                etName.error = "Name required"
+                return@setOnClickListener
+            }
+
+            val leadViewModel = ViewModelProvider(this, LeadViewModelFactory(application))[LeadViewModel::class.java]
+            val newLead = Lead(
+                name        = name,
+                phone       = number,
+                status      = "Pending",
+                collegeName = college,
+                collegeCity = city,
+                calledAt    = 0L
+            )
+            leadViewModel.insert(newLead)
+
+            saveDialog.dismiss()
+            Toast.makeText(this, "✅ Lead saved: $name", Toast.LENGTH_SHORT).show()
         }
-        startActivity(intent)
+
+        dialogView.findViewById<Button>(R.id.btnCancelSaveLead).setOnClickListener {
+            saveDialog.dismiss()
+        }
+
+        saveDialog.show()
     }
 
     // Call launcher
