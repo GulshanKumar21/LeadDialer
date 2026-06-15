@@ -9,7 +9,6 @@
         <exclude domain="database" path="lead_dialer.db"/>
         <exclude domain="database" path="lead_dialer.db-shm"/>
         <exclude domain="database" path="lead_dialer.db-wal"/>
-        <exclude domain="cache" path="."/>
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="adyapan_prefs.xml"/>

@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <include domain="file" path="."/>
     <exclude domain="sharedpref" path="adyapan_prefs.xml"/>
     <exclude domain="sharedpref" path="CallManager.xml"/>
     <exclude domain="sharedpref" path="app.xml"/>
     <exclude domain="database" path="lead_dialer.db"/>
     <exclude domain="database" path="lead_dialer.db-shm"/>
     <exclude domain="database" path="lead_dialer.db-wal"/>
-    <exclude domain="cache" path="."/>
     <exclude domain="file" path="temp/"/>
     <exclude domain="file" path="cache/"/>
 </full-backup-content>
