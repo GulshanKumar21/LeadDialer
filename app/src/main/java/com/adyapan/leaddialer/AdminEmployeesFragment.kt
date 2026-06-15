@@ -38,12 +38,15 @@ class AdminEmployeesFragment : Fragment() {
     private lateinit var adapter: AdminEmployeeAdapter
 
     private lateinit var rvEmployees    : RecyclerView
+    private lateinit var rvDayWiseStats : RecyclerView
     private lateinit var progress       : ProgressBar
     private lateinit var tvTotalEmp     : TextView
     private lateinit var tvTotalLeads   : TextView
     private lateinit var tvTotalConn    : TextView
     private lateinit var tvTotalSales   : TextView
     private lateinit var etSearch       : EditText
+
+    private lateinit var daySummaryAdapter: AdminDaySummaryAdapter
 
     private var allSummaries: List<EmployeeSummary> = emptyList()
 
@@ -55,6 +58,7 @@ class AdminEmployeesFragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity())[AdminViewModel::class.java]
 
         rvEmployees  = view.findViewById(R.id.rvEmployees)
+        rvDayWiseStats = view.findViewById(R.id.rvDayWiseStats)
         progress     = view.findViewById(R.id.progressAdmin)
         tvTotalEmp   = view.findViewById(R.id.tvTotalEmployees)
         tvTotalLeads = view.findViewById(R.id.tvTotalAllLeads)
@@ -102,8 +106,39 @@ class AdminEmployeesFragment : Fragment() {
             }
         )
 
+        daySummaryAdapter = AdminDaySummaryAdapter()
+
         rvEmployees.layoutManager = LinearLayoutManager(requireContext())
         rvEmployees.adapter = adapter
+
+        rvDayWiseStats.layoutManager = LinearLayoutManager(requireContext())
+        rvDayWiseStats.adapter = daySummaryAdapter
+
+        // ── Tab switcher logic ────────────────────────────────────────────────
+        val btnTabEmployees = view.findViewById<TextView>(R.id.btnTabEmployees)
+        val btnTabDayHistory = view.findViewById<TextView>(R.id.btnTabDayHistory)
+
+        btnTabEmployees.setOnClickListener {
+            btnTabEmployees.setBackgroundResource(R.drawable.bg_active_tab)
+            btnTabEmployees.setTextColor(android.graphics.Color.parseColor("#3B82F6"))
+
+            btnTabDayHistory.setBackgroundResource(R.drawable.bg_inactive_tab)
+            btnTabDayHistory.setTextColor(android.graphics.Color.parseColor("#64748B"))
+
+            rvEmployees.visibility = View.VISIBLE
+            rvDayWiseStats.visibility = View.GONE
+        }
+
+        btnTabDayHistory.setOnClickListener {
+            btnTabDayHistory.setBackgroundResource(R.drawable.bg_active_tab)
+            btnTabDayHistory.setTextColor(android.graphics.Color.parseColor("#3B82F6"))
+
+            btnTabEmployees.setBackgroundResource(R.drawable.bg_inactive_tab)
+            btnTabEmployees.setTextColor(android.graphics.Color.parseColor("#64748B"))
+
+            rvEmployees.visibility = View.GONE
+            rvDayWiseStats.visibility = View.VISIBLE
+        }
 
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -134,6 +169,10 @@ class AdminEmployeesFragment : Fragment() {
             tvTotalLeads.text = summaries.sumOf { it.totalLeads }.toString()
             tvTotalConn.text  = summaries.sumOf { it.connected }.toString()
             tvTotalSales.text = summaries.sumOf { it.salesDone }.toString()
+        }
+
+        viewModel.dayWiseStats.observe(viewLifecycleOwner) { stats ->
+            daySummaryAdapter.submitList(stats)
         }
 
         // Feed TL list into adapter so each card's spinner is populated

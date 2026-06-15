@@ -43,6 +43,19 @@ class AdminViewModel : ViewModel() {
     private val _employees = MutableLiveData<List<EmployeeSummary>>()
     val employees: LiveData<List<EmployeeSummary>> = _employees
 
+    data class DaySummary(
+        val dateDisplay: String,
+        val dateKey: String,
+        var totalCalled: Int = 0,
+        var connected: Int = 0,
+        var sales: Int = 0
+    )
+
+    private val _dayWiseStats = MutableLiveData<List<DaySummary>>()
+    val dayWiseStats: LiveData<List<DaySummary>> = _dayWiseStats
+
+    private var firestoreSalesDocs: List<com.google.firebase.firestore.DocumentSnapshot> = emptyList()
+
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -161,6 +174,7 @@ class AdminViewModel : ViewModel() {
                     val salesSnap = db.collection("leads")
                         .whereEqualTo("salesDone", true)
                         .get().await()
+                    firestoreSalesDocs = salesSnap.documents
                     val salesMap = mutableMapOf<String, Int>()
                     for (doc in salesSnap.documents) {
                         val uid = doc.getString("userId") ?: continue
@@ -186,6 +200,10 @@ class AdminViewModel : ViewModel() {
                 val rtdbListener = object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val countsMap = mutableMapOf<String, RtdbCounts>()
+                        val daySummaryMap = mutableMapOf<String, DaySummary>()
+                        val sdfKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val sdfDisplay = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+
                         snapshot.children.forEach { userNode ->
                             val uid = userNode.key ?: return@forEach
                             var total = 0; var connected = 0; var interested = 0
@@ -194,26 +212,70 @@ class AdminViewModel : ViewModel() {
                             userNode.children.forEach { leadNode ->
                                 val m = leadNode.value as? Map<*, *> ?: return@forEach
                                 total++
-                                when (m["status"]?.toString()) {
-                                    "Wrong Number"                -> connected++ // counted as "reached"
-                                    "Not Connected"               -> { /* no answer */ }
-                                    "Busy"                        -> { /* busy */ }
-                                    "Interested"                  -> { connected++; interested++ }
-                                    "Pending", "", null           -> pending++
-                                    else                          -> { /* custom notes */ }
+                                val status = m["status"]?.toString()
+                                val calledAt = (m["calledAt"] as? Number)?.toLong() ?: 0L
+                                val isCalled = calledAt > 0L || (status != null && status != "Pending" && status.isNotBlank())
+                                if (isCalled) {
+                                    if (status == "Interested" || status == "Connected") {
+                                        connected++
+                                    }
+                                    if (status == "Interested") {
+                                        interested++
+                                    }
+                                } else {
+                                    pending++
                                 }
-                                if (m["salesDone"] == true) salesDone++
+                                val leadSalesDone = (m["salesDone"] as? Boolean) ?: false
+                                if (leadSalesDone) salesDone++
                                 // Pick up name from RTDB if missing
                                 if (!nameMap.containsKey(uid)) {
                                     val n = m["employeeName"]?.toString()?.takeIf { it.isNotBlank() }
                                         ?: m["calledBy"]?.toString()?.takeIf { it.isNotBlank() }
                                     if (n != null) nameMap[uid] = n
                                 }
+
+                                // Day-wise stats: Called status on that day
+                                if (calledAt > 0L) {
+                                    val dateKey = sdfKey.format(Date(calledAt))
+                                    val dateDisplay = sdfDisplay.format(Date(calledAt))
+                                    val summary = daySummaryMap.getOrPut(dateKey) {
+                                        DaySummary(dateDisplay, dateKey)
+                                    }
+                                    summary.totalCalled++
+                                    if (status == "Interested" || status == "Connected") {
+                                        summary.connected++
+                                    }
+                                    if (leadSalesDone) {
+                                        summary.sales++
+                                    }
+                                }
                             }
                             if (total > 0) {
                                 countsMap[uid] = RtdbCounts(total, connected, interested, pending, salesDone)
                             }
                         }
+
+                        // Add Firestore Sales Docs to Day Summary
+                        firestoreSalesDocs.forEach { doc ->
+                            val calledAt = doc.getLong("calledAt") ?: 0L
+                            if (calledAt > 0L) {
+                                val dateKey = sdfKey.format(Date(calledAt))
+                                val dateDisplay = sdfDisplay.format(Date(calledAt))
+                                val summary = daySummaryMap.getOrPut(dateKey) {
+                                    DaySummary(dateDisplay, dateKey)
+                                }
+                                summary.totalCalled++
+                                val status = doc.getString("status")
+                                if (status == "Interested" || status == "Connected") {
+                                    summary.connected++
+                                }
+                                summary.sales++
+                            }
+                        }
+
+                        val dayList = daySummaryMap.values.sortedByDescending { it.dateKey }
+                        _dayWiseStats.postValue(dayList)
+
                         rtdbCounts = countsMap
                         uidToName  = nameMap
                         rebuildSummaries()
