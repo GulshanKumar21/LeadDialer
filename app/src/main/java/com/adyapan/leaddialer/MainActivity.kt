@@ -283,6 +283,7 @@ class MainActivity : AppCompatActivity(),
                 }
                 is CalendarFragment -> {
                     supportActionBar?.title = "Calendar"
+                    islandNav.setSelectedItemId(R.id.nav_calendar)
                 }
                 is FilteredLeadsFragment -> {
                     val filterStatus = currentFragment.arguments?.getString("status") ?: ""
@@ -374,6 +375,28 @@ class MainActivity : AppCompatActivity(),
         super.onResume()
         window.statusBarColor = android.graphics.Color.parseColor("#F8F8F5")
         checkAndShowCallPopup()
+        syncBottomNavSelection()
+    }
+
+    private fun syncBottomNavSelection() {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        when (currentFragment) {
+            is DashboardFragment -> {
+                islandNav.setSelectedItemId(R.id.nav_home)
+                navView.setCheckedItem(R.id.navDashboard)
+            }
+            is LeadsFragment -> {
+                islandNav.setSelectedItemId(R.id.nav_lead)
+                navView.setCheckedItem(R.id.navLeads)
+            }
+            is CallHistoryFragment -> {
+                islandNav.setSelectedItemId(R.id.nav_center)
+                navView.setCheckedItem(R.id.navCallHistory)
+            }
+            is CalendarFragment -> {
+                islandNav.setSelectedItemId(R.id.nav_calendar)
+            }
+        }
     }
 
     private fun checkAndShowCallPopup() {
