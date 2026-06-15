@@ -9,25 +9,18 @@ import java.util.concurrent.TimeUnit
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 
 class LeadDialerApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeManager.applyTheme(this)
 
-        // Initialize Firebase and App Check
+        // Initialize Firebase and App Check (Release Play Integrity mode only)
         FirebaseApp.initializeApp(this)
         val appCheck = FirebaseAppCheck.getInstance()
-        if (BuildConfig.DEBUG) {
-            appCheck.installAppCheckProviderFactory(
-                DebugAppCheckProviderFactory.getInstance()
-            )
-        } else {
-            appCheck.installAppCheckProviderFactory(
-                PlayIntegrityAppCheckProviderFactory.getInstance()
-            )
-        }
+        appCheck.installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
 
         // ── Firebase RTDB Offline Persistence ──────────────────────────────────
         // Jab network off ho tab bhi sare Firebase writes disk par queue hote hain.
