@@ -424,8 +424,9 @@ object FirestoreSource {
      * Handles both Firestore-stored leads and RTDB-stored (Pending/bulk) leads.
      * When marking salesDone=true, a RTDB lead is promoted to Firestore.
      */
-    suspend fun updateSalesDone(firestoreId: String, salesDone: Boolean): Boolean {
+    suspend fun updateSalesDone(firestoreId: String, salesDone: Boolean, employeeUid: String? = null): Boolean {
         val uid = currentUid() ?: return false
+        val targetUid = employeeUid ?: uid
 
         try {
             // ── Try Firestore first (Hot/Interested leads live here) ──────────────
@@ -450,7 +451,7 @@ object FirestoreSource {
 
             // ── Firestore doc not found → lead is in RTDB ────────────────────
             Log.d(TAG, "updateSalesDone: not in Firestore, trying RTDB for $firestoreId")
-            val rtdbRef = rtdb.child(uid).child(firestoreId)
+            val rtdbRef = rtdb.child(targetUid).child(firestoreId)
             val rtdbSnap = rtdbRef.get().await()
 
             if (!rtdbSnap.exists()) {
@@ -463,7 +464,7 @@ object FirestoreSource {
             if (salesDone) {
                 // Promote to Firestore so it becomes a "premium" lead
                 val data = hashMapOf<String, Any>(
-                    "userId"       to (map["userId"]?.toString()       ?: uid),
+                    "userId"       to (map["userId"]?.toString()       ?: targetUid),
                     "employeeName" to (map["employeeName"]?.toString() ?: ""),
                     "email"        to (map["email"]?.toString()        ?: ""),
                     "name"         to (map["name"]?.toString()         ?: ""),

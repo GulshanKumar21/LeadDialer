@@ -541,6 +541,22 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Toggles the salesDone flag for a specific lead in the local LiveData.
+     * Provides an instantaneous UI response when Admin toggles a checkbox.
+     */
+    fun updateLeadSalesDoneLocally(firestoreId: String, salesDone: Boolean) {
+        val currentList = _employeeLeads.value ?: return
+        val updatedList = currentList.map {
+            if (it.firestoreId == firestoreId) {
+                it.copy(salesDone = salesDone)
+            } else {
+                it
+            }
+        }
+        _employeeLeads.postValue(updatedList)
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Cleanup — MUST call before logout to prevent "permission denied" errors
     // ─────────────────────────────────────────────────────────────────────────

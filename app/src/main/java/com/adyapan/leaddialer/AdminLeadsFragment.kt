@@ -109,11 +109,15 @@ class AdminLeadsFragment : Fragment() {
                             lifecycleScope.launch {
                                 val newVal = !lead.salesDone
                                 val fid = lead.firestoreId ?: return@launch
-                                val ok = FirestoreSource.updateSalesDone(fid, newVal)
+                                // Optimistic UI update
+                                viewModel.updateLeadSalesDoneLocally(fid, newVal)
+                                val ok = FirestoreSource.updateSalesDone(fid, newVal, userId)
                                 if (ok) {
                                     val msg = if (newVal) "✅ Sales Done marked!" else "↩️ Sales Done removed"
                                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                 } else {
+                                    // Revert on failure
+                                    viewModel.updateLeadSalesDoneLocally(fid, lead.salesDone)
                                     Toast.makeText(context, "❌ Failed to update", Toast.LENGTH_SHORT).show()
                                 }
                             }
