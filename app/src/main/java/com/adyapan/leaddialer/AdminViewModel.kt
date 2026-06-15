@@ -17,6 +17,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -53,6 +55,9 @@ class AdminViewModel : ViewModel() {
 
     private val _dayWiseStats = MutableLiveData<List<DaySummary>>()
     val dayWiseStats: LiveData<List<DaySummary>> = _dayWiseStats
+
+    private val _todayAttendance = MutableLiveData<Map<String, String>>(emptyMap())
+    val todayAttendance: LiveData<Map<String, String>> = _todayAttendance
 
     private var firestoreSalesDocs: List<com.google.firebase.firestore.DocumentSnapshot> = emptyList()
 
@@ -421,6 +426,35 @@ class AdminViewModel : ViewModel() {
 
         _employees.postValue(summaries)
         _isLoading.postValue(false)
+        loadTodayAttendance(summaries.map { it.userId })
+    }
+
+    fun loadTodayAttendance(employeeIds: List<String>) {
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        viewModelScope.launch(Dispatchers.IO) {
+            val attendanceMap = mutableMapOf<String, String>()
+            val jobs = employeeIds.map { uid ->
+                async {
+                    try {
+                        val doc = db.collection("attendance").document(uid)
+                            .collection("dates").document(todayStr).get().await()
+                        val status = if (doc.exists()) {
+                            doc.getString("status") ?: "Present"
+                        } else {
+                            "Absent"
+                        }
+                        uid to status
+                    } catch (e: Exception) {
+                        uid to "Absent"
+                    }
+                }
+            }
+            val results = jobs.awaitAll()
+            results.forEach { (uid, status) ->
+                attendanceMap[uid] = status
+            }
+            _todayAttendance.postValue(attendanceMap)
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
