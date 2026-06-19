@@ -611,6 +611,30 @@ class LoginPage : AppCompatActivity() {
             return
         }
 
+        try {
+            val crmUser = withContext(Dispatchers.IO) {
+                CrmApi.getCurrentUser()
+            }
+            val isCrmAdmin = crmUser.role == "ADMIN" || crmUser.role == "HR"
+            FirestoreSource.setAdminStatus(isCrmAdmin)
+
+            if (isCrmAdmin) {
+                startActivity(
+                    Intent(
+                        this,
+                        AdminPanelActivity::class.java
+                    )
+                )
+            } else {
+                goToMain()
+            }
+
+            finish()
+            return
+        } catch (e: Exception) {
+            android.util.Log.w("LoginPage", "CRM role check failed, falling back to Firestore: ${e.message}")
+        }
+
         return try {
 
             val isAdmin = withContext(Dispatchers.IO) {

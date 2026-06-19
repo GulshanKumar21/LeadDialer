@@ -111,6 +111,7 @@ class AdminViewModel : ViewModel() {
     private var expectedSalesListener: ValueEventListener? = null
     private var adminTargetsListener : ValueEventListener? = null
     private var tlAssignListener     : ValueEventListener? = null  // live TL assignment listener
+    private var crmPrimary = false
 
     data class RtdbCounts(
         val total: Int,
@@ -136,6 +137,10 @@ class AdminViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                if (loadCrmEmployeesSnapshot()) {
+                    return@launch
+                }
+
                 // ── Step 1: Load admin UIDs to EXCLUDE from employee list ────────────
                 val adminSet = mutableSetOf<String>()
                 try {
@@ -145,7 +150,7 @@ class AdminViewModel : ViewModel() {
                 adminUids = adminSet
 
                 // ── Step 2: Load employee names (excluding admins) ───────────────────
-                val nameMap = mutableMapOf<String, String>()
+                val nameMap = uidToName.toMutableMap()
                 try {
                     val usersSnap = db.collection("users").get().await()
                     for (doc in usersSnap.documents) {
@@ -393,6 +398,50 @@ class AdminViewModel : ViewModel() {
     }
 
     /** Rebuilds EmployeeSummary list from cached counts — NO extra reads */
+    private suspend fun loadCrmEmployeesSnapshot(): Boolean {
+        try {
+            val crmEmployees = CrmApi.getAdminEmployees()
+            if (crmEmployees.isEmpty()) return false
+
+            crmPrimary = true
+            uidToName = crmEmployees.associate { it.userId to it.employeeName }
+            _employees.postValue(crmEmployees.sortedBy { it.employeeName.lowercase() })
+            _isLoading.postValue(false)
+            loadTodayAttendance(crmEmployees.map { it.userId })
+            loadCrmDaySummaries()
+            return true
+        } catch (e: Exception) {
+            android.util.Log.w("AdminVM", "CRM employees load failed: ${e.message}")
+            return false
+        }
+    }
+
+    private fun loadCrmDaySummaries() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val leads = CrmApi.getAdminLeads(limit = 1000)
+                val sdfKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val sdfDisplay = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                val summaries = leads
+                    .filter { it.calledAt > 0L }
+                    .groupBy { sdfKey.format(Date(it.calledAt)) }
+                    .map { (dateKey, rows) ->
+                        DaySummary(
+                            dateDisplay = sdfDisplay.format(Date(rows.first().calledAt)),
+                            dateKey = dateKey,
+                            totalCalled = rows.size,
+                            connected = rows.count { it.status == "Connected" || it.status == "Interested" },
+                            sales = rows.count { it.salesDone }
+                        )
+                    }
+                    .sortedByDescending { it.dateKey }
+                _dayWiseStats.postValue(summaries)
+            } catch (e: Exception) {
+                android.util.Log.w("AdminVM", "CRM day summary load failed: ${e.message}")
+            }
+        }
+    }
+
     private fun rebuildSummaries() {
         val allUids = (uidToName.keys + rtdbCounts.keys).toSet()
 
@@ -432,6 +481,16 @@ class AdminViewModel : ViewModel() {
     fun loadTodayAttendance(employeeIds: List<String>) {
         val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val crmAttendance = CrmApi.getHrAttendance(todayStr)
+                if (crmAttendance.isNotEmpty()) {
+                    _todayAttendance.postValue(crmAttendance)
+                    return@launch
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("AdminVM", "CRM attendance load failed: ${e.message}")
+            }
+
             val attendanceMap = mutableMapOf<String, String>()
             val jobs = employeeIds.map { uid ->
                 async {
@@ -467,6 +526,17 @@ class AdminViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             val leads = mutableListOf<Lead>()
+
+            try {
+                val crmLeads = CrmApi.getAdminLeads(userId = userId, limit = 1000)
+                if (crmLeads.isNotEmpty() || crmPrimary) {
+                    _employeeLeads.postValue(crmLeads.sortedByDescending { it.calledAt })
+                    _leadsLoading.postValue(false)
+                    return@launch
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("AdminVM", "CRM employee leads load failed: ${e.message}")
+            }
 
             // 1. RTDB leads for this employee (free)
             try {
