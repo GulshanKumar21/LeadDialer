@@ -100,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       final msg = switch (e.code) {
+        'network-request-failed' => 'Network connection failed. Check your internet and try again.',
         'user-not-found'   => 'User not found ❌',
         'wrong-password'   => 'Wrong password ❌',
         'invalid-email'    => 'Invalid email ❌',
