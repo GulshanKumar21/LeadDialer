@@ -543,7 +543,7 @@ class AdminViewModel : ViewModel() {
         selectedDateStr = dateStr
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val crmAttendance = CrmApi.getHrAttendance(todayStr)
+                val crmAttendance = CrmApi.getHrAttendance(dateStr)
                 if (crmAttendance.isNotEmpty()) {
                     _todayAttendance.postValue(crmAttendance)
                     return@launch

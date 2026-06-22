@@ -34,6 +34,8 @@ android {
             "\"${System.getenv("GAS_SCRIPT_URL") ?: "https://script.google.com/macros/s/AKfycbx7q3iVs3h0tVUArSKJ5MF9EaogNPeuGCf6St4jBqDmO1pTC9O6QNhMsJscFH2lXHqRhg/exec"}\"")
         buildConfigField("String", "GAS_NOTIFY_URL",
             "\"${System.getenv("GAS_NOTIFY_URL") ?: "https://script.google.com/macros/s/AKfycbxdo6J3g_i3JXcX6MkSSIBoQyDniqOc6_0tpC8GZ4wwtCV-EIzLnoHdowu0e3GvRAVIHA/exec"}\"")
+        buildConfigField("String", "CRM_API_BASE_URL",
+            "\"${System.getenv("CRM_API_BASE_URL") ?: "http://10.0.2.2:4000/api"}\"")
         // 🔒 SECURITY: HMAC secret for Google Apps Script authentication
         buildConfigField("String", "GAS_SECRET_TOKEN",
             "\"${System.getenv("GAS_SECRET_TOKEN") ?: "adyapan-crm-secret-2026-hmac-key"}\"")

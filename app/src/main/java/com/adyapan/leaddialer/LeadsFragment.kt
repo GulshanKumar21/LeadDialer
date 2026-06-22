@@ -80,6 +80,38 @@ class LeadsFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvLeads)
         val etSearch     = view.findViewById<EditText>(R.id.etSearch)
 
+        // Bind filter tabs for a premium, highly responsive UI/UX
+        val tabAll         = view.findViewById<TextView>(R.id.tabAll)
+        val tabConnected   = view.findViewById<TextView>(R.id.tabConnected)
+        val tabPending     = view.findViewById<TextView>(R.id.tabPending)
+        val tabInterested  = view.findViewById<TextView>(R.id.tabInterested)
+        val tabBusy        = view.findViewById<TextView>(R.id.tabBusy)
+        val tabSales       = view.findViewById<TextView>(R.id.tabSales)
+
+        val tabs = listOf(tabAll, tabConnected, tabPending, tabInterested, tabBusy, tabSales)
+        val statuses = listOf("All", "Connected", "Pending", "Interested", "Busy", "Sales")
+
+        fun selectTab(selectedIdx: Int) {
+            tabs.forEachIndexed { idx, tab ->
+                if (tab != null) {
+                    if (idx == selectedIdx) {
+                        tab.setBackgroundResource(R.drawable.bg_tab_active_orange)
+                        tab.setTextColor(0xFFFFFFFF.toInt())
+                    } else {
+                        tab.setBackgroundResource(R.drawable.bg_tab_inactive)
+                        tab.setTextColor(0xFF374151.toInt())
+                    }
+                }
+            }
+            adapter.filterByStatus(statuses[selectedIdx])
+        }
+
+        tabs.forEachIndexed { idx, tab ->
+            tab?.setOnClickListener {
+                selectTab(idx)
+            }
+        }
+
         adapter = LeadAdapter(
             onCallClick = { lead ->
                 currentLead = lead

@@ -16,22 +16,51 @@ class LeadAdapter(
 ) : ListAdapter<Lead, LeadAdapter.LeadViewHolder>(DIFF) {
 
     private var fullList = listOf<Lead>()
+    private var currentFilterStatus = "All"
+    private var currentSearchQuery = ""
 
     override fun submitList(list: List<Lead>?) {
         val sorted = list?.sortedByDescending { it.calledAt } ?: emptyList()
         fullList = sorted
-        super.submitList(sorted)
+        applyFilter()
     }
 
     fun filter(query: String) {
-        val filtered = if (query.isEmpty()) fullList
-        else fullList.filter {
-            it.name.contains(query, ignoreCase = true) ||
-            it.phone.contains(query, ignoreCase = true) ||
-            it.collegeName.contains(query, ignoreCase = true) ||
-            it.collegeCity.contains(query, ignoreCase = true)
+        currentSearchQuery = query
+        applyFilter()
+    }
+
+    fun filterByStatus(status: String) {
+        currentFilterStatus = status
+        applyFilter()
+    }
+
+    private fun applyFilter() {
+        var list = fullList
+
+        // Filter by Status
+        if (currentFilterStatus != "All") {
+            list = when (currentFilterStatus) {
+                "Connected" -> list.filter { it.status == "Connected" || it.status == "Interested" }
+                "Pending" -> list.filter { it.status == "Pending" || it.status.isBlank() }
+                "Interested" -> list.filter { it.status == "Interested" }
+                "Busy" -> list.filter { it.status == "Busy" }
+                "Sales" -> list.filter { it.salesDone }
+                else -> list.filter { it.status == currentFilterStatus }
+            }
         }
-        super.submitList(filtered)
+
+        // Filter by Search Query
+        if (currentSearchQuery.isNotEmpty()) {
+            list = list.filter {
+                it.name.contains(currentSearchQuery, ignoreCase = true) ||
+                it.phone.contains(currentSearchQuery, ignoreCase = true) ||
+                it.collegeName.contains(currentSearchQuery, ignoreCase = true) ||
+                it.collegeCity.contains(currentSearchQuery, ignoreCase = true)
+            }
+        }
+
+        super.submitList(list)
     }
 
     inner class LeadViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -46,6 +75,7 @@ class LeadAdapter(
         val salesRow      : View     = view.findViewById(R.id.salesRow)
         val btnMarkSale   : TextView = view.findViewById(R.id.btnMarkSale)
         val btnMarkNotDone: TextView = view.findViewById(R.id.btnMarkNotDone)
+        val viewStatusStrip : View   = view.findViewById(R.id.viewStatusStrip)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LeadViewHolder {
@@ -69,6 +99,20 @@ class LeadAdapter(
             ?.toString()
             ?: "?"
 
+        // Premium dynamic pastel colors for avatar based on name hash
+        val colors = listOf(
+            0xFF3B82F6.toInt(), // Blue
+            0xFF10B981.toInt(), // Emerald
+            0xFF8B5CF6.toInt(), // Violet
+            0xFFF59E0B.toInt(), // Amber
+            0xFFEC4899.toInt(), // Pink
+            0xFFEF4444.toInt(), // Red
+            0xFF06B6D4.toInt()  // Cyan
+        )
+        val hash = lead.name.hashCode()
+        val avatarBgColor = colors[kotlin.math.abs(hash) % colors.size]
+        holder.tvAvatar.background?.setTint(avatarBgColor)
+
         // College name — show only if available
         if (lead.collegeName.isNotBlank()) {
             holder.tvCollegeName.text = "🎓 ${lead.collegeName}"
@@ -88,15 +132,28 @@ class LeadAdapter(
         holder.tvHotBadge.visibility = View.GONE  // hot lead removed
 
         val statusColor = when {
-            lead.status == "Wrong Number"                    -> 0xFF8B0000.toInt() // dark red
-            lead.status == "Interested"                      -> 0xFF1565C0.toInt() // blue
-            lead.status == "Busy"                            -> 0xFFE65100.toInt() // orange
-            lead.status == "Not Connected"                   -> 0xFF757575.toInt() // grey
-            lead.status == "Not Interested"                  -> 0xFFC62828.toInt() // red
-            lead.status.startsWith("Not Interested:")        -> 0xFFC62828.toInt() // red (custom reason)
+            lead.status == "Wrong Number"                    -> 0xFFDC2626.toInt() // red
+            lead.status == "Interested"                      -> 0xFF16A34A.toInt() // green
+            lead.status == "Busy"                            -> 0xFFD97706.toInt() // amber
+            lead.status == "Not Connected"                   -> 0xFF4B5563.toInt() // grey
+            lead.status == "Not Interested"                  -> 0xFFB91C1C.toInt() // dark red
+            lead.status.startsWith("Not Interested:")        -> 0xFFB91C1C.toInt() // dark red (custom reason)
             else                                             -> 0xFFFF6A00.toInt() // orange (Pending etc.)
         }
+
+        val statusBgColor = when {
+            lead.status == "Wrong Number"                    -> 0xFFFEE2E2.toInt() // light red
+            lead.status == "Interested"                      -> 0xFFDCFCE7.toInt() // light green
+            lead.status == "Busy"                            -> 0xFFFEF3C7.toInt() // light amber
+            lead.status == "Not Connected"                   -> 0xFFF3F4F6.toInt() // light grey
+            lead.status == "Not Interested"                  -> 0xFFFEE2E2.toInt() // light red
+            lead.status.startsWith("Not Interested:")        -> 0xFFFEE2E2.toInt() // light red
+            else                                             -> 0xFFFFE6D5.toInt() // light orange
+        }
+
         holder.tvStatus.setTextColor(statusColor)
+        holder.tvStatus.background?.setTint(statusBgColor)
+        holder.viewStatusStrip.setBackgroundColor(statusColor)
 
         // ── Sales row — show for Hot Lead OR Interested ─────────────────
         val showSales = lead.status == "Interested"
