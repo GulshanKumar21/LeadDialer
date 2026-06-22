@@ -50,7 +50,7 @@ class LeadDialerApp : Application() {
      */
     private fun scheduleSelfieCleanup() {
         val cleanupRequest = PeriodicWorkRequestBuilder<AttendanceSelfieCleanupWorker>(
-            repeatInterval = 7,
+            repeatInterval = 7L,
             repeatIntervalTimeUnit = TimeUnit.DAYS   // हर 7 दिन में एक बार
         ).build()
 
