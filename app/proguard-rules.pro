@@ -69,22 +69,60 @@
 # - Room: Entity/Dao loaded by generated code
 # - Firebase data models (Firestore uses field names via reflection)
 # - Serialized data classes that use @SerializedName or are passed to Firestore
+
+# ─── Core Room Entities (reflection-based access) ─────────────────────────────
 -keep class com.adyapan.leaddialer.Lead { *; }
 -keep class com.adyapan.leaddialer.Callrecord { *; }
 -keep class com.adyapan.leaddialer.CallRecord { *; }
 -keep class com.adyapan.leaddialer.Attendancerecord { *; }
 -keep class com.adyapan.leaddialer.AttendanceRecord { *; }
+
+# ─── Firestore / RTDB data models (toObject() uses reflection) ────────────────
 -keep class com.adyapan.leaddialer.EmployeeSummary { *; }
 -keep class com.adyapan.leaddialer.Contact { *; }
+-keep class com.adyapan.leaddialer.UserProfile { *; }
+-keep class com.adyapan.leaddialer.LeaveRequest { *; }
+-keep class com.adyapan.leaddialer.SaleRecord { *; }
+-keep class com.adyapan.leaddialer.InboxMessage { *; }
+-keep class com.adyapan.leaddialer.ChatEntry { *; }
+-keep class com.adyapan.leaddialer.OnboardingItem { *; }
+-keep class com.adyapan.leaddialer.SlideItem { *; }
+
+# ─── Adapter / UI data classes (used via RecyclerView adapters) ───────────────
+-keep class com.adyapan.leaddialer.CallHistoryItem { *; }
+-keep class com.adyapan.leaddialer.CallHistoryItem$* { *; }
+-keep class com.adyapan.leaddialer.AdminAttendanceItem { *; }
+-keep class com.adyapan.leaddialer.AttendanceHistoryItem { *; }
+-keep class com.adyapan.leaddialer.DayAttendanceRow { *; }
+
+# ─── Utility / result classes ─────────────────────────────────────────────────
 -keep class com.adyapan.leaddialer.CallCheckResult { *; }
 -keep class com.adyapan.leaddialer.LeadDialerApp { *; }
 -keep class com.adyapan.leaddialer.BuildConfig { *; }
-# Keep Activity/Service/Receiver/Provider classes (registered in AndroidManifest)
+-keep class com.adyapan.leaddialer.CrmApi { *; }
+-keep class com.adyapan.leaddialer.CrmApi$* { *; }
+
+# ─── Parcelable / Serializable (Kotlin Parcelize) ─────────────────────────────
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator CREATOR;
+    static ** CREATOR;
+}
+
+# ─── Kotlin data class: keep component functions and copy() ───────────────────
+-keepclassmembers class com.adyapan.leaddialer.** {
+    public synthetic bridge *;
+    public final ** component*();
+    public final ** copy(...);
+}
+
+# ─── Keep Activity/Service/Receiver/Provider (AndroidManifest registered) ──────
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class * extends androidx.fragment.app.Fragment
+-keep public class * extends androidx.work.Worker
+-keep public class * extends androidx.work.ListenableWorker
 
 -keep class androidx.lifecycle.** { *; }
 -dontwarn androidx.lifecycle.**

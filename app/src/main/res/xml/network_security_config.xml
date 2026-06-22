@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- 🔒 SECURITY FIX: Block all cleartext traffic app-wide -->
+    <!-- 🔒 SECURITY: Block all cleartext traffic everywhere -->
     <base-config cleartextTrafficPermitted="false" />
 
-    <!-- 🔒 SECURITY FIX: Certificate Pinning for Firebase & Google APIs -->
-    <!-- Pins are Google's GlobalSign Root CA R2 and ISRG Root X1 (Let's Encrypt backup) -->
-    <!-- These root CAs cover all Firebase, Firestore, RTDB and googleapis.com domains -->
-    <!-- ⚠️ IMPORTANT: Review and update pins before expiry (Google CA rotation) -->
+    <!--
+        🔒 SECURITY: Certificate Pinning — Firebase & Google APIs
+        ⚠️  EXPIRY: 2027-06-01 — update pins before this date!
+        ⚠️  Only applies to RELEASE builds.
+              Debug builds skip pinning via <debug-overrides> trust-anchors.
+        Pins: Google Trust Services GTS Root R1, R2 + GlobalSign Root CA R2
+    -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">firebaseio.com</domain>
         <domain includeSubdomains="true">firestore.googleapis.com</domain>
@@ -16,7 +19,6 @@
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
-        <!-- Certificate pinning to Google's root CAs -->
         <pin-set expiration="2027-06-01">
             <!-- Google Trust Services GTS Root R1 (Primary) -->
             <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin>
@@ -27,16 +29,12 @@
         </pin-set>
     </domain-config>
 
-    <!-- Google Apps Script (GAS) endpoint -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="false">leaddialer.com</domain>
-        <trust-anchors>
-            <certificates src="system" />
-        </trust-anchors>
-    </domain-config>
-
-    <!-- 🔒 SECURITY: Debug builds only — allow user certs for testing -->
-    <!-- This block is completely ignored in release builds -->
+    <!--
+        🔒 DEBUG OVERRIDE:
+        - User-installed certs allowed (e.g. Charles Proxy for testing)
+        - Pin-set is NOT applied in debug — prevents false connectivity failures
+        - In release builds this block is IGNORED by Android
+    -->
     <debug-overrides>
         <trust-anchors>
             <certificates src="user" />
