@@ -24,13 +24,13 @@ service cloud.firestore {
 
     // ── 1. Admins ─────────────────────────────────────────────────────────
     match /admins/{userId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isHR());
       allow write: if false;
     }
 
     // ── 1b. HRs ───────────────────────────────────────────────────────────
     match /hrs/{userId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isHR());
       allow write: if false;
     }
 
@@ -101,7 +101,9 @@ service cloud.firestore {
 
     // ── 8. Device Locks — Attendance device binding (Native) ──────────────
     match /daily_device_locks/{date}/devices/{deviceId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin() || isHR();
     }
 
     // ── 9. Messages — Native app: messages/{userId}/inbox/{msgId} ─────────
