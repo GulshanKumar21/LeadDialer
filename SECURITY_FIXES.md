@@ -71,6 +71,15 @@ Only data classes, Activities, Services, and Fragments are now selectively kept.
 
 ---
 
+### Fix 7: Firestore Rules Hardening (Admins, HRs & Device Locks)
+**Status:** ✅ FIXED  
+**File:** `firestore.rules`  
+**Change:**  
+- Restrained read permissions on `/admins` and `/hrs` collections to: `allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isHR());`
+- Secured `/daily_device_locks` writes: `allow create, update: if request.resource.data.userId == request.auth.uid;` and blocked deletes for non-admins to prevent "buddy punching" bypasses.
+
+---
+
 ## ⚠️ Remaining Manual Actions Required
 
 ### 1. Firebase API Key Restriction (Cloud Console)
@@ -117,10 +126,11 @@ Set a calendar reminder to verify and update Google's root CA hashes before this
 | Plaintext Password in Prefs | 🔴 High | ✅ Not Present (EncryptedSharedPrefs) |
 | Unrestricted Firebase API Key | 🔴 High | ⚠️ Manual Action Required |
 | App Check Not Initialized | 🔴 High | ✅ Fixed (Play Integrity) |
-| Client-side Admin Routing | 🟡 Medium | 🛡️ Partially Mitigated (Firestore rules protect data) |
+| Client-side Admin Routing | 🟡 Medium | ✅ Hardened (Firestore rules updated) |
 | allowBackup DB Extraction | 🟡 Medium | ✅ Not Present (backup_rules.xml excludes DB) |
 | ANDROID_ID Collection | 🟡 Medium | ✅ Fixed (Firebase Installation ID) |
 | Cert Pinning Expiration | 🟡 Medium | ✅ Fixed (added, expires 2027-06-01) |
+| Loose Device Lock Rules | 🔴 High | ✅ Fixed (restricted writes/deletes) |
 | Over-Privileged Permissions | 🟡 Medium | ⚠️ Necessary for core features (documented) |
 
 ---
