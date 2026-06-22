@@ -23,7 +23,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginBottom="8dp"
             android:text="APPEARANCE &amp; STYLE"
-            android:textColor="#888888"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:letterSpacing="0.1"
             android:fontFamily="@font/nunito_extrabold"/>
@@ -36,7 +36,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="24dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/card_bg"
             app:cardElevation="12dp">
 
             <LinearLayout
@@ -71,7 +71,7 @@
                         android:layout_height="wrap_content"
                         android:text="Dark Theme"
                         android:fontFamily="@font/nunito_extrabold"
-                        android:textColor="#111111"
+                        android:textColor="@color/text_primary"
                         android:textSize="15sp"/>
 
                     <TextView
@@ -80,7 +80,7 @@
                         android:layout_marginTop="1dp"
                         android:text="Comfortable reading at night"
                         android:fontFamily="@font/nunito_semibold"
-                        android:textColor="#888888"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp"/>
                 </LinearLayout>
 
@@ -102,7 +102,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginBottom="8dp"
             android:text="CALL PREFERENCES"
-            android:textColor="#888888"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:letterSpacing="0.1"
             android:fontFamily="@font/nunito_extrabold"
@@ -116,7 +116,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="24dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/card_bg"
             app:cardElevation="12dp"
             android:visibility="gone">
 
@@ -159,7 +159,7 @@
                             android:layout_height="wrap_content"
                             android:text="Outgoing SIM Card"
                             android:fontFamily="@font/nunito_extrabold"
-                            android:textColor="#111111"
+                            android:textColor="@color/text_primary"
                             android:textSize="15sp"/>
 
                         <TextView
@@ -197,7 +197,7 @@
                         android:layout_weight="1"
                         android:text="Select a default SIM for calling to avoid showing the SIM selection popup on every dial."
                         android:fontFamily="@font/nunito_semibold"
-                        android:textColor="#374151"
+                        android:textColor="@color/text_primary"
                         android:textSize="11sp"/>
                 </LinearLayout>
 
@@ -219,7 +219,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginBottom="8dp"
             android:text="DATA &amp; SYNCHRONIZATION"
-            android:textColor="#888888"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:letterSpacing="0.1"
             android:fontFamily="@font/nunito_extrabold"/>
@@ -232,7 +232,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="28dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/card_bg"
             app:cardElevation="12dp">
 
             <LinearLayout
@@ -275,7 +275,7 @@
                             android:layout_height="wrap_content"
                             android:text="Local CRM Database"
                             android:fontFamily="@font/nunito_extrabold"
-                            android:textColor="#111111"
+                            android:textColor="@color/text_primary"
                             android:textSize="15sp" />
 
                         <TextView
@@ -285,7 +285,7 @@
                             android:layout_marginTop="1dp"
                             android:text="0 leads stored locally"
                             android:fontFamily="@font/nunito_semibold"
-                            android:textColor="#888888"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -293,7 +293,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#EFEFEA"/>
+                    android:background="@color/divider"/>
 
                 <!-- Google Sheets Sync Row -->
                 <LinearLayout
@@ -336,7 +336,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Google Sheets Backup"
                                 android:fontFamily="@font/nunito_extrabold"
-                                android:textColor="#111111"
+                                android:textColor="@color/text_primary"
                                 android:textSize="15sp" />
 
                             <TextView
@@ -345,7 +345,7 @@
                                 android:layout_marginTop="1dp"
                                 android:text="Synchronize local database in real-time"
                                 android:fontFamily="@font/nunito_semibold"
-                                android:textColor="#888888"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -362,6 +362,20 @@
                         android:textSize="13sp"
                         android:textAllCaps="false"
                         app:backgroundTint="@null"/>
+
+                    <!-- Force Full Sync - Restore ALL call history to Sheet -->
+                    <Button
+                        android:id="@+id/btnForceFullSync"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_button_premium"
+                        android:text="Restore All Calls to Sheet"
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/nunito_extrabold"
+                        android:textSize="13sp"
+                        android:textAllCaps="false"
+                        app:backgroundTint="#D97706"/>
 
                     <!-- Sync Status Container -->
                     <TextView
@@ -381,7 +395,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#EFEFEA"/>
+                    android:background="@color/divider"/>
 
                 <!-- Danger: Clear Data Row -->
                 <LinearLayout
@@ -472,7 +486,7 @@
                         android:layout_height="48dp"
                         android:background="@drawable/bg_delete_premium"
                         android:text="Delete All Local Leads"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/delete_text"
                         android:fontFamily="@font/nunito_extrabold"
                         android:textSize="13sp"
                         android:textAllCaps="false"
@@ -489,7 +503,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginBottom="8dp"
             android:text="ACCOUNT ACTIONS"
-            android:textColor="#888888"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:letterSpacing="0.1"
             android:fontFamily="@font/nunito_extrabold"/>
@@ -508,7 +522,7 @@
                 android:layout_height="52dp"
                 android:background="@drawable/bg_logout_btn"
                 android:text="🚪  Sign Out From Device"
-                android:textColor="#DC2626"
+                android:textColor="@color/logout_text"
                 android:fontFamily="@font/nunito_extrabold"
                 android:textSize="14sp"
                 android:textAllCaps="false"
@@ -521,7 +535,7 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_logout_btn"
                 android:text="⚠️  Request Account Deletion"
-                android:textColor="#DC2626"
+                android:textColor="@color/logout_text"
                 android:fontFamily="@font/nunito_extrabold"
                 android:textSize="14sp"
                 android:textAllCaps="false"
@@ -535,7 +549,7 @@
             android:layout_gravity="center_horizontal"
             android:text="Made with ❤️ by Adyapan Team"
             android:fontFamily="@font/nunito_semibold"
-            android:textColor="#9CA3AF"
+            android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:alpha="0.6"/>
 
@@ -546,7 +560,7 @@
             android:layout_marginTop="2dp"
             android:text="© 2026 Adyapan School. All Rights Reserved."
             android:fontFamily="@font/nunito_semibold"
-            android:textColor="#9CA3AF"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:alpha="0.4"/>
 

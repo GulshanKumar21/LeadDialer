@@ -78,9 +78,33 @@
                     android:textColor="#475569"
                     android:textSize="12sp"
                     android:layout_marginTop="4dp"
-                    android:maxLines="2"
-                    android:ellipsize="end"
                     android:fontFamily="@font/poppins_regular"/>
+
+                <!-- Attached Document Link -->
+                <LinearLayout
+                    android:id="@+id/layoutAttachment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    android:background="@drawable/rounded_button_gray"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvAttachmentLink"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📎 View Document"
+                        android:textColor="#FF6A00"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/poppins_semibold"/>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Status Badge -->

@@ -25,9 +25,28 @@
             android:title="💬 Inbox"/>
 
         <item
+            android:id="@+id/navDocuments"
+            android:icon="@android:drawable/ic_menu_save"
+            android:title="Documents"/>
+
+        <item
+            android:id="@+id/navPerformance"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="Performance"/>
+
+        <item
+            android:id="@+id/navDirectSale"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="💰 Direct Sale"/>
+
+        <item
             android:id="@+id/navSettings"
             android:icon="@drawable/ic_settings"
             android:title="Settings"/>
 
+        <item
+            android:id="@+id/navLogout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout"/>
     </group>
 </menu>

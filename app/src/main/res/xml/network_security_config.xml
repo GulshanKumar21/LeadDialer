@@ -1,22 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- 🔒 SECURITY FIX: Block all cleartext traffic app-wide -->
     <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">leaddialer.com</domain>
-    </domain-config>
+
+    <!-- 🔒 SECURITY FIX: Certificate Pinning for Firebase & Google APIs -->
+    <!-- Pins are Google's GlobalSign Root CA R2 and ISRG Root X1 (Let's Encrypt backup) -->
+    <!-- These root CAs cover all Firebase, Firestore, RTDB and googleapis.com domains -->
+    <!-- ⚠️ IMPORTANT: Review and update pins before expiry (Google CA rotation) -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">firebaseio.com</domain>
         <domain includeSubdomains="true">firestore.googleapis.com</domain>
         <domain includeSubdomains="true">googleapis.com</domain>
-        <pin-set expiration="2027-01-01">
+        <domain includeSubdomains="true">firebase.google.com</domain>
+        <domain includeSubdomains="true">script.google.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+        <!-- Certificate pinning to Google's root CAs -->
+        <pin-set expiration="2027-06-01">
+            <!-- Google Trust Services GTS Root R1 (Primary) -->
             <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin>
-            <pin digest="SHA-256">r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=</pin>
-            <pin digest="SHA-256">i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=</pin>
+            <!-- Google Trust Services GTS Root R2 (Backup) -->
+            <pin digest="SHA-256">/zQvtsTIvTCkcmCeoWJKxK7O6huoSoWIQtnMkfJlO0g=</pin>
+            <!-- GlobalSign Root CA R2 (Legacy backup) -->
+            <pin digest="SHA-256">iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0=</pin>
         </pin-set>
+    </domain-config>
+
+    <!-- Google Apps Script (GAS) endpoint -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">leaddialer.com</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </domain-config>
+
+    <!-- 🔒 SECURITY: Debug builds only — allow user certs for testing -->
+    <!-- This block is completely ignored in release builds -->
     <debug-overrides>
         <trust-anchors>
             <certificates src="user" />

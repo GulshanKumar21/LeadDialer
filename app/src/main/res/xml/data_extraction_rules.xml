@@ -6,6 +6,7 @@
         <exclude domain="sharedpref" path="app.xml"/>
         <exclude domain="sharedpref" path="sim_prefs.xml"/>
         <exclude domain="sharedpref" path="theme_prefs.xml"/>
+        <exclude domain="sharedpref" path="com.google.firebase.auth.api.Store.xml"/>
         <exclude domain="database" path="lead_dialer.db"/>
         <exclude domain="database" path="lead_dialer.db-shm"/>
         <exclude domain="database" path="lead_dialer.db-wal"/>
@@ -14,6 +15,7 @@
         <exclude domain="sharedpref" path="adyapan_prefs.xml"/>
         <exclude domain="sharedpref" path="CallManager.xml"/>
         <exclude domain="sharedpref" path="app.xml"/>
+        <exclude domain="sharedpref" path="com.google.firebase.auth.api.Store.xml"/>
         <exclude domain="database" path="lead_dialer.db"/>
         <exclude domain="database" path="lead_dialer.db-shm"/>
         <exclude domain="database" path="lead_dialer.db-wal"/>

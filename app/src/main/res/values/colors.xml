@@ -25,4 +25,14 @@
     <color name="shadow_outer">#1A000000</color>
     <color name="shadow_highlight">#CCFFFFFF</color>
 
+    <!-- Logout & Account Deletion (Light mode) -->
+    <color name="logout_bg">#FFF5F5</color>
+    <color name="logout_stroke">#EF4444</color>
+    <color name="logout_text">#EF4444</color>
+
+    <!-- Leads Deletion (Light mode) -->
+    <color name="delete_bg">#FEE2E2</color>
+    <color name="delete_stroke">#EF4444</color>
+    <color name="delete_text">#B91C1C</color>
+
 </resources>

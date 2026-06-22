@@ -33,6 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import android.app.DatePickerDialog
+import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.Date
 
 class AdminAttendanceFragment : Fragment() {
 
@@ -82,10 +88,20 @@ fun AdminAttendanceScreen(
         else employees.filter { it.employeeName.contains(searchQuery.trim(), ignoreCase = true) }
     }
 
+    var selectedDate by remember { mutableStateOf(viewModel.selectedDateStr) }
+
+    LaunchedEffect(selectedDate, employees) {
+        if (employees.isNotEmpty()) {
+            viewModel.loadTodayAttendance(selectedDate, employees.map { it.userId })
+        }
+    }
+
     // Attendance stats calculations (based on filtered list)
     val presentCount = filteredEmployees.count {
-        val status = todayAttendance[it.userId]
-        status == "Present" || status == "Late"
+        todayAttendance[it.userId] == "Present"
+    }
+    val lateCount = filteredEmployees.count {
+        todayAttendance[it.userId] == "Late"
     }
     val halfDayCount = filteredEmployees.count {
         todayAttendance[it.userId] == "Half Day"
@@ -94,6 +110,25 @@ fun AdminAttendanceScreen(
         val status = todayAttendance[it.userId]
         status == "Absent" || status == null
     }
+
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val dateParts = selectedDate.split("-")
+    if (dateParts.size == 3) {
+        calendar.set(Calendar.YEAR, dateParts[0].toInt())
+        calendar.set(Calendar.MONTH, dateParts[1].toInt() - 1)
+        calendar.set(Calendar.DAY_OF_MONTH, dateParts[2].toInt())
+    }
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            selectedDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
 
     Box(
         modifier = Modifier
@@ -123,52 +158,105 @@ fun AdminAttendanceScreen(
         }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            // Screen Title
-            Text(
-                text = "Attendance Inspection",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = NunitoFamily,
-                color = Color(0xFF1E293B),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // ── 3 Glassmorphic Stats Cards Row ──
+            // Screen Title Row with Date Picker
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Present Card (Green)
-                AttendanceStatCard(
-                    title = "Present",
-                    count = presentCount,
-                    textColor = Color(0xFF10B981),
-                    gradientColors = listOf(Color(0x1A10B981), Color(0x0A10B981)),
-                    borderColor = Color(0x4010B981),
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = "Attendance Inspection",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = NunitoFamily,
+                    color = Color(0xFF1E293B)
                 )
 
-                // Half Day Card (Blue)
-                AttendanceStatCard(
-                    title = "Half Day",
-                    count = halfDayCount,
-                    textColor = Color(0xFF0284C7),
-                    gradientColors = listOf(Color(0x1A0284C7), Color(0x0A0284C7)),
-                    borderColor = Color(0x400284C7),
-                    modifier = Modifier.weight(1f)
-                )
+                // Date Selector Button
+                val sdfDisplay = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                val sdfKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val displayDate = try {
+                    val date = sdfKey.parse(selectedDate)
+                    if (date != null) sdfDisplay.format(date) else selectedDate
+                } catch (e: Exception) {
+                    selectedDate
+                }
 
-                // Absent Card (Red)
-                AttendanceStatCard(
-                    title = "Absent",
-                    count = absentCount,
-                    textColor = Color(0xFFEF4444),
-                    gradientColors = listOf(Color(0x1AEF4444), Color(0x0AEF4444)),
-                    borderColor = Color(0x40EF4444),
-                    modifier = Modifier.weight(1f)
-                )
+                Box(
+                    modifier = Modifier
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFFFF6A00), shape = RoundedCornerShape(8.dp))
+                        .clickable { datePickerDialog.show() }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "📅 $displayDate",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = NunitoFamily,
+                        color = Color(0xFFFF6A00)
+                    )
+                }
+            }
+
+            // ── 4 Glassmorphic Stats Cards Row ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Present Card (Green)
+                    AttendanceStatCard(
+                        title = "Present",
+                        count = presentCount,
+                        textColor = Color(0xFF10B981),
+                        gradientColors = listOf(Color(0x1A10B981), Color(0x0A10B981)),
+                        borderColor = Color(0x4010B981),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Late Card (Orange)
+                    AttendanceStatCard(
+                        title = "Late",
+                        count = lateCount,
+                        textColor = Color(0xFFEA580C),
+                        gradientColors = listOf(Color(0x1AEA580C), Color(0x0AEA580C)),
+                        borderColor = Color(0x40EA580C),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Half Day Card (Blue)
+                    AttendanceStatCard(
+                        title = "Half Day",
+                        count = halfDayCount,
+                        textColor = Color(0xFF0284C7),
+                        gradientColors = listOf(Color(0x1A0284C7), Color(0x0A0284C7)),
+                        borderColor = Color(0x400284C7),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Absent Card (Red)
+                    AttendanceStatCard(
+                        title = "Absent",
+                        count = absentCount,
+                        textColor = Color(0xFFEF4444),
+                        gradientColors = listOf(Color(0x1AEF4444), Color(0x0AEF4444)),
+                        borderColor = Color(0x40EF4444),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             // Search Bar

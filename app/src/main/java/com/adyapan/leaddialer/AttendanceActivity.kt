@@ -635,6 +635,22 @@ class AttendanceActivity : AppCompatActivity() {
             }
     }
 
+    private fun getSecondsFromTimeString(timeStr: String): Int {
+        if (timeStr.isBlank() || timeStr == "N/A" || timeStr == "--") return 0
+        try {
+            val parts = timeStr.split(":")
+            if (parts.size >= 2) {
+                val h = parts[0].toInt()
+                val m = parts[1].toInt()
+                val s = if (parts.size > 2) parts[2].toInt() else 0
+                return h * 3600 + m * 60 + s
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        return 0
+    }
+
     // ── Check-Out ─────────────────────────────────────────────────────────
     private fun saveCheckOut(selfieBase64: String) {
         val user   = FirebaseAuth.getInstance().currentUser ?: return
@@ -644,27 +660,47 @@ class AttendanceActivity : AppCompatActivity() {
         val cal    = Calendar.getInstance()
         val isEarlyLeave = cal.get(Calendar.HOUR_OF_DAY) < 20
 
+        val checkInTimeStr = checkInTimeMap[date] ?: "11:00:00"
+        val checkInSeconds = getSecondsFromTimeString(checkInTimeStr)
+        val checkOutSeconds = getSecondsFromTimeString(time)
+        var workedSeconds = checkOutSeconds - checkInSeconds
+        if (workedSeconds < 0) {
+            workedSeconds += 24 * 3600
+        }
+
+        var newStatus = attendanceMap[date] ?: "Present"
+        if (isEarlyLeave) {
+            if (workedSeconds < 9000) { // 2.5 hours = 9000 seconds
+                newStatus = "Absent"
+            } else {
+                newStatus = "Half Day"
+            }
+        } else {
+            if (workedSeconds < 9000) {
+                newStatus = "Absent"
+            }
+        }
+
         val updates = mutableMapOf<String, Any?>(
             "checkOut" to time,
             "checkOutSelfie" to selfieBase64,
             "earlyLeave" to isEarlyLeave,
-            "earlyLeaveTime" to if (isEarlyLeave) time else null
+            "earlyLeaveTime" to if (isEarlyLeave) time else null,
+            "status" to newStatus
         )
-        val todayStatus = attendanceMap[date]
-        if (isEarlyLeave && todayStatus != "Half Day") {
-            updates["status"] = "Late"
-        }
 
         FirebaseFirestore.getInstance()
             .collection("attendance").document(userId)
             .collection("dates").document(date)
             .update(updates)
             .addOnSuccessListener {
-                if (isEarlyLeave && todayStatus != "Half Day") {
-                    attendanceMap[date] = "Late"
-                    renderCalendar()
+                attendanceMap[date] = newStatus
+                renderCalendar()
+                val msg = if (isEarlyLeave) {
+                    if (newStatus == "Absent") "Check-Out ❌ Absent (Worked < 2.5h)" else "Check-Out ⚠️ Early Leave (Half Day)"
+                } else {
+                    if (newStatus == "Absent") "Check-Out ❌ Absent (Worked < 2.5h)" else "Check-Out Successful ✅"
                 }
-                val msg = if (isEarlyLeave) "Check-Out ⚠️ Early Leave at $time" else "Check-Out Successful ✅"
                 Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                 btn.isEnabled = false
                 btn.text      = "Attendance Completed"
@@ -683,10 +719,10 @@ class AttendanceActivity : AppCompatActivity() {
                 val m = parts[1].toInt()
                 val s = if (parts.size > 2) parts[2].toInt() else 0
                 val totalSeconds = h * 3600 + m * 60 + s
-                // 11:00:01 to 11:05:00
-                // 11:00:00 in seconds is 39600
-                // 11:05:00 in seconds is 39900
-                return totalSeconds in 39601..39900
+                // 11:05:01 to 11:10:00 (Grace period)
+                // 11:05:00 is 39900 seconds
+                // 11:10:00 is 40200 seconds
+                return totalSeconds in 39901..40200
             }
         } catch (e: Exception) {
             // ignore
@@ -716,16 +752,16 @@ class AttendanceActivity : AppCompatActivity() {
                 val s = if (parts.size > 2) parts[2].toInt() else 0
                 val totalSeconds = h * 3600 + m * 60 + s
                 
-                if (totalSeconds <= 39600) { // 11:00:00 or earlier
+                if (totalSeconds <= 39900) { // 11:05:00 or earlier
                     return "Present"
-                } else if (totalSeconds <= 39900) { // 11:00:01 to 11:05:00
+                } else if (totalSeconds <= 40200) { // 11:05:01 to 11:10:00
                     val priorLateCount = getLateCountForCurrentMonth()
                     return if (priorLateCount >= 3) {
                         "Half Day"
                     } else {
                         "Late"
                     }
-                } else { // 11:05:01 or later
+                } else { // 11:10:01 or later
                     return "Half Day"
                 }
             }

@@ -2,22 +2,95 @@ package com.adyapan.leaddialer
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ProfileFragment : Fragment() {
+
+    private var selectedDocumentUri: Uri? = null
+    private var selectedDocumentName: String = ""
+    private var onDocumentSelected: ((Uri, String) -> Unit)? = null
+
+    private val docPickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            val name = getFileName(it)
+            selectedDocumentUri = it
+            selectedDocumentName = name
+            onDocumentSelected?.invoke(it, name)
+        }
+    }
+
+    private fun getFileName(uri: Uri): String {
+        var name = ""
+        try {
+            val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        name = it.getString(nameIndex)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        if (name.isEmpty()) {
+            name = uri.lastPathSegment ?: "attached_file"
+        }
+        return name
+    }
+
+    private suspend fun uploadLeaveDocument(uri: Uri, fileName: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val context = context ?: return@withContext null
+                val user = FirebaseAuth.getInstance().currentUser ?: return@withContext null
+                val storage = FirebaseStorage.getInstance()
+
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bytes = inputStream?.readBytes()
+                inputStream?.close()
+
+                if (bytes == null) return@withContext null
+
+                if (bytes.size > 10 * 1024 * 1024) { // 10MB limit
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "File size must be under 10MB", Toast.LENGTH_LONG).show()
+                    }
+                    return@withContext null
+                }
+
+                val uniqueName = "leave_${System.currentTimeMillis()}_$fileName"
+                val storageRef = storage.reference.child("leave_documents/${user.uid}/$uniqueName")
+                storageRef.putBytes(bytes).await()
+
+                storageRef.downloadUrl.await().toString()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+    }
 
     private lateinit var tvName        : TextView
     private lateinit var tvDesignation : TextView
@@ -237,6 +310,32 @@ class ProfileFragment : Fragment() {
         val view   = layoutInflater.inflate(R.layout.dialog_apply_leave, null)
         dialog.setContentView(view)
 
+        // Reset attachment state
+        selectedDocumentUri = null
+        selectedDocumentName = ""
+
+        val btnAttach = view.findViewById<Button>(R.id.btnAttachDocument)
+        val tvAttachedName = view.findViewById<TextView>(R.id.tvAttachedFileName)
+        val btnRemoveAttach = view.findViewById<ImageButton>(R.id.btnRemoveAttachment)
+
+        onDocumentSelected = { uri, name ->
+            tvAttachedName.text = name
+            tvAttachedName.setTextColor(android.graphics.Color.BLACK)
+            btnRemoveAttach.visibility = View.VISIBLE
+        }
+
+        btnAttach.setOnClickListener {
+            docPickerLauncher.launch("*/*")
+        }
+
+        btnRemoveAttach.setOnClickListener {
+            selectedDocumentUri = null
+            selectedDocumentName = ""
+            tvAttachedName.text = "No file chosen"
+            tvAttachedName.setTextColor(android.graphics.Color.parseColor("#AABBCC"))
+            btnRemoveAttach.visibility = View.GONE
+        }
+
         // ── Leave type spinner ────────────────────────────────────────
         val spinnerLeave = view.findViewById<Spinner>(R.id.spinnerLeaveType)
         val leaveTypes   = arrayOf("Sick Leave", "Casual Leave", "Half Day", "Emergency Leave", "Maternity Leave")
@@ -244,7 +343,7 @@ class ProfileFragment : Fragment() {
 
         // ── Admin email — LOCKED to 2 verified addresses ──────────────
         val spinnerAdmin  = view.findViewById<Spinner>(R.id.spinnerAdminEmail)
-        val adminEmails   = arrayOf("hr@adyapan.com", "mounika@adyapan.com")
+        val adminEmails   = arrayOf("info_hr@adyapan.com", "mounika@adyapan.com")
         spinnerAdmin.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, adminEmails)
 
         // ── Date pickers (past dates BLOCKED) ────────────────────────
@@ -348,7 +447,7 @@ class ProfileFragment : Fragment() {
             val fromDate   = tvFrom.text.toString()
             val toDate     = tvTo.text.toString()
             val reason     = etReason.text.toString().trim()
-            val adminEmail = adminEmails[spinnerAdmin.selectedItemPosition]   // always valid
+            val adminEmail = adminEmails.joinToString(",")
 
             if (!fromSelected) {
                 Toast.makeText(requireContext(), "Please select From date", Toast.LENGTH_SHORT).show()
@@ -390,19 +489,40 @@ class ProfileFragment : Fragment() {
                 .create()
             progressDialog.show()
 
-            val leaveRequest = LeaveRequest(
-                uid           = uid,
-                employeeName  = empName,
-                employeeEmail = empEmail,
-                leaveType     = leaveType,
-                fromDate      = fromDate,
-                toDate        = toDate,
-                reason        = reason,
-                status        = "Pending",
-                appliedAt     = System.currentTimeMillis()
-            )
-
             lifecycleScope.launch {
+                var documentUrl = ""
+                val documentName = selectedDocumentName
+
+                val uri = selectedDocumentUri
+                if (uri != null) {
+                    tvText.text = "Uploading Document..."
+                    val uploadedUrl = uploadLeaveDocument(uri, documentName)
+                    if (uploadedUrl == null) {
+                        Toast.makeText(requireContext(), "❌ Document upload failed. Please try again.", Toast.LENGTH_SHORT).show()
+                        btnSubmit.isEnabled = true
+                        btnSubmit.text = "Submit Leave Request"
+                        progressDialog.dismiss()
+                        return@launch
+                    }
+                    documentUrl = uploadedUrl
+                }
+
+                tvText.text = "Submitting Leave Request..."
+
+                val leaveRequest = LeaveRequest(
+                    uid           = uid,
+                    employeeName  = empName,
+                    employeeEmail = empEmail,
+                    leaveType     = leaveType,
+                    fromDate      = fromDate,
+                    toDate        = toDate,
+                    reason        = reason,
+                    status        = "Pending",
+                    appliedAt     = System.currentTimeMillis(),
+                    documentUrl   = documentUrl,
+                    documentName  = documentName
+                )
+
                 val docId = FirestoreSource.saveLeaveRequest(leaveRequest)
                 if (docId != null) {
 
@@ -415,7 +535,8 @@ class ProfileFragment : Fragment() {
                         leaveType  = leaveType,
                         fromDate   = fromDate,
                         toDate     = toDate,
-                        reason     = reason
+                        reason     = reason,
+                        documentUrl = documentUrl
                     )
 
                     if (gasSent) {
@@ -435,7 +556,8 @@ class ProfileFragment : Fragment() {
                             leaveType  = leaveType,
                             fromDate   = fromDate,
                             toDate     = toDate,
-                            reason     = reason
+                            reason     = reason,
+                            documentUrl = documentUrl
                         )
                         Toast.makeText(
                             requireContext(),
@@ -474,9 +596,11 @@ class ProfileFragment : Fragment() {
         leaveType  : String,
         fromDate   : String,
         toDate     : String,
-        reason     : String
+        reason     : String,
+        documentUrl: String = ""
     ) {
         val subject = "Leave Request - $empName ($leaveType)"
+        val attachmentText = if (documentUrl.isNotEmpty()) "\nAttachment Link : $documentUrl" else ""
         val body    = """
 Dear Admin,
 
@@ -488,7 +612,7 @@ Employee Email  : $empEmail
 Leave Type      : $leaveType
 From Date       : $fromDate
 To Date         : $toDate
-Reason          : $reason
+Reason          : $reason$attachmentText
 
 Kindly approve this request at your earliest convenience.
 
@@ -510,7 +634,7 @@ $empName
                 // Fallback: ACTION_SEND with rfc822 chooser
                 val fallback = Intent(Intent.ACTION_SEND).apply {
                     type = "message/rfc822"
-                    putExtra(Intent.EXTRA_EMAIL,   arrayOf(adminEmail))
+                    putExtra(Intent.EXTRA_EMAIL,   adminEmail.split(",").toTypedArray())
                     putExtra(Intent.EXTRA_SUBJECT, subject)
                     putExtra(Intent.EXTRA_TEXT,    body)
                 }

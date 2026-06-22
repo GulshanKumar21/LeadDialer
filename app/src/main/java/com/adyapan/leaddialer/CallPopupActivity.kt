@@ -32,6 +32,17 @@ class CallPopupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            )
+        }
+
         leadViewModel = ViewModelProvider(this, LeadViewModelFactory(application))[LeadViewModel::class.java]
         callViewModel = ViewModelProvider(this, CallViewModelFactory(application))[CallViewModel::class.java]
         attendanceViewModel = ViewModelProvider(this, AttendanceViewModelFactory(application))[AttendanceViewModel::class.java]
@@ -67,6 +78,8 @@ class CallPopupActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.bottom_sheet_call_status, null)
         dialog.setContentView(view)
 
+        var isNavigatingToNextDialog = false
+
         view.findViewById<TextView>(R.id.tvTitle).text = "📞 Call Summary"
         view.findViewById<TextView>(R.id.tvDetails).text =
             "${record.name.ifBlank { record.phone }} • ${CallManager.formatDuration(record.duration)}"
@@ -80,6 +93,7 @@ class CallPopupActivity : AppCompatActivity() {
         if (isManual) {
             layoutSave.visibility = android.view.View.VISIBLE
             btnSave.setOnClickListener {
+                isNavigatingToNextDialog = true
                 dialog.dismiss()
                 showSaveLeadDialog(record, calledAtStr)
             }
@@ -106,6 +120,10 @@ class CallPopupActivity : AppCompatActivity() {
             callViewModel.saveRecord(record.copy(status = selected))
 
             CalledNumbersCache.clear(this)
+            val willShowWa = (selected in brochureStatuses) || (selected in messageOnlyStatuses)
+            if (willShowWa) {
+                isNavigatingToNextDialog = true
+            }
             dialog.dismiss()
 
             Toast.makeText(this, "✅ $selected", Toast.LENGTH_SHORT).show()
@@ -131,20 +149,25 @@ class CallPopupActivity : AppCompatActivity() {
         view.findViewById<Button>(R.id.btnInterested).setOnClickListener   { saveStatus("Interested")   }
         view.findViewById<Button>(R.id.btnNotInterested).setOnClickListener {
             // Show reason dialog first, then save
+            isNavigatingToNextDialog = true
             dialog.dismiss()
             showNotInterestedReasonDialog(record)
         }
         view.findViewById<Button>(R.id.btnCustom).setOnClickListener {
             // Show custom note dialog
+            isNavigatingToNextDialog = true
             dialog.dismiss()
             showCustomStatusDialog(record)
         }
         view.findViewById<Button>(R.id.btnSkip).setOnClickListener {
             dialog.dismiss()
-            finish()
         }
 
-        dialog.setOnDismissListener { /* handled per-button */ }
+        dialog.setOnDismissListener {
+            if (!isNavigatingToNextDialog) {
+                finish()
+            }
+        }
         dialog.show()
     }
 

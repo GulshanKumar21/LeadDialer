@@ -25,8 +25,8 @@ android {
         applicationId = "com.adyapan.leaddialer"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0.6"
+        versionCode = 7
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -34,6 +34,9 @@ android {
             "\"${System.getenv("GAS_SCRIPT_URL") ?: "https://script.google.com/macros/s/AKfycbx7q3iVs3h0tVUArSKJ5MF9EaogNPeuGCf6St4jBqDmO1pTC9O6QNhMsJscFH2lXHqRhg/exec"}\"")
         buildConfigField("String", "GAS_NOTIFY_URL",
             "\"${System.getenv("GAS_NOTIFY_URL") ?: "https://script.google.com/macros/s/AKfycbxdo6J3g_i3JXcX6MkSSIBoQyDniqOc6_0tpC8GZ4wwtCV-EIzLnoHdowu0e3GvRAVIHA/exec"}\"")
+        // 🔒 SECURITY: HMAC secret for Google Apps Script authentication
+        buildConfigField("String", "GAS_SECRET_TOKEN",
+            "\"${System.getenv("GAS_SECRET_TOKEN") ?: "adyapan-crm-secret-2026-hmac-key"}\"")
     }
 
     signingConfigs {
@@ -49,8 +52,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled   = false
-            isShrinkResources = false
+            // 🔒 SECURITY FIX: Enable R8 code shrinking + obfuscation in release
+            isMinifyEnabled   = true
+            isShrinkResources = true
             isDebuggable      = false
             signingConfig     = signingConfigs.getByName("release")
             proguardFiles(
@@ -59,6 +63,7 @@ android {
             )
         }
         debug {
+            // Keep minify disabled in debug for faster builds
             isMinifyEnabled   = false
             isShrinkResources = false
         }
@@ -98,7 +103,6 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
 
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
 
@@ -106,7 +110,11 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+    // 🔒 SECURITY FIX: Firebase App Check with Play Integrity
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug") // debug builds only
 
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
@@ -150,6 +158,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
     implementation("androidx.activity:activity-compose:1.9.3")

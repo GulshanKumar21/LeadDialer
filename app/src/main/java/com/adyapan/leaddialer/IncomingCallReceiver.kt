@@ -35,8 +35,6 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
         // Static — survive across short-lived BroadcastReceiver instances
         @Volatile private var lastState  = TelephonyManager.CALL_STATE_IDLE
-        @Volatile private var wasOffhook = false
-        @Volatile private var wasRinging = false  // true = ringing was seen (possibly SIM picker)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -53,6 +51,8 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
         val prefs = context.getSharedPreferences(CallManager.PREF_NAME, Context.MODE_PRIVATE)
         val isPending = prefs.getBoolean(CallManager.KEY_PENDING, false)
+        var wasRinging = prefs.getBoolean("was_ringing", false)
+        var wasOffhook = prefs.getBoolean("was_offhook", false)
 
         Log.d(TAG, "State: $stateStr | last=$lastState | wasOffhook=$wasOffhook | wasRinging=$wasRinging | isPending=$isPending")
 
@@ -60,6 +60,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
             TelephonyManager.CALL_STATE_RINGING -> {
                 wasRinging = true
+                prefs.edit().putBoolean("was_ringing", true).apply()
                 val isIncomingCall = prefs.getBoolean("is_incoming_call", false)
 
                 // Show lead notification ONLY if this is a true incoming call (no outgoing pending call)
@@ -77,6 +78,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 wasOffhook = true
+                prefs.edit().putBoolean("was_offhook", true).apply()
 
                 // KEY DUAL-SIM FIX:
                 // If KEY_PENDING is true → this OFFHOOK is for OUR outgoing call,
@@ -138,8 +140,10 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 }
 
                 // Reset state flags on IDLE
-                wasOffhook = false
-                wasRinging = false
+                prefs.edit()
+                    .putBoolean("was_offhook", false)
+                    .putBoolean("was_ringing", false)
+                    .apply()
             }
         }
 
@@ -154,21 +158,9 @@ class IncomingCallReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db   = AppDatabase.getInstance(context)
-                var lead = db.leadDao().getAllOnce().firstOrNull { l ->
+                val lead = db.leadDao().getAllOnce().firstOrNull { l ->
                     val stored = l.phone.filter { it.isDigit() }
                     stored.takeLast(10) == cleanNumber.takeLast(10)
-                }
-                
-                // Fallback: If not in leads, check Call History (for manual dials)
-                if (lead == null) {
-                    val record = db.callRecordDao().getAllOnce().lastOrNull { r ->
-                        val stored = r.phone.filter { it.isDigit() }
-                        stored.takeLast(10) == cleanNumber.takeLast(10)
-                    }
-                    if (record != null) {
-                        val finalName = if (record.name.isNotBlank() && record.name != "Unknown Number") record.name else "Unknown (Called Before)"
-                        lead = Lead(name = finalName, phone = record.phone, status = record.status)
-                    }
                 }
 
                 if (lead != null) {
@@ -215,6 +207,52 @@ class IncomingCallReceiver : BroadcastReceiver() {
         }
     }
 
+    private data class CallLogEntry(val number: String, val date: Long)
+
+    private fun getLastCallLogEntry(context: Context): CallLogEntry? {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_CALL_LOG
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.w(TAG, "getLastCallLogEntry: READ_CALL_LOG permission not granted")
+            return null
+        }
+        var entry: CallLogEntry? = null
+        try {
+            val cursor = context.contentResolver.query(
+                android.provider.CallLog.Calls.CONTENT_URI,
+                arrayOf(android.provider.CallLog.Calls.NUMBER, android.provider.CallLog.Calls.DATE),
+                null,
+                null,
+                "${android.provider.CallLog.Calls.DATE} DESC LIMIT 1"
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val numIdx = it.getColumnIndex(android.provider.CallLog.Calls.NUMBER)
+                    val dateIdx = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
+                    if (numIdx != -1 && dateIdx != -1) {
+                        val number = it.getString(numIdx)
+                        val date = it.getLong(dateIdx)
+                        if (!number.isNullOrBlank()) {
+                            entry = CallLogEntry(number, date)
+                        }
+                    }
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            Log.e(TAG, "Error querying call log: ${e.message}")
+        }
+        return entry
+    }
+
+    private fun comparePhoneNumbers(num1: String, num2: String): Boolean {
+        val clean1 = num1.filter { it.isDigit() }
+        val clean2 = num2.filter { it.isDigit() }
+        if (clean1.isEmpty() || clean2.isEmpty()) return false
+        return clean1.takeLast(10) == clean2.takeLast(10)
+    }
+
     /**
      * Dual-SIM safety check: if the OFFHOOK→IDLE was less than 2s, it was a SIM picker
      * false trigger — reset timing keys and keep KEY_PENDING armed for the real call.
@@ -239,7 +277,6 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 .putLong(CallManager.KEY_OFFHOOK_TIME, 0L)
                 .putBoolean(CallManager.KEY_CONNECTED, false)
                 .apply()
-            // wasOffhook / wasRinging will be reset by caller
             return
         }
 
@@ -253,25 +290,76 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Real call ended: name=$name phone=$phone duration=${duration}s calledAt=$calledAtStr")
 
-        // DO NOT clear state here. Android 10+ might block startActivity from background.
-        // We leave the state in SharedPreferences.
-        // If CallPopupActivity successfully opens, it will clear the state in onCreate.
-        // If it gets blocked, MainActivity.onResume will see the state and show its own popup.
+        // Run validation against call logs and launch popup in a coroutine
+        CoroutineScope(Dispatchers.IO).launch {
+            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_CALL_LOG
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
-        val record = CallRecord(
-            phone     = phone,
-            name      = name,
-            duration  = duration,
-            calledAt  = calledAt,
-            status    = "Pending"
-        )
+            var verified = !hasPermission // If no permission, bypass verification and let it show (fallback)
+            var lastLoggedNumber: String? = null
 
-        // Launch CallPopupActivity — always shows, even when app is in background
-        val intent = Intent(context, CallPopupActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("call_record", record)
-            putExtra("called_at_str", calledAtStr)   // human-readable time string
+            if (hasPermission) {
+                var attempts = 0
+                while (attempts < 6) { // 6 attempts * 500ms = 3 seconds max wait
+                    val logEntry = getLastCallLogEntry(context)
+                    if (logEntry != null) {
+                        val ageMs = System.currentTimeMillis() - logEntry.date
+                        Log.d(TAG, "Call log entry check: number=${logEntry.number}, date=${logEntry.date}, age=${ageMs}ms")
+                        
+                        // If log entry is fresh (within last 12 seconds), verify it
+                        if (ageMs < 12000L) {
+                            lastLoggedNumber = logEntry.number
+                            if (comparePhoneNumbers(phone, lastLoggedNumber)) {
+                                verified = true
+                                break
+                            } else {
+                                // It is fresh but does not match!
+                                Log.d(TAG, "Fresh call log mismatch: expected $phone, got $lastLoggedNumber")
+                                break
+                            }
+                        }
+                    }
+                    attempts++
+                    kotlinx.coroutines.delay(500)
+                }
+            }
+
+            if (!verified) {
+                Log.w(TAG, "Call log verification failed. Expected: $phone, Last Logged: $lastLoggedNumber. Suppressing popup.")
+                withContext(Dispatchers.Main) {
+                    prefs.edit()
+                        .putBoolean(CallManager.KEY_PENDING, false)
+                        .putBoolean(CallManager.KEY_CONNECTED, false)
+                        .putLong(CallManager.KEY_ACTUAL_END, 0L)
+                        .putLong(CallManager.KEY_OFFHOOK_TIME, 0L)
+                        .putString("call_phone", "")
+                        .putString("call_name", "")
+                        .apply()
+                    CallManager.callActive = false
+                }
+                return@launch
+            }
+
+            withContext(Dispatchers.Main) {
+                val record = CallRecord(
+                    phone     = phone,
+                    name      = name,
+                    duration  = duration,
+                    calledAt  = calledAt,
+                    status    = "Pending"
+                )
+
+                // Launch CallPopupActivity — always shows, even when app is in background
+                val intent = Intent(context, CallPopupActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("call_record", record)
+                    putExtra("called_at_str", calledAtStr)   // human-readable time string
+                }
+                context.startActivity(intent)
+                Log.d(TAG, "Successfully verified call and launched popup activity.")
+            }
         }
-        context.startActivity(intent)
     }
 }

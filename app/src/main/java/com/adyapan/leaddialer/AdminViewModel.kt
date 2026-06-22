@@ -24,6 +24,7 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.flow.collect
 
 /**
  * AdminViewModel — COST-OPTIMISED version
@@ -44,6 +45,9 @@ class AdminViewModel : ViewModel() {
 
     private val _employees = MutableLiveData<List<EmployeeSummary>>()
     val employees: LiveData<List<EmployeeSummary>> = _employees
+
+    private val _userProfiles = MutableLiveData<List<UserProfile>>(emptyList())
+    val userProfiles: LiveData<List<UserProfile>> = _userProfiles
 
     data class DaySummary(
         val dateDisplay: String,
@@ -71,6 +75,10 @@ class AdminViewModel : ViewModel() {
     private val _tlList = MutableLiveData<List<TeamLeaderManager.TeamLeader>>(emptyList())
     val tlList: LiveData<List<TeamLeaderManager.TeamLeader>> = _tlList
 
+    // ── Completed sales across all employees ─────────────────────────────────
+    private val _allSales = MutableLiveData<List<SaleRecord>>(emptyList())
+    val allSales: LiveData<List<SaleRecord>> = _allSales
+
     // ── Leads for a specific employee (loaded on demand) ─────────────────────
     private val _employeeLeads = MutableLiveData<List<Lead>>(emptyList())
     val employeeLeads: LiveData<List<Lead>> = _employeeLeads
@@ -84,6 +92,16 @@ class AdminViewModel : ViewModel() {
 
     // UIDs that are admins — excluded from employee list
     private var adminUids: Set<String> = emptySet()
+
+    // uid → designation (loaded from users collection once)
+    private var uidToDesignation: Map<String, String> = emptyMap()
+
+    private var _isHRPortal: Boolean = false
+
+    fun setHRPortal(enabled: Boolean) {
+        _isHRPortal = enabled
+        rebuildSummaries()
+    }
 
     // uid → RTDB lead counts (updated by RTDB listener — free)
     private var rtdbCounts: Map<String, RtdbCounts> = emptyMap()
@@ -136,27 +154,55 @@ class AdminViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Sync users from Supabase live to Firestore before loading
+                try {
+                    SupabaseSync.syncSupabaseUsersToFirestore(db)
+                    SupabaseSync.syncSupabaseDocumentsToFirestore(db)
+                } catch (e: Exception) {
+                    android.util.Log.e("AdminViewModel", "Supabase sync failed: ${e.message}")
+                }
+
                 // ── Step 1: Load admin UIDs to EXCLUDE from employee list ────────────
                 val adminSet = mutableSetOf<String>()
                 try {
                     val adminSnap = db.collection("admins").get().await()
                     for (doc in adminSnap.documents) adminSet.add(doc.id)
-                } catch (e: Exception) { /* ignore — non-critical */ }
+                } catch (e: Exception) { /* ignore */ }
                 adminUids = adminSet
 
-                // ── Step 2: Load employee names (excluding admins) ───────────────────
+                // ── Step 2: Load employee names, designations, and profiles ─────────
                 val nameMap = mutableMapOf<String, String>()
+                val designationMap = mutableMapOf<String, String>()
+                val profilesList = mutableListOf<UserProfile>()
                 try {
                     val usersSnap = db.collection("users").get().await()
                     for (doc in usersSnap.documents) {
                         val uid = doc.id
-                        if (adminSet.contains(uid)) continue   // ← SKIP admins
+                        val des = doc.getString("designation") ?: ""
+                        designationMap[uid] = des
+
                         val name = doc.getString("displayName")?.takeIf { it.isNotBlank() }
                             ?: doc.getString("name")?.takeIf { it.isNotBlank() }
                             ?: doc.getString("email")?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
                             ?: continue
                         nameMap[uid] = name
+
+                        val profile = UserProfile(
+                            uid              = uid,
+                            name             = doc.getString("name") ?: name,
+                            email            = doc.getString("email") ?: "",
+                            phone            = doc.getString("phone") ?: "",
+                            employeeId       = doc.getString("employeeId") ?: "",
+                            designation      = des,
+                            department       = doc.getString("department") ?: "",
+                            reportingManager = doc.getString("reportingManager") ?: "",
+                            workLocation     = doc.getString("workLocation") ?: "",
+                            dateOfJoining    = doc.getString("dateOfJoining") ?: "",
+                            dob              = doc.getString("dob") ?: ""
+                        )
+                        profilesList.add(profile)
                     }
+                    _userProfiles.postValue(profilesList)
                 } catch (e: Exception) { /* fallback — names picked up from RTDB */ }
 
                 // Fallback: attendance collection for employee names
@@ -172,6 +218,7 @@ class AdminViewModel : ViewModel() {
                 }
 
                 uidToName = nameMap
+                uidToDesignation = designationMap
 
                 // ── Step 2: Load Firestore sales counts once (only salesDone=true docs) ─
                 // Cost: Only documents where salesDone=true — much smaller than full collection
@@ -184,14 +231,8 @@ class AdminViewModel : ViewModel() {
                     for (doc in salesSnap.documents) {
                         val uid = doc.getString("userId") ?: continue
                         salesMap[uid] = (salesMap[uid] ?: 0) + 1
-                        // Also pick up employee name if missing
-                        if (!uidToName.containsKey(uid)) {
-                            val empName = doc.getString("employeeName")?.takeIf { it.isNotBlank() }
-                            if (empName != null) nameMap[uid] = empName
-                        }
                     }
                     firestoreSalesCounts = salesMap
-                    uidToName = nameMap
                 } catch (e: Exception) {
                     // non-critical — sales counts from RTDB salesDone flag
                 }
@@ -221,10 +262,10 @@ class AdminViewModel : ViewModel() {
                                 val calledAt = (m["calledAt"] as? Number)?.toLong() ?: 0L
                                 val isCalled = calledAt > 0L || (status != null && status != "Pending" && status.isNotBlank())
                                 if (isCalled) {
-                                    if (status == "Interested" || status == "Connected") {
+                                    if (status == "Interested" || status == "Connected" || status == "Not Interested" || status?.startsWith("Not Interested") == true) {
                                         connected++
                                     }
-                                    if (status == "Interested") {
+                                    if (status == "Interested" || status == "Connected") {
                                         interested++
                                     }
                                 } else {
@@ -232,12 +273,6 @@ class AdminViewModel : ViewModel() {
                                 }
                                 val leadSalesDone = (m["salesDone"] as? Boolean) ?: false
                                 if (leadSalesDone) salesDone++
-                                // Pick up name from RTDB if missing
-                                if (!nameMap.containsKey(uid)) {
-                                    val n = m["employeeName"]?.toString()?.takeIf { it.isNotBlank() }
-                                        ?: m["calledBy"]?.toString()?.takeIf { it.isNotBlank() }
-                                    if (n != null) nameMap[uid] = n
-                                }
 
                                 // Day-wise stats: Called status on that day
                                 if (calledAt > 0L) {
@@ -247,7 +282,7 @@ class AdminViewModel : ViewModel() {
                                         DaySummary(dateDisplay, dateKey)
                                     }
                                     summary.totalCalled++
-                                    if (status == "Interested" || status == "Connected") {
+                                    if (status == "Interested" || status == "Connected" || status == "Not Interested" || status?.startsWith("Not Interested") == true) {
                                         summary.connected++
                                     }
                                     if (leadSalesDone) {
@@ -271,7 +306,7 @@ class AdminViewModel : ViewModel() {
                                 }
                                 summary.totalCalled++
                                 val status = doc.getString("status")
-                                if (status == "Interested" || status == "Connected") {
+                                if (status == "Interested" || status == "Connected" || status == "Not Interested" || status?.startsWith("Not Interested") == true) {
                                     summary.connected++
                                 }
                                 summary.sales++
@@ -385,6 +420,17 @@ class AdminViewModel : ViewModel() {
                     }
                 }
 
+                // ── Step 8: Live listener for all completed sales (Flat Collection) ──
+                viewModelScope.launch(Dispatchers.IO) {
+                    try {
+                        FirestoreSource.salesFlow().collect { salesList ->
+                            _allSales.postValue(salesList)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("AdminVM", "salesFlow error: ${e.message}")
+                    }
+                }
+
             } catch (e: Exception) {
                 _error.postValue("Initialization failed: ${e.message}")
                 _isLoading.postValue(false)
@@ -405,7 +451,20 @@ class AdminViewModel : ViewModel() {
         uidToTlName = resolvedTlNames
 
         val summaries = allUids.mapNotNull { uid ->
-            if (adminUids.contains(uid)) return@mapNotNull null   // EXCLUDE admins
+            if (adminUids.contains(uid)) {
+                val des = uidToDesignation[uid] ?: ""
+                val isHrUser = des.contains("HR", ignoreCase = true)
+                if (_isHRPortal || !isHrUser) {
+                    return@mapNotNull null
+                }
+            }
+
+            // Also exclude if designation is Admin
+            val des = uidToDesignation[uid] ?: ""
+            if (des.equals("Admin", ignoreCase = true)) {
+                return@mapNotNull null
+            }
+
             val name = uidToName[uid] ?: return@mapNotNull null
             val rtdb = rtdbCounts[uid] ?: RtdbCounts(0, 0, 0, 0, 0)
             val totalSales = maxOf(rtdb.salesDone, firestoreSalesCounts[uid] ?: 0)
@@ -429,15 +488,21 @@ class AdminViewModel : ViewModel() {
         loadTodayAttendance(summaries.map { it.userId })
     }
 
+    var selectedDateStr: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
     fun loadTodayAttendance(employeeIds: List<String>) {
-        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        loadTodayAttendance(selectedDateStr, employeeIds)
+    }
+
+    fun loadTodayAttendance(dateStr: String, employeeIds: List<String>) {
+        selectedDateStr = dateStr
         viewModelScope.launch(Dispatchers.IO) {
             val attendanceMap = mutableMapOf<String, String>()
             val jobs = employeeIds.map { uid ->
                 async {
                     try {
                         val doc = db.collection("attendance").document(uid)
-                            .collection("dates").document(todayStr).get().await()
+                            .collection("dates").document(dateStr).get().await()
                         val status = if (doc.exists()) {
                             doc.getString("status") ?: "Present"
                         } else {

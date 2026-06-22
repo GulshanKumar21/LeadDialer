@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F6FA"
+    android:fitsSystemWindows="true">
+
+    <!-- Header: Back Button + Avatar + Name -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/btnLeavesBack"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_arrow_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Go Back"/>
+
+        <TextView
+            android:id="@+id/tvAdminLeavesEmpAvatar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:text="A"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:background="@drawable/bg_avatar_circle"
+            android:layout_marginEnd="12dp"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAdminLeavesEmpName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Employee Name"
+                android:textColor="#1F2937"
+                android:textSize="17sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Leave Details &amp; History"
+                android:textColor="#6B7280"
+                android:textSize="12sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Filter Chip Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/btnFilterAll"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="All"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_filter_chip_active"
+            android:fontFamily="@font/nunito_extrabold"/>
+
+        <TextView
+            android:id="@+id/btnFilterPending"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="Pending"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textColor="#64748B"
+            android:background="@drawable/bg_filter_chip_inactive"
+            android:fontFamily="@font/nunito_semibold"/>
+
+        <TextView
+            android:id="@+id/btnFilterApproved"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="Approved"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textColor="#64748B"
+            android:background="@drawable/bg_filter_chip_inactive"
+            android:fontFamily="@font/nunito_semibold"/>
+
+        <TextView
+            android:id="@+id/btnFilterRejected"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Rejected"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textColor="#64748B"
+            android:background="@drawable/bg_filter_chip_inactive"
+            android:fontFamily="@font/nunito_semibold"/>
+
+    </LinearLayout>
+
+    <!-- Counter -->
+    <TextView
+        android:id="@+id/tvLeaveCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="6dp"
+        android:text="0 requests"
+        android:textColor="#9BA8B5"
+        android:textSize="12sp"
+        android:fontFamily="@font/nunito_semibold"/>
+
+    <ProgressBar
+        android:id="@+id/progressAdminEmployeeLeaves"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:visibility="gone" />
+
+    <!-- Leave List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAdminEmployeeLeaves"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"/>
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/tvNoAdminEmployeeLeaves"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="No leave requests found"
+        android:textColor="#C0C8D0"
+        android:textSize="15sp"
+        android:fontFamily="@font/nunito_semibold"
+        android:visibility="gone"/>
+
+</LinearLayout>

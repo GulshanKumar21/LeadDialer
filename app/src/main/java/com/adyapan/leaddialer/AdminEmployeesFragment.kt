@@ -187,11 +187,13 @@ class AdminEmployeesFragment : Fragment() {
         dialog.setContentView(view)
 
         val etEmpId       = view.findViewById<EditText>(R.id.etManageEmpId)
+        val etPhone       = view.findViewById<EditText>(R.id.etManagePhone)
         val etDesignation = view.findViewById<EditText>(R.id.etManageDesignation)
         val etDepartment  = view.findViewById<EditText>(R.id.etManageDepartment)
         val etManager     = view.findViewById<EditText>(R.id.etManageManager)
         val etLocation    = view.findViewById<EditText>(R.id.etManageLocation)
         val tvDateOfJoin  = view.findViewById<TextView>(R.id.tvManageDateOfJoining)
+        val tvDateOfBirth = view.findViewById<TextView>(R.id.tvManageDateOfBirth)
         val spinnerTl     = view.findViewById<Spinner>(R.id.spinnerTl)
         val tvManageTls   = view.findViewById<TextView>(R.id.tvManageTls)
         val btnSave       = view.findViewById<Button>(R.id.btnSaveProfile)
@@ -199,6 +201,7 @@ class AdminEmployeesFragment : Fragment() {
         view.findViewById<TextView>(R.id.tvManageProfileTitle).text = "Manage ${emp.employeeName}"
 
         var selectedDoj  = ""
+        var selectedDob  = ""
         var tlList       = listOf<TeamLeaderManager.TeamLeader>()
         var selectedTlId = ""  // currently assigned TL
 
@@ -214,12 +217,25 @@ class AdminEmployeesFragment : Fragment() {
             dp.show()
         }
 
+        // ── Date of Birth picker ──────────────────────────────────────────
+        tvDateOfBirth.setOnClickListener {
+            val cal = Calendar.getInstance()
+            val dp = DatePickerDialog(requireContext(), { _, y, m, d ->
+                cal.set(y, m, d)
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                selectedDob = sdf.format(cal.time)
+                tvDateOfBirth.text = "Date of Birth: $selectedDob"
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
+            dp.show()
+        }
+
         // ── Load TL list + current assignment ──────────────────────────────
         lifecycleScope.launch {
             // Load profile
             val existingProfile = FirestoreSource.userProfileFlow(emp.userId).firstOrNull()
             if (existingProfile != null) {
                 etEmpId.setText(existingProfile.employeeId)
+                etPhone.setText(existingProfile.phone)
                 etDesignation.setText(existingProfile.designation)
                 etDepartment.setText(existingProfile.department)
                 etManager.setText(existingProfile.reportingManager)
@@ -227,6 +243,10 @@ class AdminEmployeesFragment : Fragment() {
                 if (existingProfile.dateOfJoining.isNotEmpty()) {
                     selectedDoj = existingProfile.dateOfJoining
                     tvDateOfJoin.text = "Date of Joining: $selectedDoj"
+                }
+                if (existingProfile.dob.isNotEmpty()) {
+                    selectedDob = existingProfile.dob
+                    tvDateOfBirth.text = "Date of Birth: $selectedDob"
                 }
             }
 
@@ -262,13 +282,14 @@ class AdminEmployeesFragment : Fragment() {
                     uid              = emp.userId,
                     name             = existingProfile?.name ?: emp.employeeName,
                     email            = existingProfile?.email ?: "",
-                    phone            = existingProfile?.phone ?: "",
+                    phone            = etPhone.text.toString().trim(),
                     employeeId       = etEmpId.text.toString().trim(),
                     designation      = etDesignation.text.toString().trim(),
                     department       = etDepartment.text.toString().trim(),
                     reportingManager = etManager.text.toString().trim(),
                     workLocation     = etLocation.text.toString().trim(),
-                    dateOfJoining    = selectedDoj
+                    dateOfJoining    = selectedDoj,
+                    dob              = selectedDob
                 )
                 val profileOk = FirestoreSource.saveUserProfile(updatedProfile)
 

@@ -10,17 +10,23 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.compose.ui.platform.ComposeView
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +34,7 @@ import kotlinx.coroutines.withContext
 
 class AdminPanelActivity : AppCompatActivity() {
 
-    private val viewModel: AdminViewModel by viewModels()
+    internal val viewModel: AdminViewModel by viewModels()
 
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -47,7 +53,6 @@ class AdminPanelActivity : AppCompatActivity() {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.statusBarColor = android.graphics.Color.parseColor("#FF6A00")
         androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
@@ -55,57 +60,99 @@ class AdminPanelActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_admin_panel)
 
-        findViewById<android.widget.LinearLayout>(R.id.btnAdminLogoutWrapper).setOnClickListener {
-            // RTDB listeners pehle remove karo — permission denied prevent
-            viewModel.clearAllListeners()
+        // ── Drawer & Navigation Setup ──────────────────────────────────
+        val drawerLayout = findViewById<DrawerLayout>(R.id.adminDrawerLayout)
+        val navView = findViewById<NavigationView>(R.id.adminNavView)
 
-            // Show sync progress before logout to prevent data loss
-            val progressDialog = AlertDialog.Builder(this)
-                .setTitle("⏳ Syncing Data")
-                .setMessage("Uploading pending records to cloud before logout...")
-                .setCancelable(false)
-                .create()
-            progressDialog.show()
-
-            LoginPage.logout(this) {
-                progressDialog.dismiss()
-                startActivity(Intent(this, LoginPage::class.java))
-                finishAffinity()
-            }
+        findViewById<android.widget.ImageButton>(R.id.btnAdminMenu).setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
         }
+
+        // Admin logout moved to navAdminLogout in the drawer navigation menu
 
         // ── FAB: upload leads (only on Employees tab) ─────────────────
         val fab = findViewById<FloatingActionButton>(R.id.fabAdminUpload)
         fab.setOnClickListener { filePickerLauncher.launch("*/*") }
 
-        // ── Bottom Navigation setup ────────────────────────────────────
-        val bottomNav = findViewById<BottomNavigationView>(R.id.adminBottomNav)
-
         // Initial fragment
         if (savedInstanceState == null) {
-            loadFragment(AdminEmployeesFragment())
+            loadFragment(AdminEmployeesFragment(), "Employees")
             fab.show()
-            bottomNav.selectedItemId = R.id.adminNavEmployees
+            navView.setCheckedItem(R.id.navAdminEmployees)
         }
 
-        // Real-time unread badge on Messages item
+        // Real-time unread badge on Messages item in side drawer
         FirebaseFirestore.getInstance()
             .collection("adminReplies")
             .whereEqualTo("read", false)
             .addSnapshotListener { snap, _ ->
                 val unread = snap?.size() ?: 0
-                val msgItem = bottomNav.menu.findItem(R.id.adminNavMessages)
+                val msgItem = navView.menu.findItem(R.id.navAdminMessages)
                 msgItem?.title = if (unread > 0) "Messages ($unread)" else "Messages"
             }
 
-        bottomNav.setOnItemSelectedListener { item ->
+        navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.adminNavEmployees -> { loadFragment(AdminEmployeesFragment()); fab.show() }
-                R.id.adminNavLeaves    -> { loadFragment(AdminLeavesFragment());    fab.hide() }
-                R.id.adminNavAttendance-> { loadFragment(AdminAttendanceFragment());fab.hide() }
-                R.id.adminNavMessages  -> { loadFragment(AdminInboxFragment());     fab.hide() }
-                R.id.adminNavSales     -> { loadFragment(AdminSalesFragment());     fab.hide() }
+                R.id.navAdminEmployees -> {
+                    loadFragment(AdminEmployeesFragment(), "Employees")
+                    fab.show()
+                }
+                R.id.navAdminAttendance -> {
+                    loadFragment(AdminAttendanceFragment(), "Attendance")
+                    fab.hide()
+                }
+                R.id.navAdminLeaves -> {
+                    loadFragment(AdminLeavesFragment(), "Leaves")
+                    fab.hide()
+                }
+                R.id.navAdminSales -> {
+                    loadFragment(AdminSalesFragment(), "Sales")
+                    fab.hide()
+                }
+                R.id.navAdminMessages -> {
+                    loadFragment(AdminInboxFragment(), "Messages")
+                    fab.hide()
+                }
+                R.id.navAdminRecruitment -> {
+                    loadFragment(AdminComposeFragment.newInstance("recruitment"), "Recruitment")
+                    fab.hide()
+                }
+                R.id.navAdminDocuments -> {
+                    loadFragment(AdminComposeFragment.newInstance("documents"), "Documents")
+                    fab.hide()
+                }
+                R.id.navAdminPerformance -> {
+                    loadFragment(AdminComposeFragment.newInstance("performance"), "Performance")
+                    fab.hide()
+                }
+                R.id.navAdminAnnouncements -> {
+                    loadFragment(AdminComposeFragment.newInstance("announcements"), "Announcements")
+                    fab.hide()
+                }
+                R.id.navAdminLogout -> {
+                    AlertDialog.Builder(this)
+                        .setTitle("Logout")
+                        .setMessage("Are you sure you want to logout?")
+                        .setPositiveButton("Logout") { _, _ ->
+                            viewModel.clearAllListeners()
+                            val progressDialog = AlertDialog.Builder(this)
+                                .setTitle("⏳ Syncing Data")
+                                .setMessage("Uploading pending records to cloud before logout...")
+                                .setCancelable(false)
+                                .create()
+                            progressDialog.show()
+
+                            LoginPage.logout(this) {
+                                progressDialog.dismiss()
+                                startActivity(Intent(this, LoginPage::class.java))
+                                finishAffinity()
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
             }
+            drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
 
@@ -117,7 +164,8 @@ class AdminPanelActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadFragment(fragment: androidx.fragment.app.Fragment) {
+    private fun loadFragment(fragment: Fragment, title: String) {
+        findViewById<TextView>(R.id.tvAdminTitle).text = title
         supportFragmentManager.beginTransaction()
             .replace(R.id.adminFragmentContainer, fragment)
             .commit()
@@ -282,10 +330,55 @@ class AdminPanelActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount > 0) {
+        val drawerLayout = findViewById<DrawerLayout>(R.id.adminDrawerLayout)
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         } else {
-            super.onBackPressed()
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.adminFragmentContainer)
+            if (currentFragment != null && currentFragment !is AdminEmployeesFragment) {
+                loadFragment(AdminEmployeesFragment(), "Employees")
+                findViewById<FloatingActionButton>(R.id.fabAdminUpload)?.show()
+                findViewById<NavigationView>(R.id.adminNavView)?.setCheckedItem(R.id.navAdminEmployees)
+            } else {
+                super.onBackPressed()
+            }
+        }
+    }
+}
+
+// ── ADMIN COMPOSE FRAGMENT FOR HR MODULES ──
+class AdminComposeFragment : Fragment() {
+    companion object {
+        fun newInstance(screenType: String): AdminComposeFragment {
+            val fragment = AdminComposeFragment()
+            val args = Bundle()
+            args.putString("screen_type", screenType)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        val screenType = arguments?.getString("screen_type") ?: ""
+        val activityInstance = requireActivity() as AdminPanelActivity
+        val viewModel = activityInstance.viewModel
+
+        return ComposeView(requireContext()).apply {
+            setContent {
+                HRPortalTheme {
+                    when (screenType) {
+                        "documents" -> DocumentsScreen()
+                        "performance" -> PerformanceScreen(viewModel)
+                        "recruitment" -> AdminRecruitmentScreen()
+
+                        "announcements" -> AnnouncementsScreen()
+                    }
+                }
+            }
         }
     }
 }

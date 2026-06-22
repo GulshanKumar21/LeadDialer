@@ -1,4 +1,7 @@
--dontoptimize
+# ════════════════════════════════════════════════════════════
+# ProGuard / R8 Rules — LeadDialer (Adyapan CRM)
+# 🔒 SECURITY: -dontoptimize removed so R8 can shrink dead code
+# ════════════════════════════════════════════════════════════
 -keep class org.apache.poi.** { *; }
 -keep class org.apache.poi.xssf.** { *; }
 -keep class org.apache.poi.hssf.** { *; }
@@ -61,9 +64,27 @@
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 -dontwarn kotlinx.coroutines.**
 
-# App model classes
--keep class com.adyapan.leaddialer.** { *; }
--keepnames class com.adyapan.leaddialer.** { *; }
+# 🔒 SECURITY FIX: Do NOT keep all app classes — let R8 obfuscate them.
+# Only keep classes that are referenced via reflection or serialization:
+# - Room: Entity/Dao loaded by generated code
+# - Firebase data models (Firestore uses field names via reflection)
+# - Serialized data classes that use @SerializedName or are passed to Firestore
+-keep class com.adyapan.leaddialer.Lead { *; }
+-keep class com.adyapan.leaddialer.Callrecord { *; }
+-keep class com.adyapan.leaddialer.CallRecord { *; }
+-keep class com.adyapan.leaddialer.Attendancerecord { *; }
+-keep class com.adyapan.leaddialer.AttendanceRecord { *; }
+-keep class com.adyapan.leaddialer.EmployeeSummary { *; }
+-keep class com.adyapan.leaddialer.Contact { *; }
+-keep class com.adyapan.leaddialer.CallCheckResult { *; }
+-keep class com.adyapan.leaddialer.LeadDialerApp { *; }
+-keep class com.adyapan.leaddialer.BuildConfig { *; }
+# Keep Activity/Service/Receiver/Provider classes (registered in AndroidManifest)
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends androidx.fragment.app.Fragment
 
 -keep class androidx.lifecycle.** { *; }
 -dontwarn androidx.lifecycle.**

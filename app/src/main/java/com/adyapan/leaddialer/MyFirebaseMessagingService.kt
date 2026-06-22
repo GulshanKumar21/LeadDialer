@@ -31,26 +31,84 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         Log.d(TAG, "Message From: ${remoteMessage.from}")
 
+        val msgId = remoteMessage.messageId ?: java.util.UUID.randomUUID().toString()
+        var title = "Lead Dialer"
+        var body = "New Message"
+        var hasContent = false
 
         remoteMessage.notification?.let {
-
-            val title = it.title ?: "Lead Dialer"
-            val body = it.body ?: "You received a new message"
-
+            title = it.title ?: "Lead Dialer"
+            body = it.body ?: "You received a new message"
+            hasContent = true
             Log.d(TAG, "Notification Title: $title")
             Log.d(TAG, "Notification Body: $body")
-
             showNotification(title, body)
         }
 
         if (remoteMessage.data.isNotEmpty()) {
-
+            title = remoteMessage.data["title"] ?: title
+            body = remoteMessage.data["body"] ?: body
+            hasContent = true
             Log.d(TAG, "Data Payload: ${remoteMessage.data}")
+            if (remoteMessage.notification == null) {
+                showNotification(title, body)
+            }
+        }
 
-            val title = remoteMessage.data["title"] ?: "Lead Dialer"
-            val body = remoteMessage.data["body"] ?: "New Message"
+        if (hasContent) {
+            saveMessageToFirestore(msgId, title, body)
+        }
+    }
 
-            showNotification(title, body)
+    private fun saveMessageToFirestore(msgId: String, title: String, body: String) {
+        val uid = FirebaseAuth.getInstance().uid
+        if (uid == null) {
+            Log.e(TAG, "User not logged in. Message not saved.")
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val cleanMsgId = msgId.replace("/", "_").replace(":", "_")
+
+        val isAnnouncement = title.contains("announcement", ignoreCase = true) ||
+                title.contains("announcemint", ignoreCase = true) ||
+                title.contains("update", ignoreCase = true) ||
+                title.contains("notice", ignoreCase = true) ||
+                title.contains("circular", ignoreCase = true)
+
+        if (isAnnouncement) {
+            val announcementDoc = mapOf(
+                "text" to "$title: $body",
+                "createdAt" to System.currentTimeMillis()
+            )
+            db.collection("announcements")
+                .document(cleanMsgId)
+                .set(announcementDoc, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d(TAG, "FCM announcement saved: $cleanMsgId")
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to save FCM announcement: ${e.message}")
+                }
+        } else {
+            val inboxDoc = mapOf(
+                "from" to title,
+                "text" to body,
+                "timestamp" to System.currentTimeMillis(),
+                "read" to false,
+                "replyCount" to 0
+            )
+            db.collection("messages")
+                .document(uid)
+                .collection("inbox")
+                .document(cleanMsgId)
+                .set(inboxDoc, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d(TAG, "FCM inbox message saved: $cleanMsgId")
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to save FCM inbox message: ${e.message}")
+                }
         }
     }
 

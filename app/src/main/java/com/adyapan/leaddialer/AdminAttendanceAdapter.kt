@@ -48,6 +48,16 @@ class AdminAttendanceAdapter : ListAdapter<AdminAttendanceItem, AdminAttendanceA
 
         // Status badge: Late / Early Leave / Present
         when {
+            item.status.equals("Absent", ignoreCase = true) -> {
+                holder.tvStatus.text = "Absent"
+                holder.tvStatus.setTextColor(Color.parseColor("#EF4444"))
+                holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
+            }
+            item.status.equals("Half Day", ignoreCase = true) -> {
+                holder.tvStatus.text = "Half Day"
+                holder.tvStatus.setTextColor(Color.parseColor("#0284C7"))
+                holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E0F2FE"))
+            }
             item.status.equals("Late", ignoreCase = true) && item.earlyLeave -> {
                 holder.tvStatus.text = "Late + Early Leave"
                 holder.tvStatus.setTextColor(Color.parseColor("#DC2626"))

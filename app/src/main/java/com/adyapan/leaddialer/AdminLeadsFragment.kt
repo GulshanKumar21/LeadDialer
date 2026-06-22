@@ -243,8 +243,8 @@ fun AdminLeadsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        StatBadge(title = "Called", value = connected.toString(), bgColor = Color(0xFFF0FDFA), textColor = Color(0xFF0D9488), modifier = Modifier.weight(1f))
-                        StatBadge(title = "Hot", value = interested.toString(), bgColor = Color(0xFFEFF6FF), textColor = Color(0xFF2563EB), modifier = Modifier.weight(1f))
+                        StatBadge(title = "Connected", value = connected.toString(), bgColor = Color(0xFFF0FDFA), textColor = Color(0xFF0D9488), modifier = Modifier.weight(1f))
+                        StatBadge(title = "Interested", value = interested.toString(), bgColor = Color(0xFFEFF6FF), textColor = Color(0xFF2563EB), modifier = Modifier.weight(1f))
                         StatBadge(title = "Pending", value = pending.toString(), bgColor = Color(0xFFFFFBEB), textColor = Color(0xFFD97706), modifier = Modifier.weight(1f))
                         StatBadge(title = "Sales", value = salesDone.toString(), bgColor = Color(0xFFF0FDF4), textColor = Color(0xFF16A34A), modifier = Modifier.weight(1f))
                         StatBadge(title = "Target", value = expected.toString(), bgColor = Color(0xFFFAF5FF), textColor = Color(0xFF9333EA), modifier = Modifier.weight(1f))

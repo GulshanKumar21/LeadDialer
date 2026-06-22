@@ -82,6 +82,16 @@ class AttendanceHistoryAdapter : ListAdapter<AttendanceHistoryItem, AttendanceHi
                 holder.tvTime.text = "In: ${item.checkInTime ?: "—"}  |  Out: $outStr"
 
                 when {
+                    item.status.equals("LOP", ignoreCase = true) -> {
+                        holder.tvStatus.text = "⚠️ LOP"
+                        holder.tvStatus.setTextColor(Color.parseColor("#EF4444"))
+                        holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
+                    }
+                    item.status.equals("Absent", ignoreCase = true) -> {
+                        holder.tvStatus.text = "❌ Absent"
+                        holder.tvStatus.setTextColor(Color.parseColor("#EF4444"))
+                        holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
+                    }
                     item.status.equals("Half Day", ignoreCase = true) -> {
                         holder.tvStatus.text = "🔵 Half Day"
                         holder.tvStatus.setTextColor(Color.parseColor("#0284C7"))

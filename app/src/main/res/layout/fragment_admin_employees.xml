@@ -65,13 +65,22 @@
         <!-- Employees card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="72dp"
+            android:layout_height="88dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_neu_card_blue"
             android:elevation="4dp"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_employees"
+                app:tint="#3B82F6"
+                android:layout_marginBottom="4dp"/>
 
             <TextView
                 android:id="@+id/tvTotalEmployees"
@@ -79,27 +88,40 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#3B82F6"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_bold"/>
+                android:textSize="20sp"
+                android:fontFamily="@font/poppins_bold"
+                android:includeFontPadding="false"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Employees"
                 android:textColor="#64748B"
-                android:textSize="11sp"/>
+                android:textSize="10sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Total Leads card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="72dp"
+            android:layout_height="88dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_neu_card_purple"
             android:elevation="4dp"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/outline_add_call_24"
+                app:tint="#8B5CF6"
+                android:layout_marginBottom="4dp"/>
 
             <TextView
                 android:id="@+id/tvTotalAllLeads"
@@ -107,27 +129,40 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#8B5CF6"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_bold"/>
+                android:textSize="20sp"
+                android:fontFamily="@font/poppins_bold"
+                android:includeFontPadding="false"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Total Leads"
                 android:textColor="#64748B"
-                android:textSize="11sp"/>
+                android:textSize="10sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Connected card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="72dp"
+            android:layout_height="88dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_neu_card_green"
             android:elevation="4dp"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/outline_call_log_24"
+                app:tint="#10B981"
+                android:layout_marginBottom="4dp"/>
 
             <TextView
                 android:id="@+id/tvTotalConnected"
@@ -135,26 +170,39 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#10B981"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_bold"/>
+                android:textSize="20sp"
+                android:fontFamily="@font/poppins_bold"
+                android:includeFontPadding="false"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Connected"
                 android:textColor="#64748B"
-                android:textSize="11sp"/>
+                android:textSize="10sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Sales Done card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="72dp"
+            android:layout_height="88dp"
             android:layout_weight="1"
             android:background="@drawable/bg_neu_card_orange"
             android:elevation="4dp"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_nav_sales"
+                app:tint="#FF6A00"
+                android:layout_marginBottom="4dp"/>
 
             <TextView
                 android:id="@+id/tvTotalSales"
@@ -162,15 +210,19 @@
                 android:layout_height="wrap_content"
                 android:text="0"
                 android:textColor="#FF6A00"
-                android:textSize="22sp"
-                android:fontFamily="@font/poppins_bold"/>
+                android:textSize="20sp"
+                android:fontFamily="@font/poppins_bold"
+                android:includeFontPadding="false"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sales"
                 android:textColor="#64748B"
-                android:textSize="11sp"/>
+                android:textSize="10sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
 
     </LinearLayout>

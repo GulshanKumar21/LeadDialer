@@ -690,6 +690,76 @@ function updateSummarySheet() {
   summary.setColumnWidth(10,120);
   summary.setColumnWidth(11,130);
   summary.setColumnWidth(12,110);
+  
+  updateSalesDoneSheet();
+}
+
+function updateSalesDoneSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let salesDoneSheet = ss.getSheetByName("💰 Sales Done");
+  if (!salesDoneSheet) {
+    salesDoneSheet = ss.insertSheet("💰 Sales Done", 1); // Insert right after Summary
+  }
+  salesDoneSheet.clearContents().clearFormats();
+  
+  // Set headers
+  const headers = ["Employee Name", "Customer Name", "Phone Number", "Called At", "Called End Time", "Duration", "Status", "Notes", "Sales Done"];
+  salesDoneSheet.getRange(1, 1, 1, 9).setValues([headers])
+                .setBackground("#2D3748").setFontColor("#FFFFFF").setFontWeight("bold");
+  salesDoneSheet.setFrozenRows(1);
+  
+  const exclude = ["📊 Summary", "📅 Attendance", "💰 Sales Done"];
+  const sheets = ss.getSheets().filter(s => !exclude.includes(s.getName()));
+  const allSalesRows = [];
+  
+  sheets.forEach(sheet => {
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+    
+    const data = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
+    const empName = sheet.getName();
+    
+    data.forEach(row => {
+      const status = String(row[6]).toLowerCase();
+      const sales = String(row[8]).trim();
+      
+      if (status.includes("sale") || sales === "✅ Yes") {
+        allSalesRows.push([
+          empName,
+          row[0],
+          row[1],
+          normalizeCalledAt(row[2]),
+          normalizeCalledAt(row[3]),
+          row[4],
+          row[6],
+          row[7],
+          sales
+        ]);
+      }
+    });
+  });
+  
+  if (allSalesRows.length > 0) {
+    allSalesRows.sort((a, b) => {
+      const empA = a[0].toLowerCase();
+      const empB = b[0].toLowerCase();
+      if (empA < empB) return -1;
+      if (empA > empB) return 1;
+      
+      const dateA = toSortable(a[3]);
+      const dateB = toSortable(b[3]);
+      if (dateA > dateB) return -1;
+      if (dateA < dateB) return 1;
+      return 0;
+    });
+    
+    salesDoneSheet.getRange(2, 1, allSalesRows.length, 9).setValues(allSalesRows);
+    
+    const bgColors = allSalesRows.map(() => Array(9).fill("#D4EDDA"));
+    salesDoneSheet.getRange(2, 1, bgColors.length, 9).setBackgrounds(bgColors);
+  }
+  
+  [150, 180, 140, 170, 170, 100, 140, 250, 100].forEach((w, i) => salesDoneSheet.setColumnWidth(i + 1, w));
 }
 
 // ════════════════════════════════════════════════════════════════════

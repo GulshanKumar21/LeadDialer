@@ -1,99 +1,191 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper functions
+
+    // ── Helper Functions ──────────────────────────────────────────────────
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
-      return isAuthenticated() && 
-             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+
+    function isHR() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/hrs/$(request.auth.uid));
     }
-    
-    // Admins collection - only admins can read
-    match /admins/{adminId} {
-      allow read: if isAdmin();
-      allow write: if false; // Admins added manually only
+
+    // Check if user is owner by passing their UID
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
     }
-    
-    // Users collection
+
+    // ── 1. Admins ─────────────────────────────────────────────────────────
+    match /admins/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ── 1b. HRs ───────────────────────────────────────────────────────────
+    match /hrs/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ── 2. Users / Profiles ───────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if false; // No user deletion
+      allow write: if isAdmin() || isHR() || isOwner(userId);
+
+      // Flutter app: leads as sub-collection under users
+      match /leads/{leadId} {
+        allow read, write: if isAdmin() || isHR() || isOwner(userId);
+      }
     }
-    
-    // Leads collection - employees can only access their own, admins see all
+
+    // ── 3. Leads (Native Android app — top-level collection) ──────────────
     match /leads/{leadId} {
-      allow read: if isAuthenticated() && 
-                    (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && 
-                      (resource.data.userId == request.auth.uid || isAdmin());
-      allow delete: if isAuthenticated() && 
-                      (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
-    
-    // Call records - employees can only access their own, admins see all
+
+    // ── 4. Call Records ───────────────────────────────────────────────────
     match /callRecords/{recordId} {
-      allow read: if isAuthenticated() && 
-                    (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      allow update: if false; // Call records are immutable
-      allow delete: if isAdmin(); // Only admins can delete
+      allow read: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
     }
-    
-    // Attendance records
-    match /attendance/{recordId} {
-      allow read: if isAuthenticated() && 
-                    (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin(); // Only admins can update attendance
-      allow delete: if false; // No attendance deletion
+
+    // ── 5. Attendance — flat collection ───────────────────────────────────
+    match /attendance/{attendanceId} {
+      allow read: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin() || isHR()
+        || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
+
+      // Native app: sub-collection (punch-in/out selfie flow)
+      match /dates/{date} {
+        allow read: if isAdmin() || isHR() || isOwner(attendanceId);
+        allow write: if isAdmin() || isHR() || isOwner(attendanceId);
+      }
     }
-    
-    // Leave requests
+
+    // ── 6. Leave Requests ─────────────────────────────────────────────────
     match /leaveRequests/{requestId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin(); // Only admins approve/reject
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow read: if isAdmin() || isHR()
+        || (isAuthenticated() && (
+          // Flutter uses 'userId', Native uses 'uid'
+          resource.data.userId == request.auth.uid ||
+          resource.data.uid == request.auth.uid
+        ));
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.uid == request.auth.uid
+      );
+      allow update: if isAdmin() || isHR();
+      allow delete: if isAdmin() || isHR();
     }
-    
-    // Settings - read by all, write by admins only
-    match /settings/{docId} {
+
+    // ── 7. Settings (Thought of the Day, etc.) ────────────────────────────
+    match /settings/{document} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow write: if isAdmin() || isHR();
     }
-    
-    // Admin replies (inbox)
+
+    // ── 8. Device Locks — Attendance device binding (Native) ──────────────
+    match /daily_device_locks/{date}/devices/{deviceId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── 9. Messages — Native app: messages/{userId}/inbox/{msgId} ─────────
+    match /messages/{userId}/inbox/{msgId} {
+      allow read, update: if isAuthenticated() && userId == request.auth.uid;
+      allow create: if isAdmin() || isHR();
+      allow delete: if isAdmin() || isHR() || isOwner(userId);
+
+      // Native app replies sub-collection
+      match /replies/{replyId} {
+        allow read: if isAuthenticated() && (userId == request.auth.uid || isAdmin() || isHR());
+        allow create: if isAuthenticated() && userId == request.auth.uid;
+        allow delete: if isAdmin() || isHR();
+      }
+    }
+
+    // ── 10. Messages — Flutter app: messages/{msgId} (top-level) ──────────
+    match /messages/{msgId} {
+      allow read: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid || isAdmin() || isHR()
+      );
+      allow create: if isAdmin() || isHR();
+      allow update: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid || isAdmin() || isHR()
+      );
+      allow delete: if isAdmin() || isHR();
+
+      // Flutter app replies sub-collection
+      match /replies/{replyId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if isAdmin() || isHR();
+      }
+    }
+
+    // ── 11. Admin Replies Notifications ───────────────────────────────────
     match /adminReplies/{replyId} {
+      allow create: if isAuthenticated();
+      allow read, update, delete: if isAdmin() || isHR();
+    }
+
+    // ── 12. HR Portal Specific Collections ────────────────────────────────
+    match /recruitment/{docId} {
+      allow read, write: if isAdmin() || isHR();
+    }
+
+    match /jobOpenings/{docId} {
       allow read: if isAuthenticated();
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow write: if isAdmin() || isHR();
     }
-    
-    // Messages
-    match /messages/{userId}/inbox/{messageId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+
+    match /jobApplications/{docId} {
+      allow read: if isAdmin() || isHR();
+      allow create: if true;
+      allow update, delete: if isAdmin() || isHR();
     }
-    
-    // Default deny all other paths
+
+
+    match /documents/{docId} {
+      allow read: if isAuthenticated(); // All employees can read documents/policies
+      allow write: if isAdmin() || isHR();
+    }
+
+    match /performance/{docId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || isHR());
+      allow write: if isAdmin() || isHR();
+    }
+
+    match /announcements/{docId} {
+      allow read: if isAuthenticated(); // All employees can read announcements
+      allow write: if isAdmin() || isHR();
+    }
+
+    // ── 13. Sales (Dedicated sales collection for analysts) ──────────────
+    match /sales/{saleId} {
+      allow read: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || isHR()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // ── Default Deny ──────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

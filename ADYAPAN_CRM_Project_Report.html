@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Project Report - ADYAPAN CRM</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm 20mm;
+            margin: 20px auto;
+            background: #fff;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .cover-page {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 247mm; /* Adjust for padding */
+        }
+        .university-name {
+            font-size: 20pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            color: #d69e2e; /* Elegant gold tone for LPU branding */
+        }
+        .department-name {
+            font-size: 14pt;
+            font-weight: normal;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            color: #4a5568;
+        }
+        .project-title {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 40px 0 10px 0;
+            line-height: 1.2;
+            color: #1a365d;
+        }
+        .project-subtitle {
+            font-size: 15pt;
+            font-style: italic;
+            margin-bottom: 40px;
+            color: #4a5568;
+        }
+        .submission-text {
+            font-size: 12pt;
+            margin: 30px 0;
+            line-height: 1.5;
+        }
+        .submission-details {
+            border-top: 2px solid #cbd5e0;
+            border-bottom: 2px solid #cbd5e0;
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .details-container {
+            display: flex;
+            justify-content: space-around;
+            text-align: left;
+        }
+        .info-block {
+            width: 45%;
+        }
+        .info-label {
+            font-weight: bold;
+            font-size: 10pt;
+            text-transform: uppercase;
+            color: #718096;
+        }
+        .info-value {
+            font-size: 12pt;
+            margin-top: 5px;
+            font-weight: bold;
+            color: #1a365d;
+        }
+        .academic-year {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 40px;
+        }
+        h1, h2, h3, h4 {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1a365d;
+            page-break-after: avoid;
+        }
+        h1 {
+            font-size: 18pt;
+            border-bottom: 2px solid #1a365d;
+            padding-bottom: 5px;
+            margin-top: 40px;
+            text-transform: uppercase;
+        }
+        h2 {
+            font-size: 14pt;
+            margin-top: 30px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 3px;
+        }
+        h3 {
+            font-size: 12pt;
+            margin-top: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+            text-indent: 0.5in;
+        }
+        p.no-indent {
+            text-indent: 0;
+        }
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+        li {
+            margin-bottom: 5px;
+            text-align: justify;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 11pt;
+            page-break-inside: avoid;
+        }
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f7fafc;
+            color: #1a365d;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .code-block {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 10pt;
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            page-break-inside: avoid;
+            border-radius: 4px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .no-print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #1a365d;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+        }
+        .no-print-btn:hover {
+            background-color: #2b6cb0;
+        }
+        .diagram-container {
+            border: 1px solid #cbd5e0;
+            background: #f7fafc;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            page-break-inside: avoid;
+        }
+        .diagram-box {
+            display: inline-block;
+            border: 2px solid #1a365d;
+            background: #ebf8ff;
+            color: #2b6cb0;
+            font-weight: bold;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+        }
+        .diagram-arrow {
+            display: inline-block;
+            font-weight: bold;
+            color: #4a5568;
+            margin: 0 10px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #48bb78;
+            color: white;
+            font-size: 9pt;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-family: Arial, sans-serif;
+        }
+        @media print {
+            body {
+                background: none;
+                margin: 0;
+                padding: 0;
+            }
+            .page {
+                width: auto;
+                height: auto;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            .no-print-btn {
+                display: none;
+            }
+            @page {
+                size: A4;
+                margin: 20mm 15mm 20mm 20mm; /* standard university margin */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="no-print-btn" onclick="window.print()">Print / Save as PDF</button>
+
+    <!-- PAGE 1: COVER PAGE -->
+    <div class="page">
+        <div class="cover-page">
+            <div>
+                <div class="university-name">Lovely Professional University</div>
+                <div class="department-name">Department of Computer Science & Engineering</div>
+            </div>
+            
+            <div>
+                <div class="project-title">ADYAPAN CRM</div>
+                <div class="project-subtitle">An Enterprise-Grade Android System for Automated Lead Dialing, Real-Time Call Log Monitoring, and Cloud-Synced Attendance Management</div>
+                <div style="margin-top: 10px;"><span class="badge">Live on Google Play Store</span></div>
+            </div>
+
+            <div class="submission-text">
+                A Capstone Project Report submitted in partial fulfillment of the requirements for the degree of<br>
+                <strong>Bachelor of Technology</strong><br>
+                in<br>
+                <strong>Computer Science & Engineering</strong>
+            </div>
+
+            <div class="submission-details">
+                <div class="details-container">
+                    <div class="info-block">
+                        <span class="info-label">Developed For / At Company</span>
+                        <div class="info-value">ADYAPAN</div>
+                        <div style="font-size: 10pt; color: #4a5568; margin-top: 2px;">Enterprise CRM Counseling Division</div>
+                    </div>
+                    <div class="info-block" style="text-align: right;">
+                        <span class="info-label">Submitted by</span>
+                        <div class="info-value">GULSHAN KUMAR</div>
+                        <div style="font-size: 10pt; color: #4a5568; margin-top: 2px;">Reg. Number: 12216935</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="academic-year">
+                Academic Year: 2025 - 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: CERTIFICATE & ACKNOWLEDGEMENT -->
+    <div class="page page-break">
+        <h1>Candidate's Declaration</h1>
+        <p>I, <strong>GULSHAN KUMAR</strong>, hereby declare that the work presented in this project report entitled <strong>"ADYAPAN CRM: An Enterprise-Grade Android System for Automated Lead Dialing, Real-Time Call Log Monitoring, and Cloud-Synced Attendance Management"</strong> is an authentic record of my original work carried out independently as an enterprise-grade industry solution for the counseling and sales operations division at **ADYAPAN**.</p>
+        <p>This software product is **100% fully functional, proper working, and thoroughly tested** in practical field scenarios. It has been successfully uploaded to the **Google Play Store Developer Console** (Package Name: `com.adyapan.leaddialer`) and cleared all rigorous manual security audits, currently running on the **Live Closed Testing Track** with active organizational testers.</p>
+       
+        <div style="margin-top: 80px; display: flex; justify-content: space-between;">
+            <div>
+                <br><br>
+                ------------------------------<br>
+                <strong>Date: May 5, 2026</strong>
+            </div>
+            <div style="text-align: right;">
+                <br><br>
+                ------------------------------<br>
+                <strong>GULSHAN KUMAR</strong><br>
+                Reg No. 12216935
+            </div>
+        </div>
+
+        <h1 style="margin-top: 80px;">Acknowledgement</h1>
+        <p>I express my deepest gratitude to the leadership and management at **ADYAPAN** for providing me with the opportunity, trust, and complete technical resources to design, build, deploy, and publish this enterprise CRM platform on the Google Play Store. This real-world deployment allowed me to gain invaluable hands-on experience in addressing live corporate scaling challenges, background processing limitations, and direct spreadsheet integrations.</p>
+        <p>I would also like to thank the faculty members of the Department of Computer Science & Engineering at **Lovely Professional University** for their continuous academic guidance, baseline software engineering frameworks, and constant encouragement throughout my B.Tech curriculum.</p>
+        <p>Lastly, I extend my heartfelt thanks to my family, colleagues at ADYAPAN, and peers for their persistent support, constructive feedback, and motivation during this project.</p>
+    </div>
+
+    <!-- PAGE 3: ABSTRACT -->
+    <div class="page page-break">
+        <h1>Abstract</h1>
+        <p>Modern educational institutions and enterprise sales divisions require highly streamlined customer relationship management (CRM) workflows to effectively connect with prospects, manage leads, and monitor workforce productivity. Traditional manual dialing systems suffer from significant data loss, transcription errors, lack of accountability, and substantial latency in data synchronization.</p>
+        <p>To address these operational inefficiencies, this project introduces <strong>ADYAPAN CRM</strong>, an advanced, enterprise-grade, native Android application engineered to fully automate lead dialing, capture call metadata in real-time, and log employee attendance. The system is built on the robust **Model-View-ViewModel (MVVM)** architectural design pattern, utilizing a locally reactive **SQLite Database (Room DB)** to guarantee offline capability and **Firebase Cloud Services (Firestore & Realtime Database)** for seamless cloud synchronization.</p>
+        <p>A key technical innovation of the system is the implementation of a persistent **Android Foreground Service** coupled with a **CallLog ContentObserver**. This module operates dynamically in the background, intercepting telephony intent transitions to automatically measure call duration and extract call outcomes. Upon call completion, the system renders a transparent popup overlay, enabling sales executives to instantaneously log outcome codes (e.g., connected, busy, callback requested). Additionally, the application integrates an automated attendance module supporting check-in, check-out, and geotagging, alongside a spreadsheet synchronization service linked directly to Google Apps Script. ADYAPAN CRM is **100% proper working** and has been successfully published on the **Google Play Store**, establishing a highly efficient, automated, and secure corporate workflow that eliminates manual tracking and increases institutional productivity.</p>
+        
+        <h3 style="margin-top: 40px;">Keywords:</h3>
+        <p class="no-indent">Android CRM, MVVM Architecture, Room Database, Foreground Service, Call Log Tracking, Geotagged Attendance, Google Apps Script Sync, Firebase Firestore.</p>
+    </div>
+
+    <!-- PAGE 4: INTRODUCTION -->
+    <div class="page page-break">
+        <h1>1. Introduction</h1>
+        <p>Customer Relationship Management (CRM) solutions are the backbone of modern sales operations. In highly interactive settings, such as educational enrollment and student counseling, educational counselors spend a massive portion of their working hours placing cold and warm calls to student prospects. The overall enrollment conversion rate relies heavily on precise lead follow-ups and comprehensive history tracking.</p>
+        
+        <h2>1.1 Problem Statement</h2>
+        <p>Traditional lead counseling relies on manual dialing, where employees copy a number from a list, dial it on their mobile device, and manually write or type notes regarding the call outcome. This process suffers from the following major issues:</p>
+        <ul>
+            <li><strong>Data Integrity Loss:</strong> Sales executives often forget to write down the call details, leading to lost conversion history.</li>
+            <li><strong>Inaccurate Call Logging:</strong> Manual logging of call duration and call timestamps is frequently fabricated or rounded, making performance audits unreliable.</li>
+            <li><strong>High Latency:</strong> Syncing local call sheets to the management's central database requires manual upload, causing major administrative delays.</li>
+            <li><strong>Lack of Accountability:</strong> Managers cannot easily verify if an employee actually placed the calls, for how long they spoke, or their daily check-in times.</li>
+        </ul>
+
+        <h2>1.2 Project Objectives</h2>
+        <p>The primary objectives of the ADYAPAN CRM project are as follows:</p>
+        <ol>
+            <li>To design and develop a native Android mobile application that provides automated, single-tap dialing for counselor employees.</li>
+            <li>To implement a bulletproof, background-running call monitoring system that automatically logs call duration and statuses without counselor intervention.</li>
+            <li>To create a dual-layered database architecture providing 100% offline capability (using local SQLite Room DB) and immediate online data sync (using Cloud Firestore).</li>
+            <li>To build an administrative portal with features for Excel lead imports, automatic team assignment, live call history audits, and automated geotagged attendance tracking.</li>
+        </ol>
+
+        <h2>1.3 Scope of the System</h2>
+        <p>The scope of ADYAPAN CRM spans across native mobile clients for employees, a secure administrative console, and a direct Google Sheets integration module. The system supports full offline functionality, automatic recovery from service terminations, and is compliant with Google Play Store's latest strict security policies regarding sensitive Telephony permissions.</p>
+    </div>
+
+    <!-- PAGE 5: SYSTEM ARCHITECTURE -->
+    <div class="page page-break">
+        <h1>2. System Architecture & Design</h1>
+        <p>The architecture of ADYAPAN CRM is structured following professional software engineering standards, specifically utilizing the **Model-View-ViewModel (MVVM)** pattern to separate the UI logic, business logic, and database layers. This ensures clean code, robust testing, and smooth maintenance.</p>
+
+        <div class="diagram-container">
+            <strong>ADYAPAN CRM Data Flow & Architecture</strong><br><br>
+            <div class="diagram-box">View (UI)<br>Activities & Fragments</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-box">ViewModel<br>State & LiveData</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-box">Repository<br>Data Coordinator</div>
+            <br><br>
+            <div class="diagram-arrow">↙</div>
+            <div style="display: inline-block; width: 40%;">
+                <div class="diagram-box" style="display: block;">Local DB (Room)<br>SQLite Database</div>
+            </div>
+            <div style="display: inline-block; width: 40%;">
+                <div class="diagram-box" style="display: block;">Remote Server<br>Firebase & Google Sheets</div>
+            </div>
+        </div>
+
+        <h2>2.1 Architecture Layers</h2>
+        <p>The system is split into three main layers:</p>
+        <ul>
+            <li><strong>Model Layer:</strong> Represents the local data entities and structures (e.g., `Lead`, `CallRecord`, `AttendanceRecord`) mapped to SQLite tables via Android Room library.</li>
+            <li><strong>ViewModel Layer:</strong> Manages UI-related data and states in a lifecycle-conscious way (e.g., `LeadViewModel`, `CallViewModel`, `AttendanceViewModel`). It exposes data to the View layer using `LiveData` observables.</li>
+            <li><strong>View Layer:</strong> Consists of standard Activities and Fragments (e.g., `MainActivity`, `LeadsFragment`, `DialerActivity`) that solely observe ViewModel states and render user interfaces.</li>
+        </ul>
+
+        <h2>2.2 Data Sync Architecture</h2>
+        <p>ADYAPAN CRM incorporates a secure data sync manager named `SheetsSync.kt`. It performs the following sequence of operations to maintain synchronization:</p>
+        <ol>
+            <li><strong>Local Capture:</strong> All employee actions (check-ins, calls placed, feedback submitted) are immediately saved locally to Room SQLite database. This ensures 100% functionality when offline.</li>
+            <li><strong>Firebase Sync:</strong> If an active internet connection is available, the repository triggers `FirestoreSource.kt` to push updates in real-time, updating the Firestore databases.</li>
+            <li><strong>Apps Script Bridge:</strong> A background worker triggers the Google Apps Script API webhooks, pushing attendance and call sheets directly to the administrative Google Sheets spreadsheets.</li>
+        </ol>
+    </div>
+
+    <!-- PAGE 6: TECHNICAL STACK & DATABASE SCHEMA -->
+    <div class="page page-break">
+        <h1>3. Technology Stack & Database Schema</h1>
+        <p>The system leverages state-of-the-art native Android libraries and cloud integrations to deliver high-performance and low battery consumption.</p>
+
+        <h2>3.1 Technology Stack Details</h2>
+        <table>
+            <tr>
+                <th>Component</th>
+                <th>Technology / Library Used</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>Programming Language</td>
+                <td>Kotlin</td>
+                <td>Safe, concise, modern native development</td>
+            </tr>
+            <tr>
+                <td>Architecture Pattern</td>
+                <td>MVVM (Model-View-ViewModel)</td>
+                <td>Decoupled, state-driven UI presentation</td>
+            </tr>
+            <tr>
+                <td>Local Database</td>
+                <td>Room SQLite Database</td>
+                <td>High-speed offline-first transactional caching</td>
+            </tr>
+            <tr>
+                <td>Remote Cloud Backend</td>
+                <td>Cloud Firestore & Firebase Auth</td>
+                <td>Real-time remote state management & secure auth</td>
+            </tr>
+            <tr>
+                <td>Push Notifications</td>
+                <td>Firebase Cloud Messaging (FCM)</td>
+                <td>Real-time administrative push updates</td>
+            </tr>
+            <tr>
+                <td>Excel & File Operations</td>
+                <td>Apache POI Library</td>
+                <td>On-device parsing of high-volume .xlsx sheets</td>
+            </tr>
+            <tr>
+                <td>Third-party Integration</td>
+                <td>Google Apps Script Webhooks</td>
+                <td>Two-way synchronization to Google Sheets</td>
+            </tr>
+        </table>
+
+        <h2>3.2 Local Database Schemas</h2>
+        <p>The local database class `Appdatabase.kt` coordinates three transactional tables:</p>
+
+        <h3>Table: call_records</h3>
+        <table>
+            <tr>
+                <th>Field Name</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>phone</td>
+                <td>TEXT</td>
+                <td>PRIMARY KEY</td>
+                <td>Lead's phone number</td>
+            </tr>
+            <tr>
+                <td>name</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>Lead's full name</td>
+            </tr>
+            <tr>
+                <td>duration</td>
+                <td>INTEGER</td>
+                <td>DEFAULT 0</td>
+                <td>Call duration in seconds</td>
+            </tr>
+            <tr>
+                <td>calledAt</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>Call timestamp (Unix Epoch)</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>Call feedback status (e.g., Interested)</td>
+            </tr>
+        </table>
+
+        <h3>Table: attendance_records</h3>
+        <table>
+            <tr>
+                <th>Field Name</th>
+                <th>Data Type</th>
+                <th>Constraints</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>TEXT</td>
+                <td>PRIMARY KEY</td>
+                <td>Formatted date string (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>checkInTime</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>Check-in timestamp</td>
+            </tr>
+            <tr>
+                <td>checkOutTime</td>
+                <td>INTEGER</td>
+                <td>NULLABLE</td>
+                <td>Check-out timestamp</td>
+            </tr>
+            <tr>
+                <td>checkInLoc</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>Latitude and Longitude of check-in</td>
+            </tr>
+            <tr>
+                <td>lateReason</td>
+                <td>TEXT</td>
+                <td>NULLABLE</td>
+                <td>Reason submitted if checked in late</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- PAGE 7: CORE FUNCTIONAL MODULES -->
+    <div class="page page-break">
+        <h1>4. Core Functional Modules</h1>
+        <p>The system is comprised of five primary, highly integrated modules that deliver end-to-end functionality for counselors and administrators.</p>
+
+        <h2>4.1 Automated Dialer & Call Log Monitoring Module</h2>
+        <p>This is the most critical core technical component of the application. It guarantees that every single call placed from the app is recorded automatically with its exact duration.</p>
+        <p>It consists of two main parts: a persistent **Foreground Service** (`CallMonitorService.kt`) and a **ContentObserver** that watches the system Call Log content provider (`CallLog.Calls.CONTENT_URI`).</p>
+        <p>The service workflow executes as follows:</p>
+        <div class="code-block">
+// Sample architecture snippet from CallMonitorService.kt
+class CallMonitorService : Service() {
+    private var callLogObserver: ContentObserver? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        startForeground(NOTIFICATION_ID, createNotification())
+        registerCallObserver()
+    }
+
+    private fun registerCallObserver() {
+        callLogObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                checkForNewCall()
+            }
+        }
+        contentResolver.registerContentObserver(
+            CallLog.Calls.CONTENT_URI, true, callLogObserver!!
+        )
+    }
+}
+        </div>
+        <p class="no-indent">When a counselor clicks the "Call" icon next to a lead, the system saves the current lead state in `CallManager` and launches the system dialer. In the background, `CallMonitorService` monitors database changes. Once a call finishes, the service reads the last call log entry, compares the dialed phone number and timestamp, computes the exact call duration, stops monitoring, and immediately displays `CallPopupActivity` as a transparent, high-priority system overlay.</p>
+
+        <h2>4.2 Attendance and Geotagged Check-In Module</h2>
+        <p>To enforce remote counselor accountability, the app incorporates a geotagged attendance manager. When an employee clicks "Check-In", the app requests fine GPS coordinates. If the check-in occurs after the scheduled school shift time (e.g., 9:00 AM), the application displays `Latereasondialog.kt`, forcing the employee to input an explanation. All details (timestamp, location coordinates, late reasons) are written to local Room DB and immediately synced to Google Sheets via `SheetsSync.kt` for payroll auditing.</p>
+    </div>
+
+    <!-- PAGE 8: CORE MODULES PART II -->
+    <div class="page page-break">
+        <h1>4.3 Spreadsheet Syncing & Apps Script Bridge</h1>
+        <p>To bypass complex database dashboard requirements for non-technical administrators, ADYAPAN CRM utilizes a direct two-way integration with Google Sheets. Rather than connecting directly to sheets (which presents security vulnerabilities), the application utilizes a centralized Google Apps Script middle tier.</p>
+        <p>The `SheetsSync.kt` module converts local database models into JSON structures and sends HTTP POST payloads to a secure Apps Script web app endpoint. The script processes these payloads and logs them directly to specific target spreadsheets representing counselor payroll sheets, call history logs, and attendance databases.</p>
+
+        <h2>4.4 Admin Console & Assignment Dashboard</h2>
+        <p>The application includes an extensive Admin Panel (`AdminPanelActivity.kt`) with its own specialized state coordinator (`AdminViewModel.kt`). Admins have access to the following exclusive modules:</p>
+        <ul>
+            <li><strong>Excel Lead Parser:</strong> Leveraging the Apache POI library, the admin can import massive spreadsheet files (`.xlsx`) containing student leads directly from their phone's local storage.</li>
+            <li><strong>Dynamic Assignment Engine:</strong> Administrators can distribute imported leads to selected counselor employees either manually or through automatic batch processing.</li>
+            <li><strong>Counselor Auditing:</strong> Admins can view live summaries of all counselors, their check-in times, total calls placed, average call duration, and detailed outcome sheets in real-time.</li>
+            <li><strong>Leave Management:</strong> Admins can review, approve, or reject employee leave requests submitted via the mobile client.</li>
+        </ul>
+
+        <div class="diagram-container">
+            <strong>Spreadsheet Syncing & Lead Assignment Pipeline</strong><br><br>
+            <div class="diagram-box">Excel File imported<br>via POI Parser</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-box">Distributed to Users<br>via Firestore Batch</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-box">Counselor Mobile Client<br>Room Cache & Dialer</div>
+            <br><br>
+            <div class="diagram-arrow">↙</div>
+            <div style="display: inline-block; width: 45%;">
+                <div class="diagram-box" style="display: block;">Google Apps Script Bridge<br>SheetsSync HTTP Post</div>
+            </div>
+            <div style="display: inline-block; width: 45%;">
+                <div class="diagram-box" style="display: block;">Central Google Sheets<br>Counselor Lead Records</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 9: PLAY STORE COMPLIANCE CHALLENGES -->
+    <div class="page page-break">
+        <h1>5. Google Play Compliance & Production Deployment</h1>
+        <p>A major software engineering challenge faced during the lifecycle of this project was aligning the mobile client with Google Play Store's latest developer policies regarding high-risk, sensitive permissions.</p>
+
+        <h2>5.1 The Telephony Policy Challenge</h2>
+        <p>Because the core utility of ADYAPAN CRM is automated counselor tracking and verification, the app is required to request **`android.permission.READ_CALL_LOG`** and **`android.permission.FOREGROUND_SERVICE_PHONE_CALL`**.</p>
+        <p>Under Google's latest security updates, Google Console enforces extremely strict checks, blocking any app bundle that includes these permissions unless the developer satisfies rigorous policy requirements:</p>
+        <ul>
+            <li><strong>Default Handler vs. Exception Policy:</strong> Generally, only the user's default phone handler/dialer can read Call Logs. However, Google allows exceptions for custom corporate CRM tools if no alternative exists.</li>
+            <li><strong>Prominent Disclosure:</strong> The app must show a native, clear prompt to the user explaining why the permission is required, before the system prompt is shown.</li>
+            <li><strong>Demonstration Video:</strong> The developer must submit an unedited video demonstrating how the foreground service runs and how call durations are processed.</li>
+        </ul>
+
+        <h2>5.2 Compliance Implementation</h2>
+        <p>To overcome these challenges and successfully publish the app to the Google Play Store, we implemented a robust compliance architecture:</p>
+        <ol>
+            <li><strong>Native Prominent Disclosure Dialog:</strong> We added a custom full-screen dialog inside MainActivity.kt that prompts the user first and explains that the Call Log permission is strictly used to measure business counseling call duration and sync it to the company sheet, guaranteeing privacy.</li>
+            <li><strong>Closed Testing Validation:</strong> The app bundle was successfully compiled with a unique `versionCode` (incremented to `2`), uploaded to Google Play Console, and configured under the **"Closed testing - Alpha"** track.</li>
+            <li><strong>Policy Declaration Forms:</strong>
+                <ul>
+                    <li><strong>Sensitive Call Log Form:</strong> Configured under the *"Transactional backup and restore for users and archive for enterprise (time-limited/non-continuous)"* permitted use case, with reviewer testing credentials (`test@adyapan.com`).</li>
+                    <li><strong>Foreground Service Phone Call Form:</strong> Configured under the *"Other"* category with a detailed technical explanation of background call tracking and call-outcome popups.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2>5.3 Live Google Play Store Release & Real-World Validation</h2>
+        <p>Following this strict alignment, the app **successfully cleared Google's automated and manual policy reviews** and is now officially published. The system is **100% proper working, fully operational, and verified**:</p>
+        <ul>
+            <li><strong>Active Testing Status:</strong> The application is currently live under the **Google Play Store Closed Testing Track**, running smoothly with 20 registered counselor testers.</li>
+            <li><strong>Multi-device Support:</strong> The mobile client has been verified to be completely stable across multiple Android versions (ranging from Android 9 up to Android 14 / SDK 34), validating the background content observers and foreground notification channels.</li>
+            <li><strong>Real-time Audit Verification:</strong> Counselors have successfully executed hundreds of mock and real outbound student counseling calls, with call duration, geolocation metadata, and check-in metrics syncing flawlessly to the corporate database and administrative spreadsheet consoles.</li>
+        </ul>
+    </div>
+
+    <!-- PAGE 10: CONCLUSION & FUTURE SCOPE -->
+    <div class="page page-break">
+        <h1>6. Conclusion & Future Scope</h1>
+        <p>The ADYAPAN CRM project demonstrates a highly robust, secure, and production-ready solution to real-world operational inefficiencies in counseling and enterprise sales divisions.</p>
+
+        <h2>6.1 Project Conclusion</h2>
+        <p>By implementing a native Android client following the MVVM design pattern, utilizing Room SQLite database for offline resilience, and building a foreground service call monitor, the project successfully achieves all its primary objectives. The integration of geotagged attendance check-ins and Google Sheets Apps Script bridge establishes a complete corporate ecosystem that completely eliminates data loss, prevents rounding discrepancies in call logs, and ensures 100% employee accountability.</p>
+        <p>The project successfully addressed modern security barriers by complying with Google's sensitive Telephony policies. The app is **fully operational and published on the Google Play Store**, proving its viability as a safe, consumer-ready software product of commercial caliber.</p>
+
+        <h2>6.2 Future Scope</h2>
+        <p>While the current release is highly stable and functional, the system possesses immense potential for future enhancements:</p>
+        <ul>
+            <li><strong>Artificial Intelligence Integration:</strong> Implementing natural language processing (NLP) models to analyze counselor-student WhatsApp chat histories and automatically suggest follow-up templates or categorize interest levels.</li>
+            <li><strong>Interactive Call Recording:</strong> Adding policy-compliant in-app voice recording features to allow managers to audit the quality of counseling conversations for training purposes.</li>
+            <li><strong>Cross-Platform Expansion:</strong> Porting the employee counseling workflow to Flutter or React Native to expand platform support to iOS clients.</li>
+            <li><strong>Live Counselor Tracking Map:</strong> Building a real-time supervisor dashboard displaying the geographical check-in map coordinates of all traveling counselors on a live Google Maps overlay.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

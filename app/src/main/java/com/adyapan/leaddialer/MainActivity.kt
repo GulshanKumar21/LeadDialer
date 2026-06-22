@@ -19,9 +19,7 @@ import android.widget.ImageButton
 import android.widget.Toast
 import android.content.Context
 import android.os.Build
-import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.FirebaseAppCheck
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -86,6 +84,14 @@ class MainActivity : AppCompatActivity(),
             callViewModel.syncCallRecordsFromFirebase()
             prefs.edit().putBoolean("needs_login_sync", false).apply()
             android.util.Log.d("MainActivity", "Post-login sync triggered")
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                SupabaseSync.syncSupabaseDocumentsToFirestore(com.google.firebase.firestore.FirebaseFirestore.getInstance())
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to sync Supabase documents: ${e.message}")
+            }
         }
 
 
@@ -270,6 +276,14 @@ class MainActivity : AppCompatActivity(),
                 }
                 is ProfileFragment -> {
                     supportActionBar?.title = "Profile"
+                }
+                is EmployeeDocumentsFragment -> {
+                    supportActionBar?.title = "Documents"
+                    navView.setCheckedItem(R.id.navDocuments)
+                }
+                is EmployeePerformanceFragment -> {
+                    supportActionBar?.title = "Performance"
+                    navView.setCheckedItem(R.id.navPerformance)
                 }
                 is SettingsFragment -> {
                     supportActionBar?.title = "Settings"
@@ -502,8 +516,44 @@ class MainActivity : AppCompatActivity(),
                 loadFragment(InboxFragment(), "💬 Inbox")
             }
 
+            R.id.navDocuments -> {
+                loadFragment(EmployeeDocumentsFragment(), "Documents")
+            }
+
+            R.id.navPerformance -> {
+                loadFragment(EmployeePerformanceFragment(), "Performance")
+            }
+
+            R.id.navDirectSale -> {
+                showDirectSaleDialog()
+            }
+
             R.id.navSettings -> {
                 loadFragment(SettingsFragment(), "Settings")
+            }
+
+            R.id.navLogout -> {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Logout")
+                    .setMessage("Are you sure you want to logout?")
+                    .setPositiveButton("Logout") { dialog, which ->
+                        val progressDialog = MaterialAlertDialogBuilder(this)
+                            .setTitle("⏳ Syncing Data")
+                            .setMessage("Uploading pending call records to cloud before logout...")
+                            .setCancelable(false)
+                            .create()
+                        progressDialog.show()
+
+                        LoginPage.logout(this) {
+                            progressDialog.dismiss()
+                            val intent = Intent(this, LoginPage::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
         }
 
@@ -578,5 +628,96 @@ class MainActivity : AppCompatActivity(),
         dialGlowAnimator = set
     }
 
+    private fun showDirectSaleDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_direct_sale, null)
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setView(view)
+            .setCancelable(true)
+            .create()
 
+        val etName = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etCustomerName)
+        val etPhone = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etCustomerPhone)
+        val btnSubmit = view.findViewById<android.widget.Button>(R.id.btnSubmitDirectSale)
+        val btnCancel = view.findViewById<android.widget.Button>(R.id.btnCancelDirectSale)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnSubmit.setOnClickListener {
+            val name = etName.text?.toString()?.trim() ?: ""
+            val phone = etPhone.text?.toString()?.trim() ?: ""
+
+            if (name.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please enter customer name", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (phone.length < 10) {
+                android.widget.Toast.makeText(this, "Please enter a valid 10-digit phone number", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Disable submit to prevent double-click
+            btnSubmit.isEnabled = false
+            btnSubmit.text = "Submitting..."
+
+            lifecycleScope.launch {
+                val success = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val saved = FirestoreSource.saveDirectSale(name, phone)
+                        if (saved) {
+                            val appCtx = applicationContext
+                            val calledAtMs = System.currentTimeMillis()
+                            
+                            val callRecord = CallRecord(
+                                id = 0,
+                                name = name,
+                                phone = phone,
+                                status = "Interested",
+                                duration = 0L,
+                                calledAt = calledAtMs,
+                                note = "Direct Sale (No call via app)"
+                            )
+                            
+                            val lead = Lead(
+                                id = 0,
+                                name = name,
+                                phone = phone,
+                                status = "Interested",
+                                notes = "Direct Sale (No call via app)",
+                                calledAt = calledAtMs,
+                                duration = 0,
+                                firestoreId = "${com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid}_${phone.filter { it.isDigit() }}",
+                                collegeName = "",
+                                collegeCity = "",
+                                isHotLead = false,
+                                calledBy = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                                salesDone = true
+                            )
+
+                            // Write call record row to Google Sheets
+                            SheetsSync.syncCallRecords(appCtx, listOf(callRecord))
+                            // Mark this row as SALES DONE (✅ Yes) via syncAllLeads
+                            SheetsSync.syncAllLeads(appCtx, listOf(lead))
+                        }
+                        saved
+                    } catch (e: java.lang.Exception) {
+                        android.util.Log.e("MainActivity", "Direct sale sync error: ${e.message}")
+                        false
+                    }
+                }
+
+                if (success) {
+                    android.widget.Toast.makeText(this@MainActivity, "✅ Direct sale logged successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                } else {
+                    android.widget.Toast.makeText(this@MainActivity, "❌ Failed to save sale. Please try again.", android.widget.Toast.LENGTH_SHORT).show()
+                    btnSubmit.isEnabled = true
+                    btnSubmit.text = "💰 Submit Direct Sale"
+                }
+            }
+        }
+
+        dialog.show()
+    }
 }

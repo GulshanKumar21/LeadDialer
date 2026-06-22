@@ -10,5 +10,7 @@ data class LeaveRequest(
     val toDate: String = "",
     val reason: String = "",
     val status: String = "Pending",
-    val appliedAt: Long = 0L
+    val appliedAt: Long = 0L,
+    val documentUrl: String = "",
+    val documentName: String = ""
 )

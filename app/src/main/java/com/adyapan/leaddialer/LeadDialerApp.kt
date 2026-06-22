@@ -5,22 +5,34 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.firebase.database.FirebaseDatabase
-import java.util.concurrent.TimeUnit
-import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import java.util.concurrent.TimeUnit
+
 
 class LeadDialerApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeManager.applyTheme(this)
 
-        // Initialize Firebase and App Check (Release Play Integrity mode only)
-        FirebaseApp.initializeApp(this)
-        val appCheck = FirebaseAppCheck.getInstance()
-        appCheck.installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance()
-        )
+        // 🔒 SECURITY FIX: Initialize Firebase App Check with Play Integrity
+        // This prevents bots and unauthorized clients from accessing Firebase APIs.
+        // In debug/testing, DebugAppCheckProviderFactory is automatically used
+        // when firebase.json debug token is configured.
+        val firebaseAppCheck = FirebaseAppCheck.getInstance()
+        if (BuildConfig.DEBUG) {
+            // Debug builds: use debug provider (requires debug token in Firebase console)
+            firebaseAppCheck.installAppCheckProviderFactory(
+                com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory.getInstance()
+            )
+        } else {
+            // Release builds: use Play Integrity (most secure)
+            firebaseAppCheck.installAppCheckProviderFactory(
+                PlayIntegrityAppCheckProviderFactory.getInstance()
+            )
+        }
+
+        // Firebase auto-initializes from google-services.json — no manual init needed
 
         // ── Firebase RTDB Offline Persistence ──────────────────────────────────
         // Jab network off ho tab bhi sare Firebase writes disk par queue hote hain.

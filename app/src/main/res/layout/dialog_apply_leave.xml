@@ -151,6 +151,57 @@
             android:inputType="textMultiLine"
             android:layout_marginBottom="16dp"/>
 
+        <!-- Attachment Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Attachment (Optional)"
+            android:textColor="#7A8B99"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/btnAttachDocument"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="📎 Choose File"
+                android:textColor="#2A2A35"
+                android:textSize="13sp"
+                android:backgroundTint="#E5E7EB"
+                android:stateListAnimator="@null"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <TextView
+                android:id="@+id/tvAttachedFileName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="No file chosen"
+                android:textColor="#AABBCC"
+                android:textSize="13sp"
+                android:layout_marginStart="12dp"
+                android:singleLine="true"
+                android:ellipsize="middle"/>
+
+            <ImageButton
+                android:id="@+id/btnRemoveAttachment"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:tint="#EF4444"
+                android:layout_marginStart="8dp"
+                android:visibility="gone"/>
+        </LinearLayout>
+
         <!-- Admin Email — locked to pre-approved list -->
         <LinearLayout
             android:layout_width="match_parent"

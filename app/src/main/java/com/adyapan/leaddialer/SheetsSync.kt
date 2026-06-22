@@ -12,17 +12,40 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 object SheetsSync {
 
     private const val TAG = "SheetsSync"
 
-    private const val DEFAULT_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbx7q3iVs3h0tVUArSKJ5MF9EaogNPeuGCf6St4jBqDmO1pTC9O6QNhMsJscFH2lXHqRhg/exec"
+    // 🔒 SECURITY FIX: URL now read from BuildConfig (injected at build time, not hardcoded in source)
+    private val DEFAULT_SCRIPT_URL: String
+        get() = BuildConfig.GAS_SCRIPT_URL
+
+    // 🔒 SECURITY FIX: HMAC secret token from BuildConfig
+    private val GAS_SECRET: String
+        get() = BuildConfig.GAS_SECRET_TOKEN
 
     private const val KEY_TL_SHEET_URL = "tl_sheet_url"
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
+    /**
+     * 🔒 SECURITY: Compute HMAC-SHA256 signature for Apps Script authentication.
+     * The GAS script verifies this token in doGet/doPost before processing any request.
+     */
+    private fun computeHmacSignature(body: String): String {
+        return try {
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(SecretKeySpec(GAS_SECRET.toByteArray(Charsets.UTF_8), "HmacSHA256"))
+            mac.doFinal(body.toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "HMAC computation failed: ${e.message}")
+            ""
+        }
+    }
 
     private suspend fun resolveScriptUrl(context: Context, userId: String): String {
         return withContext(Dispatchers.IO) {
@@ -344,7 +367,8 @@ object SheetsSync {
         leaveType: String,
         fromDate: String,
         toDate: String,
-        reason: String
+        reason: String,
+        documentUrl: String = ""
     ): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -358,6 +382,7 @@ object SheetsSync {
                     put("fromDate", fromDate)
                     put("toDate", toDate)
                     put("reason", reason)
+                    put("documentUrl", documentUrl)
                 }.toString()
 
                 val result = postToScript(body)
@@ -416,6 +441,8 @@ object SheetsSync {
         return try {
             val url = URL(scriptUrl)
             val conn = url.openConnection() as HttpURLConnection
+            // 🔒 SECURITY FIX: Add HMAC-SHA256 signature header to authenticate each request
+            val signature = computeHmacSignature(body)
             conn.apply {
                 requestMethod = "POST"
                 doOutput = true
@@ -423,6 +450,7 @@ object SheetsSync {
                 readTimeout = 15000
                 instanceFollowRedirects = true   // ✅ 302 redirect follow karega
                 setRequestProperty("Content-Type", "application/json")
+                setRequestProperty("X-Auth-Token", signature)   // 🔒 HMAC auth header
                 outputStream.write(body.toByteArray(Charsets.UTF_8))
             }
 

@@ -36,12 +36,13 @@ class SettingsFragment : Fragment() {
         val factory = LeadViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(requireActivity(), factory)[LeadViewModel::class.java]
 
-        val btnSync       = view.findViewById<Button>(R.id.btnSyncSheets)
-        val btnClearLeads = view.findViewById<Button>(R.id.btnClearAllLeads)
-        val btnLogout     = view.findViewById<Button>(R.id.btnLogout)
-        val tvTotalLeads  = view.findViewById<TextView>(R.id.tvSettingsTotalLeads)
-        val tvSyncStatus  = view.findViewById<TextView>(R.id.tvSyncStatus)
-        val switchDark    = view.findViewById<SwitchMaterial>(R.id.switchDarkMode)
+        val btnSync          = view.findViewById<Button>(R.id.btnSyncSheets)
+        val btnForceFullSync = view.findViewById<Button>(R.id.btnForceFullSync)
+        val btnClearLeads    = view.findViewById<Button>(R.id.btnClearAllLeads)
+        val btnLogout        = view.findViewById<Button>(R.id.btnLogout)
+        val tvTotalLeads     = view.findViewById<TextView>(R.id.tvSettingsTotalLeads)
+        val tvSyncStatus     = view.findViewById<TextView>(R.id.tvSyncStatus)
+        val switchDark       = view.findViewById<SwitchMaterial>(R.id.switchDarkMode)
 
         // ── Dark Mode Toggle ───────────────────────────────────────────────────
         switchDark.isChecked = ThemeManager.isDarkMode(requireContext())
@@ -80,7 +81,63 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        // ── Clear All Leads ────────────────────────────────────────────────────
+        // ── Force Full Sync — Restore ALL call history to Sheet ───────────────
+        btnForceFullSync.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Restore All Calls to Sheet?")
+                .setMessage("Yeh saare call records dobara Google Sheet mein bhejega. Agar sheet mein data delete hua ho to wapas aa jaayega. Continue?")
+                .setPositiveButton("Yes, Restore") { _, _ ->
+                    btnForceFullSync.isEnabled = false
+                    btnForceFullSync.text      = "Uploading..."
+                    tvSyncStatus.text          = "⏳ Fetching all records..."
+                    tvSyncStatus.visibility    = View.VISIBLE
+
+                    lifecycleScope.launch {
+                        try {
+                            val db      = AppDatabase.getInstance(requireContext())
+                            val allRecs = db.callRecordDao().getAllOnce()
+
+                            if (allRecs.isEmpty()) {
+                                tvSyncStatus.text = "ℹ️ No call records found in local database."
+                                btnForceFullSync.isEnabled = true
+                                btnForceFullSync.text      = "Restore All Calls to Sheet"
+                                return@launch
+                            }
+
+                            tvSyncStatus.text = "⏳ Sending ${allRecs.size} records in batches..."
+
+                            // Send in batches of 150 to avoid timeout
+                            val batchSize = 150
+                            var success   = true
+                            var sent      = 0
+                            allRecs.chunked(batchSize).forEachIndexed { idx, batch ->
+                                tvSyncStatus.text = "⏳ Batch ${idx + 1}/${(allRecs.size + batchSize - 1) / batchSize} (${sent}/${allRecs.size} sent)..."
+                                val ok = SheetsSync.syncCallRecords(requireContext(), batch)
+                                if (!ok) success = false
+                                sent += batch.size
+                            }
+
+                            btnForceFullSync.isEnabled = true
+                            btnForceFullSync.text      = "Restore All Calls to Sheet"
+
+                            if (success) {
+                                tvSyncStatus.text = "✅ ${allRecs.size} records restored to Google Sheet!"
+                                Toast.makeText(requireContext(), "✅ All call records restored!", Toast.LENGTH_LONG).show()
+                            } else {
+                                tvSyncStatus.text = "⚠️ Some batches failed. Try again."
+                                Toast.makeText(requireContext(), "⚠️ Partial sync. Check internet.", Toast.LENGTH_LONG).show()
+                            }
+                        } catch (e: Exception) {
+                            btnForceFullSync.isEnabled = true
+                            btnForceFullSync.text      = "Restore All Calls to Sheet"
+                            tvSyncStatus.text          = "❌ Error: ${e.message}"
+                        }
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         btnClearLeads.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("⚠️ Clear All Leads")

@@ -15,4 +15,14 @@
     <!-- Brand stays orange in dark mode too -->
     <color name="brand_orange">#FF6A00</color>
     <color name="brand_orange_light">#3D2000</color>
+
+    <!-- Logout & Account Deletion (Dark mode) -->
+    <color name="logout_bg">#3F1A1A</color>
+    <color name="logout_stroke">#B91C1C</color>
+    <color name="logout_text">#F87171</color>
+
+    <!-- Leads Deletion (Dark mode) -->
+    <color name="delete_bg">#451A1A</color>
+    <color name="delete_stroke">#B91C1C</color>
+    <color name="delete_text">#FCA5A5</color>
 </resources>

@@ -10,5 +10,6 @@ data class UserProfile(
     val department: String = "",
     val reportingManager: String = "",
     val workLocation: String = "",
-    val dateOfJoining: String = ""
+    val dateOfJoining: String = "",
+    val dob: String = ""
 )

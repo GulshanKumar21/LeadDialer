@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
@@ -31,6 +32,7 @@ class SplashActivity : AppCompatActivity() {
     private var splashEnded = false
 
     private var isAdminUser = false
+    private var isHRUser = false
     private var isLoggedIn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +61,10 @@ class SplashActivity : AppCompatActivity() {
             // 🔥 Device Validation
             val deviceValid = validateActiveDevice()
             if (!deviceValid) return@launch
+
+            if (FirebaseAuth.getInstance().currentUser != null) {
+                updateFcmToken()
+            }
 
             // 🔥 Admin Check
             checkAdminStatus()
@@ -215,9 +221,7 @@ class SplashActivity : AppCompatActivity() {
 
     // 🔥 Admin Check
     private suspend fun checkAdminStatus() {
-
         val user = FirebaseAuth.getInstance().currentUser
-
         if (user == null) {
             isLoggedIn = false
             routeReady = true
@@ -227,24 +231,41 @@ class SplashActivity : AppCompatActivity() {
 
         isLoggedIn = true
 
-        try {
-            val firestore = FirebaseFirestore.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
 
-            // ✅ 5-second timeout so splash never hangs forever when offline.
-            // If timeout or error → default to non-admin so employee can still log in.
-            val doc = withTimeoutOrNull(5_000L) {
+        // ✅ 5-second timeout so splash never hangs forever when offline.
+        val doc = try {
+            withTimeoutOrNull(5_000L) {
                 firestore
                     .collection("admins")
                     .document(user.uid)
-                    .get()          // default: cache-first → no offline hang
+                    .get()
                     .await()
             }
-
-            isAdminUser = doc?.exists() ?: false
-            FirestoreSource.setAdminStatus(isAdminUser)
-
         } catch (e: Exception) {
-            isAdminUser = false
+            null
+        }
+
+        isAdminUser = doc?.exists() ?: false
+        FirestoreSource.setAdminStatus(isAdminUser)
+
+        if (!isAdminUser) {
+            val hrDoc = try {
+                withTimeoutOrNull(5_000L) {
+                    firestore
+                        .collection("hrs")
+                        .document(user.uid)
+                        .get()
+                        .await()
+                }
+            } catch (e: Exception) {
+                null
+            }
+            isHRUser = hrDoc?.exists() ?: false
+            FirestoreSource.setHRStatus(isHRUser)
+        } else {
+            isHRUser = false
+            FirestoreSource.setHRStatus(false)
         }
 
         routeReady = true
@@ -253,16 +274,13 @@ class SplashActivity : AppCompatActivity() {
 
     @Synchronized
     private fun tryNavigate() {
-
         if (!splashEnded || !routeReady) return
 
         val pref = getSharedPreferences("app", MODE_PRIVATE)
 
         when {
-
             // 🔥 FIRST TIME
             pref.getBoolean("firstTime", true) -> {
-
                 startActivity(
                     Intent(this, OnboardingActivity::class.java)
                 )
@@ -270,7 +288,6 @@ class SplashActivity : AppCompatActivity() {
 
             // 🔥 NOT LOGGED IN
             !isLoggedIn -> {
-
                 startActivity(
                     Intent(this, LoginPage::class.java)
                 )
@@ -278,15 +295,20 @@ class SplashActivity : AppCompatActivity() {
 
             // 🔥 ADMIN
             isAdminUser -> {
-
                 startActivity(
                     Intent(this, AdminPanelActivity::class.java)
                 )
             }
 
+            // 🔥 HR
+            isHRUser -> {
+                startActivity(
+                    Intent(this, HRPanelActivity::class.java)
+                )
+            }
+
             // 🔥 NORMAL USER
             else -> {
-
                 startActivity(
                     Intent(this, MainActivity::class.java)
                 )
@@ -294,5 +316,31 @@ class SplashActivity : AppCompatActivity() {
         }
 
         finish()
+    }
+
+    private fun updateFcmToken() {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        try {
+            FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token ->
+                    if (!token.isNullOrEmpty()) {
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(user.uid)
+                            .update("fcmToken", token)
+                            .addOnFailureListener {
+                                FirebaseFirestore.getInstance()
+                                    .collection("users")
+                                    .document(user.uid)
+                                    .set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge())
+                            }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("SplashActivity", "Failed to get FCM token: ${e.message}")
+                }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -117,6 +119,32 @@ fun DashboardScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Announcements states
+    var showAnnouncementsDialog by remember { mutableStateOf(false) }
+    val announcementsList = remember { mutableStateListOf<Map<String, Any>>() }
+
+    // Fetch announcements from Firestore
+    DisposableEffect(Unit) {
+        val listener = FirebaseFirestore.getInstance()
+            .collection("announcements")
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                if (snap != null) {
+                    announcementsList.clear()
+                    for (doc in snap.documents) {
+                        announcementsList.add(mapOf(
+                            "id" to doc.id,
+                            "text" to (doc.getString("text") ?: ""),
+                            "createdAt" to (doc.getLong("createdAt") ?: 0L)
+                        ))
+                    }
+                }
+            }
+        onDispose {
+            listener.remove()
+        }
+    }
 
     // ── LiveData Observers ──
     val totalLeads by viewModel.totalLeads.observeAsState(0)
@@ -285,14 +313,21 @@ fun DashboardScreen(
                             .background(Color(0xFFF3F4F6))
                             .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(21.dp))
                             .clickable {
-                                android.widget.Toast.makeText(
-                                    context, "No new notifications",
-                                    android.widget.Toast.LENGTH_SHORT
-                                ).show()
+                                showAnnouncementsDialog = true
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("🔔", fontSize = 18.sp)
+                        if (announcementsList.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-2).dp, y = 2.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(Color(0xFFFF6A00))
+                            )
+                        }
                     }
                 }
 
@@ -726,6 +761,104 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    if (showAnnouncementsDialog) {
+        AlertDialog(
+            onDismissRequest = { showAnnouncementsDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("📢", fontSize = 24.sp)
+                    Text(
+                        text = "Announcements",
+                        fontFamily = PoppinsFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF111827)
+                    )
+                }
+            },
+            text = {
+                if (announcementsList.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No announcements published yet.",
+                            fontFamily = PoppinsFamily,
+                            color = Color(0xFF6B7280),
+                            fontSize = 14.sp
+                        )
+                    }
+                } else {
+                    val sdf = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                    ) {
+                        items(announcementsList) { item ->
+                            val text = item["text"] as? String ?: ""
+                            val createdAt = item["createdAt"] as? Long ?: 0L
+                            val dateStr = if (createdAt > 0L) sdf.format(Date(createdAt)) else ""
+                            
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = text,
+                                        fontFamily = PoppinsFamily,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF1F2937),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    if (dateStr.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = dateStr,
+                                            fontFamily = PoppinsFamily,
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF9CA3AF),
+                                            fontWeight = FontWeight.Normal,
+                                            modifier = Modifier.align(Alignment.End)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showAnnouncementsDialog = false }
+                ) {
+                    Text(
+                        text = "Close",
+                        fontFamily = PoppinsFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF6A00)
+                    )
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = Color.White
+        )
     }
 }
 

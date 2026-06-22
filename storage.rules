@@ -10,18 +10,23 @@ service firebase.storage {
       return isAuthenticated() && 
              firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data != null;
     }
+
+    function isHR() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/hrs/$(request.auth.uid)).data != null;
+    }
     
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Attendance selfies - user can only upload their own, admin can read all
+    // Attendance selfies - user can only upload their own, admin/HR can read all
     match /attendance/{userId}/{fileName} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin() || isHR();
       allow write: if isOwner(userId) && 
                      request.resource.size < 5 * 1024 * 1024 && // Max 5MB
                      request.resource.contentType.matches('image/.*');
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || isHR();
     }
     
     // Profile pictures
@@ -30,14 +35,21 @@ service firebase.storage {
       allow write: if isOwner(userId) && 
                      request.resource.size < 2 * 1024 * 1024 && // Max 2MB
                      request.resource.contentType.matches('image/.*');
-      allow delete: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin() || isHR();
     }
     
-    // Lead documents (brochures, etc.) - admin upload only
+    // Lead documents (brochures, etc.) - admin/HR upload only
     match /documents/{category}/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
-      allow delete: if isAdmin();
+      allow write: if isAdmin() || isHR();
+      allow delete: if isAdmin() || isHR();
+    }
+
+    // Onboarding documents (PDFs, photos, etc.) - user uploads their own, HR/admin can read/delete
+    match /employee_docs/{userId}/{fileName} {
+      allow read: if isOwner(userId) || isAdmin() || isHR();
+      allow write: if isOwner(userId) && request.resource.size < 10 * 1024 * 1024; // Max 10MB
+      allow delete: if isOwner(userId) || isAdmin() || isHR();
     }
     
     // Default deny all

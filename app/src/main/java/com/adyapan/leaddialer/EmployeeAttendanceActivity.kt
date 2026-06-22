@@ -181,6 +181,7 @@ class EmployeeAttendanceActivity : AppCompatActivity() {
                 var presentCount = 0
                 var lateCount    = 0
                 var halfDayCount = 0
+                var lopCount     = 0
 
                 val dayFmt = SimpleDateFormat("EEE, dd MMM", Locale.getDefault())
                 val keyFmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -196,13 +197,15 @@ class EmployeeAttendanceActivity : AppCompatActivity() {
                     val rec    = recordMap[dateKey]
                     val status = rec?.get("status") as? String
 
-                    if (rec != null) {
+                    if (rec != null && status?.equals("Absent", ignoreCase = true) != true && status?.equals("LOP", ignoreCase = true) != true) {
                         workedCount++
                         when {
                             status?.equals("Late", ignoreCase = true) == true -> lateCount++
                             status?.equals("Half Day", ignoreCase = true) == true -> halfDayCount++
                             else -> presentCount++
                         }
+                    } else if (rec != null && status?.equals("LOP", ignoreCase = true) == true) {
+                        lopCount++
                     }
 
                     items.add(AttendanceHistoryItem(
@@ -226,7 +229,7 @@ class EmployeeAttendanceActivity : AppCompatActivity() {
                 tvTotalDaysWorked.text = workedCount.toString()
                 tvPresent.text = presentCount.toString()
                 tvLate.text    = if (halfDayCount > 0) "$lateCount (${halfDayCount}HD)" else lateCount.toString()
-                tvAbsent.text  = absentCount.toString()
+                tvAbsent.text  = if (lopCount > 0) "$absentCount (${lopCount}LOP)" else absentCount.toString()
 
                 if (items.isEmpty()) {
                     tvNoHistory.visibility = View.VISIBLE

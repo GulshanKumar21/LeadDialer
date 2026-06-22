@@ -95,6 +95,16 @@
         android:layout_marginBottom="12dp"/>
 
     <TextView
+        android:id="@+id/tvManageDateOfBirth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Date of Birth (Tap to select)"
+        android:background="@drawable/bg_neu_inset"
+        android:padding="16dp"
+        android:textColor="#2A2A35"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
         android:id="@+id/tvManageDateOfJoining"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

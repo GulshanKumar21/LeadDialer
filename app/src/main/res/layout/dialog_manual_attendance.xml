@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@android:color/white">
+
+    <!-- Date Title -->
+    <TextView
+        android:id="@+id/tvManualDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mon, 03 Jun 2025"
+        android:textColor="#1F2937"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Status Spinner -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status"
+        android:textColor="#6B7280"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp"/>
+
+    <Spinner
+        android:id="@+id/spinManualStatus"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_neu_surface"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Check-In -->
+    <TextView
+        android:id="@+id/tvManualCheckIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Check-In:  Not set"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <Button
+        android:id="@+id/btnSetCheckIn"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="⏰ Set Check-In Time"
+        android:backgroundTint="#EFF6FF"
+        android:textColor="#3B82F6"
+        android:textSize="13sp"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Check-Out -->
+    <TextView
+        android:id="@+id/tvManualCheckOut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Check-Out: Not set"
+        android:textColor="#374151"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <Button
+        android:id="@+id/btnSetCheckOut"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="🚪 Set Check-Out Time"
+        android:backgroundTint="#EFF6FF"
+        android:textColor="#3B82F6"
+        android:textSize="13sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnManualDelete"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="44dp"
+            android:text="🗑 Delete"
+            android:backgroundTint="#FEE2E2"
+            android:textColor="#DC2626"
+            android:textSize="13sp"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnManualSave"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="44dp"
+            android:text="✅ Save"
+            android:backgroundTint="#4285F4"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+</LinearLayout>

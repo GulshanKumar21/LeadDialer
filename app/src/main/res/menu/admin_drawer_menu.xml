@@ -1,0 +1,53 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/navAdminEmployees"
+            android:icon="@drawable/ic_leads"
+            android:title="Employees"/>
+
+        <item
+            android:id="@+id/navAdminAttendance"
+            android:icon="@drawable/ic_attendance"
+            android:title="Attendance"/>
+
+        <item
+            android:id="@+id/navAdminLeaves"
+            android:icon="@drawable/ic_nav_leaves"
+            android:title="Leaves"/>
+
+        <item
+            android:id="@+id/navAdminSales"
+            android:icon="@drawable/ic_nav_sales"
+            android:title="Sales"/>
+
+        <item
+            android:id="@+id/navAdminMessages"
+            android:icon="@android:drawable/ic_dialog_email"
+            android:title="Messages"/>
+
+        <item
+            android:id="@+id/navAdminRecruitment"
+            android:icon="@android:drawable/ic_menu_my_calendar"
+            android:title="Recruitment"/>
+
+        <item
+            android:id="@+id/navAdminDocuments"
+            android:icon="@android:drawable/ic_menu_save"
+            android:title="Documents"/>
+
+        <item
+            android:id="@+id/navAdminPerformance"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="Performance"/>
+
+        <item
+            android:id="@+id/navAdminAnnouncements"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="Announcements"/>
+
+        <item
+            android:id="@+id/navAdminLogout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout"/>
+    </group>
+</menu>

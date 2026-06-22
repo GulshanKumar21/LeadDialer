@@ -1,11 +1,14 @@
 package com.adyapan.leaddialer
 
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +36,8 @@ class LeaveRequestAdapter(
         val layoutActions    : View     = itemView.findViewById(R.id.layoutAdminActions)
         val btnApprove       : Button   = itemView.findViewById(R.id.btnApproveLeave)
         val btnReject        : Button   = itemView.findViewById(R.id.btnRejectLeave)
+        val layoutAttachment : View     = itemView.findViewById(R.id.layoutAttachment)
+        val tvAttachmentLink : TextView = itemView.findViewById(R.id.tvAttachmentLink)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -55,6 +60,22 @@ class LeaveRequestAdapter(
         holder.tvType.text   = req.leaveType
         holder.tvDates.text  = "${req.fromDate}  →  ${req.toDate}"
         holder.tvReason.text = req.reason
+
+        if (!req.documentUrl.isNullOrBlank()) {
+            holder.layoutAttachment.visibility = View.VISIBLE
+            val dispName = if (!req.documentName.isNullOrBlank()) req.documentName else "View Attachment"
+            holder.tvAttachmentLink.text = "📎 $dispName"
+            holder.layoutAttachment.setOnClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(req.documentUrl))
+                    holder.itemView.context.startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(holder.itemView.context, "No app to open this link", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            holder.layoutAttachment.visibility = View.GONE
+        }
 
         // Status badge colour
         when (req.status) {

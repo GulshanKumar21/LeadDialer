@@ -22,6 +22,9 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.firestore.SetOptions
+// 🔒 SECURITY FIX: Use Firebase Installation ID instead of hardware ANDROID_ID
+// FID is resettable by user and compliant with GDPR/Play Store privacy policies
+import com.google.firebase.installations.FirebaseInstallations
 
 class LoginPage : AppCompatActivity() {
 
@@ -431,6 +434,19 @@ class LoginPage : AppCompatActivity() {
                 }
             }
 
+            // Clear any stale/corrupt Android Keystore tokens before fresh login
+            // This fixes "Pin verification failed" error caused by device PIN/fingerprint changes
+            try {
+                val firebaseAuthPrefs = getSharedPreferences(
+                    "com.google.firebase.auth.api.Store",
+                    android.content.Context.MODE_PRIVATE
+                )
+                firebaseAuthPrefs.edit().clear().apply()
+            } catch (e: Exception) {
+                android.util.Log.w("LOGIN_DEBUG", "Could not clear auth prefs: ${e.message}")
+            }
+            auth.signOut()
+
             btnLogin.isEnabled = false
 
             btnLogin.text = "..."
@@ -470,61 +486,25 @@ class LoginPage : AppCompatActivity() {
                                 .collection("admins")
                                 .document(uid)
                                 .get()
-
                                 .addOnSuccessListener { adminDoc ->
-
-                                    val role =
-
-                                        if (adminDoc.exists()) {
-
-                                            "admin"
-
-                                        } else {
-
-                                            "employee"
-                                        }
-
-                                    FirebaseFirestore.getInstance()
-                                        .collection("users")
-                                        .document(uid)
-
-                                        .set(
-
-                                            mapOf(
-
-                                                "name" to employeeName,
-
-                                                "email" to email,
-
-                                                "fcmToken" to token,
-
-                                                "role" to role,
-
-                                                "activeDeviceId" to android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
-                                            ),
-
-                                            SetOptions.merge()
-                                        )
-
-                                        .addOnSuccessListener {
-
-                                            android.util.Log.d(
-
-                                                "FCM",
-
-                                                "Token + Role saved successfully"
-                                            )
-                                        }
-
-                                        .addOnFailureListener { e ->
-
-                                            android.util.Log.e(
-
-                                                "FCM",
-
-                                                "Save failed: ${e.message}"
-                                            )
-                                        }
+                                    if (adminDoc.exists()) {
+                                        saveUserRole(uid, employeeName, email, token, "admin")
+                                    } else {
+                                        FirebaseFirestore.getInstance()
+                                            .collection("hrs")
+                                            .document(uid)
+                                            .get()
+                                            .addOnSuccessListener { hrDoc ->
+                                                val role = if (hrDoc.exists()) "hr" else "employee"
+                                                saveUserRole(uid, employeeName, email, token, role)
+                                            }
+                                            .addOnFailureListener {
+                                                saveUserRole(uid, employeeName, email, token, "employee")
+                                            }
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    saveUserRole(uid, employeeName, email, token, "employee")
                                 }
                         }
 
@@ -547,6 +527,62 @@ class LoginPage : AppCompatActivity() {
                     }
                 }
                 .addOnFailureListener { exception ->
+
+                    val isPinError = exception.message
+                        ?.contains("Pin verification failed", ignoreCase = true) == true
+                        || exception.message?.contains("internal error", ignoreCase = true) == true
+
+                    android.util.Log.e(
+                        "LOGIN_DEBUG",
+                        "Login failed! Type=${exception.javaClass.simpleName} Msg=${exception.message}"
+                    )
+
+                    if (isPinError) {
+                        // Firebase Auth's Android Keystore token is corrupted
+                        // Fix: clear Firebase Auth cache (SharedPreferences) then retry fresh
+                        android.util.Log.w("LOGIN_DEBUG", "Pin error — clearing Firebase Auth cache and retrying")
+
+                        try {
+                            // Clear Firebase Auth's internal SharedPreferences to remove corrupted keystore refs
+                            val firebaseAuthPrefs = getSharedPreferences(
+                                "com.google.firebase.auth.api.Store",
+                                android.content.Context.MODE_PRIVATE
+                            )
+                            firebaseAuthPrefs.edit().clear().apply()
+                        } catch (e: Exception) {
+                            android.util.Log.w("LOGIN_DEBUG", "Could not clear prefs: ${e.message}")
+                        }
+
+                        auth.signOut()
+
+                        // Small delay to let signOut complete, then retry
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnSuccessListener {
+                                    Toast.makeText(this, "🔥 Let's Close More Deals Today", Toast.LENGTH_SHORT).show()
+                                    lifecycleScope.launch { routeByAdminStatus() }
+                                }
+                                .addOnFailureListener { retryEx ->
+                                    btnLogin.isEnabled = true
+                                    btnLogin.text = "→"
+                                    val retryMsg = when {
+                                        retryEx is com.google.firebase.auth.FirebaseAuthInvalidUserException ->
+                                            "Account not found. Check email ❌"
+                                        retryEx is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException ->
+                                            "Wrong password ❌"
+                                        retryEx.message?.contains("network", ignoreCase = true) == true ->
+                                            "Network error. Check internet ❌"
+                                        else ->
+                                            "Retry error: ${retryEx.message}"
+                                    }
+                                    Toast.makeText(this, retryMsg, Toast.LENGTH_LONG).show()
+                                    android.util.Log.e("LOGIN_DEBUG", "Retry also failed: ${retryEx.javaClass.simpleName} | ${retryEx.message}")
+                                }
+                        }, 300)
+
+                        return@addOnFailureListener
+
+                    }
 
                     btnLogin.isEnabled = true
 
@@ -601,20 +637,14 @@ class LoginPage : AppCompatActivity() {
     // Route admin or employee
 
     private suspend fun routeByAdminStatus() {
-
         val uid = auth.currentUser?.uid
-
         if (uid == null) {
-
             goToMain()
-
             return
         }
 
-        return try {
-
-            val isAdmin = withContext(Dispatchers.IO) {
-
+        val isAdmin = try {
+            withContext(Dispatchers.IO) {
                 FirebaseFirestore.getInstance()
                     .collection("admins")
                     .document(uid)
@@ -622,29 +652,47 @@ class LoginPage : AppCompatActivity() {
                     .await()
                     .exists()
             }
+        } catch (e: Exception) {
+            false
+        }
 
-            FirestoreSource.setAdminStatus(isAdmin)
+        FirestoreSource.setAdminStatus(isAdmin)
 
-            if (isAdmin) {
-
+        if (isAdmin) {
+            startActivity(
+                Intent(
+                    this,
+                    AdminPanelActivity::class.java
+                )
+            )
+            finish()
+        } else {
+            val isHR = try {
+                withContext(Dispatchers.IO) {
+                    FirebaseFirestore.getInstance()
+                        .collection("hrs")
+                        .document(uid)
+                        .get()
+                        .await()
+                        .exists()
+                }
+            } catch (e: Exception) {
+                false
+            }
+            
+            FirestoreSource.setHRStatus(isHR)
+            
+            if (isHR) {
                 startActivity(
                     Intent(
                         this,
-                        AdminPanelActivity::class.java
+                        HRPanelActivity::class.java
                     )
                 )
-
             } else {
-
+                Toast.makeText(this, "Logged in as Employee (UID: $uid)", Toast.LENGTH_LONG).show()
                 goToMain()
             }
-
-            finish()
-
-        } catch (e: Exception) {
-
-            goToMain()
-
             finish()
         }
     }
@@ -661,6 +709,50 @@ class LoginPage : AppCompatActivity() {
         )
 
         finish()
+    }
+
+    private fun saveUserRole(uid: String, name: String, email: String, token: String, role: String) {
+        // 🔒 SECURITY FIX: Use Firebase Installation ID (FID) instead of ANDROID_ID.
+        // FID is app-scoped, resettable, and GDPR/Play-Store policy compliant.
+        // ANDROID_ID is a non-resettable hardware identifier which violates privacy policies.
+        FirebaseInstallations.getInstance().id
+            .addOnSuccessListener { fid ->
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(uid)
+                    .set(
+                        mapOf(
+                            "name" to name,
+                            "email" to email,
+                            "fcmToken" to token,
+                            "role" to role,
+                            "activeDeviceId" to fid  // 🔒 FID: resettable, privacy-safe
+                        ),
+                        SetOptions.merge()
+                    )
+                    .addOnSuccessListener {
+                        android.util.Log.d("FCM", "Token + Role ($role) saved successfully")
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("FCM", "Save failed: ${e.message}")
+                    }
+            }
+            .addOnFailureListener { e ->
+                // Fallback: save without deviceId rather than using ANDROID_ID
+                android.util.Log.w("FCM", "FID fetch failed, saving without deviceId: ${e.message}")
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(uid)
+                    .set(
+                        mapOf(
+                            "name" to name,
+                            "email" to email,
+                            "fcmToken" to token,
+                            "role" to role
+                        ),
+                        SetOptions.merge()
+                    )
+            }
     }
 
     override fun onDestroy() {

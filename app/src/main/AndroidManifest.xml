@@ -126,6 +126,9 @@
             android:name=".AdminPanelActivity"
             android:exported="false" />
         <activity
+            android:name=".HRPanelActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" /> <!-- Incoming Call Lead Detector -->
         <receiver

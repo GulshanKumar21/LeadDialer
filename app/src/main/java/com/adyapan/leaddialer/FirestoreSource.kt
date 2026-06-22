@@ -30,9 +30,12 @@ object FirestoreSource {
     private val adminsCol     = db.collection("admins")
     private val usersCol      = db.collection("users")
     private val leavesCol     = db.collection("leaveRequests")
+    private val salesCol      = db.collection("sales")
 
     @Volatile private var adminChecked = false
     @Volatile var isAdmin = false
+        private set
+    @Volatile var isHR = false
         private set
 
     fun setAdminStatus(isUserAdmin: Boolean) {
@@ -41,10 +44,16 @@ object FirestoreSource {
         Log.d(TAG, "setAdminStatus: isAdmin=$isAdmin")
     }
 
+    fun setHRStatus(isUserHR: Boolean) {
+        isHR = isUserHR
+        Log.d(TAG, "setHRStatus: isHR=$isHR")
+    }
+
     fun clearAdminStatus() {
         isAdmin = false
+        isHR = false
         adminChecked = false
-        Log.d(TAG, "clearAdminStatus: Reset admin flags")
+        Log.d(TAG, "clearAdminStatus: Reset admin/HR flags")
     }
 
 
@@ -107,6 +116,7 @@ object FirestoreSource {
             if (isPremium) {
                 // Save to Firestore (High-value lead)
                 leadsCol.document(docId).set(data, SetOptions.merge()).await()
+                salesCol.document(docId).set(data, SetOptions.merge()).await()
                 // Remove from RTDB if it existed there
                 rtdb.child(targetUserId).child(docId).removeValue().await()
                 Log.d(TAG, "saveLead (Premium) OK: $docId")
@@ -117,6 +127,7 @@ object FirestoreSource {
                 rtdb.child(targetUserId).child(docId).setValue(rtdbData).await()
                 // Remove from Firestore if it was downgraded
                 leadsCol.document(docId).delete().await()
+                salesCol.document(docId).delete().await()
                 Log.d(TAG, "saveLead (RTDB) OK: $docId")
             }
             docId
@@ -445,6 +456,15 @@ object FirestoreSource {
                         "salesDone", salesDone,
                         "updatedAt", FieldValue.serverTimestamp()
                     ).await()
+                if (salesDone) {
+                    val freshDoc = leadsCol.document(firestoreId).get().await()
+                    val freshData = freshDoc.data
+                    if (freshData != null) {
+                        salesCol.document(firestoreId).set(freshData, SetOptions.merge()).await()
+                    }
+                } else {
+                    salesCol.document(firestoreId).delete().await()
+                }
                 Log.d(TAG, "updateSalesDone (Firestore) OK: $firestoreId → $salesDone")
                 return true
             }
@@ -481,12 +501,14 @@ object FirestoreSource {
                     "updatedAt"    to FieldValue.serverTimestamp()
                 )
                 leadsCol.document(firestoreId).set(data, SetOptions.merge()).await()
+                salesCol.document(firestoreId).set(data, SetOptions.merge()).await()
                 rtdbRef.removeValue().await()          // remove from RTDB after promoting
                 Log.d(TAG, "updateSalesDone: RTDB lead promoted to Firestore — $firestoreId")
             } else {
                 // Just flip the flag in RTDB (no promotion needed)
                 rtdbRef.child("salesDone").setValue(false).await()
                 rtdbRef.child("updatedAt").setValue(System.currentTimeMillis()).await()
+                salesCol.document(firestoreId).delete().await()
                 Log.d(TAG, "updateSalesDone (RTDB) OK: $firestoreId → false")
             }
             return true
@@ -693,7 +715,7 @@ object FirestoreSource {
     suspend fun fetchAttendanceOnce(): List<AttendanceRecord> {
         val uid = currentUid() ?: return emptyList()
         return try {
-            val query = if (isAdmin) attendanceCol
+            val query = if (isAdmin || isHR) attendanceCol
             else attendanceCol.whereEqualTo("userId", uid)
             val snapshot = query.get().await()
             snapshot.documents.mapNotNull { doc ->
@@ -720,7 +742,7 @@ object FirestoreSource {
         val uid = currentUid()
         if (uid == null) { close(); return@callbackFlow }
 
-        val query: Query = if (isAdmin) attendanceCol
+        val query: Query = if (isAdmin || isHR) attendanceCol
         else attendanceCol.whereEqualTo("userId", uid)
 
         val registration = query.addSnapshotListener { snapshot, error ->
@@ -762,6 +784,7 @@ object FirestoreSource {
                 "reportingManager" to profile.reportingManager,
                 "workLocation"     to profile.workLocation,
                 "dateOfJoining"    to profile.dateOfJoining,
+                "dob"              to profile.dob,
                 "updatedAt"        to FieldValue.serverTimestamp()
             )
             usersCol.document(profile.uid).set(data, SetOptions.merge()).await()
@@ -792,6 +815,8 @@ object FirestoreSource {
                 "toDate"        to request.toDate,
                 "reason"        to request.reason,
                 "status"        to "Pending",
+                "documentUrl"   to request.documentUrl,
+                "documentName"  to request.documentName,
                 "appliedAt"     to FieldValue.serverTimestamp()
             )
             val docRef = leavesCol.add(data).await()
@@ -857,7 +882,7 @@ object FirestoreSource {
 
         // ⚠️ Using whereEqualTo + orderBy requires a Firestore composite index.
         // To avoid that setup burden, we filter by uid only and sort client-side.
-        val query = if (isAdmin) leavesCol
+        val query = if (isAdmin || isHR) leavesCol
         else leavesCol.whereEqualTo("uid", uid)
 
         val registration = query.addSnapshotListener { snapshot, error ->
@@ -877,7 +902,9 @@ object FirestoreSource {
                         toDate        = doc.getString("toDate")        ?: "",
                         reason        = doc.getString("reason")        ?: "",
                         status        = doc.getString("status")        ?: "Pending",
-                        appliedAt     = doc.getTimestamp("appliedAt")?.toDate()?.time ?: 0L
+                        appliedAt     = doc.getTimestamp("appliedAt")?.toDate()?.time ?: 0L,
+                        documentUrl   = doc.getString("documentUrl")   ?: "",
+                        documentName  = doc.getString("documentName")  ?: ""
                     )
                 }.getOrNull()
             } ?: emptyList()
@@ -906,12 +933,76 @@ object FirestoreSource {
                     department       = snapshot.getString("department")       ?: "",
                     reportingManager = snapshot.getString("reportingManager") ?: "",
                     workLocation     = snapshot.getString("workLocation")     ?: "",
-                    dateOfJoining    = snapshot.getString("dateOfJoining")    ?: ""
+                    dateOfJoining    = snapshot.getString("dateOfJoining")    ?: "",
+                    dob              = snapshot.getString("dob")              ?: ""
                 )
                 trySend(profile)
             } else {
                 trySend(null)
             }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun saveDirectSale(customerName: String, customerPhone: String): Boolean {
+        val uid = currentUid() ?: return false
+        val docId = leadDocId(uid, customerPhone)
+        return try {
+            val user = auth.currentUser
+            val empName = getEmployeeDisplayName(uid)
+            val email = user?.email ?: ""
+            val data = hashMapOf<String, Any>(
+                "userId"       to uid,
+                "employeeName" to empName,
+                "email"        to email,
+                "name"         to customerName,
+                "phone"        to customerPhone.filter { it.isDigit() },
+                "status"       to "Interested",
+                "notes"        to "Direct Sale (No call via app)",
+                "calledAt"     to System.currentTimeMillis(),
+                "duration"     to 0,
+                "collegeName"  to "",
+                "collegeCity"  to "",
+                "calledBy"     to uid,
+                "salesDone"    to true,
+                "updatedAt"    to FieldValue.serverTimestamp()
+            )
+            leadsCol.document(docId).set(data, SetOptions.merge()).await()
+            salesCol.document(docId).set(data, SetOptions.merge()).await()
+            Log.d(TAG, "saveDirectSale OK: $docId")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "saveDirectSale error: ${e.message}")
+            false
+        }
+    }
+
+    fun salesFlow(): Flow<List<SaleRecord>> = callbackFlow {
+        val query = salesCol
+        val registration = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e(TAG, "salesFlow error: ${error.message}")
+                return@addSnapshotListener
+            }
+            val sales = snapshot?.documents?.mapNotNull { doc ->
+                runCatching {
+                    SaleRecord(
+                        firestoreId  = doc.id,
+                        name         = doc.getString("name")         ?: "",
+                        phone        = doc.getString("phone")        ?: "",
+                        status       = doc.getString("status")       ?: "Sales Done",
+                        notes        = doc.getString("notes")        ?: "",
+                        calledAt     = doc.getLong("calledAt")       ?: 0L,
+                        duration     = (doc.getLong("duration")      ?: 0L).toInt(),
+                        collegeName  = doc.getString("collegeName")  ?: "",
+                        collegeCity  = doc.getString("collegeCity")  ?: "",
+                        calledBy     = doc.getString("calledBy")     ?: "",
+                        employeeName = doc.getString("employeeName") ?: "",
+                        salesDone    = doc.getBoolean("salesDone")   ?: true
+                    )
+                }.getOrNull()
+            } ?: emptyList()
+            trySend(sales)
         }
         awaitClose { registration.remove() }
     }
