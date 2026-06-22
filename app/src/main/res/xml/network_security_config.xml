@@ -4,11 +4,10 @@
     <base-config cleartextTrafficPermitted="false" />
 
     <!--
-        🔒 SECURITY: Certificate Pinning — Firebase & Google APIs
-        ⚠️  EXPIRY: 2027-06-01 — update pins before this date!
-        ⚠️  Only applies to RELEASE builds.
-              Debug builds skip pinning via <debug-overrides> trust-anchors.
-        Pins: Google Trust Services GTS Root R1, R2 + GlobalSign Root CA R2
+        🔒 SECURITY: Google Trust Services & Firebase Connections
+        - Cleartext is blocked.
+        - Enforces standard secure HTTPS using Android's system certificates.
+        - SSL certificate pinning removed to prevent "Pin verification failed" login errors.
     -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">firebaseio.com</domain>
@@ -19,20 +18,11 @@
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
-        <pin-set expiration="2027-06-01">
-            <!-- Google Trust Services GTS Root R1 (Primary) -->
-            <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin>
-            <!-- Google Trust Services GTS Root R2 (Backup) -->
-            <pin digest="SHA-256">/zQvtsTIvTCkcmCeoWJKxK7O6huoSoWIQtnMkfJlO0g=</pin>
-            <!-- GlobalSign Root CA R2 (Legacy backup) -->
-            <pin digest="SHA-256">iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0=</pin>
-        </pin-set>
     </domain-config>
 
     <!--
         🔒 DEBUG OVERRIDE:
         - User-installed certs allowed (e.g. Charles Proxy for testing)
-        - Pin-set is NOT applied in debug — prevents false connectivity failures
         - In release builds this block is IGNORED by Android
     -->
     <debug-overrides>

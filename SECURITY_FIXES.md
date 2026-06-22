@@ -61,13 +61,10 @@ Only data classes, Activities, Services, and Fragments are now selectively kept.
 **Change:** `Settings.Secure.ANDROID_ID` (hardware-bound, non-resettable) replaced with `FirebaseInstallations.getInstance().id` (app-scoped, user-resettable, GDPR compliant).  
 **Impact:** App now complies with Google Play privacy policies on unique device identifiers.
 
----
-
-### Fix 6: SSL Certificate Pinning Added
-**Status:** ✅ FIXED  
+### Fix 6: SSL Certificate Pinning Removed
+**Status:** ✅ REMOVED (Handshake Fix)  
 **File:** `app/src/main/res/xml/network_security_config.xml`  
-**Change:** Added `<pin-set expiration="2027-06-01">` with SHA-256 hashes of Google Trust Services root CAs (GTS Root R1, R2, and GlobalSign R2 backup) for all Firebase and googleapis.com domains.  
-**Expiry Reminder:** Update pins before **2027-06-01**.
+**Change:** Removed `<pin-set>` to prevent Google/Firebase connection blocks (such as `[ Pin verification failed ]`) that occur when Google rotates certificates or serves alternative root CAs. Safe, secure HTTPS connection is still maintained through system certificates.
 
 ---
 
@@ -110,10 +107,6 @@ export GAS_SECRET_TOKEN="your-secure-random-256bit-key"
 ```
 Then rebuild the Android app so the new key bakes into BuildConfig.
 
-### 5. Certificate Pinning Renewal Reminder
-The cert pins in `network_security_config.xml` expire **2027-06-01**.  
-Set a calendar reminder to verify and update Google's root CA hashes before this date.
-
 ---
 
 ## 📊 Security Status Summary
@@ -129,7 +122,7 @@ Set a calendar reminder to verify and update Google's root CA hashes before this
 | Client-side Admin Routing | 🟡 Medium | ✅ Hardened (Firestore rules updated) |
 | allowBackup DB Extraction | 🟡 Medium | ✅ Not Present (backup_rules.xml excludes DB) |
 | ANDROID_ID Collection | 🟡 Medium | ✅ Fixed (Firebase Installation ID) |
-| Cert Pinning Expiration | 🟡 Medium | ✅ Fixed (added, expires 2027-06-01) |
+| Cert Pinning Expiration | 🟡 Medium | 🛡️ Removed (prevents handshake errors) |
 | Loose Device Lock Rules | 🔴 High | ✅ Fixed (restricted writes/deletes) |
 | Over-Privileged Permissions | 🟡 Medium | ⚠️ Necessary for core features (documented) |
 
