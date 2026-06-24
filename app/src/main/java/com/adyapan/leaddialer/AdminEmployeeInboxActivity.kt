@@ -76,7 +76,9 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
                         originalMsg  = doc.getString("originalMsg")  ?: "",
                         replyText    = doc.getString("replyText")    ?: "",
                         timestamp    = doc.getLong("timestamp")      ?: 0L,
-                        read         = doc.getBoolean("read")        ?: false
+                        read         = doc.getBoolean("read")        ?: false,
+                        fileUrl      = doc.getString("fileUrl")      ?: "",
+                        fileType     = doc.getString("fileType")     ?: ""
                     )
                 }
 
@@ -113,140 +115,24 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
     private fun openAdminThreadDialog(item: AdminReplyItem, db: FirebaseFirestore) {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_message_thread)
+        val composeView = androidx.compose.ui.platform.ComposeView(this).apply {
+            setContent {
+                HRPortalTheme {
+                    ChatThreadScreen(
+                        isAdminView = true,
+                        employeeUid = item.employeeUid,
+                        msgId = item.msgId,
+                        employeeName = item.employeeName,
+                        onDismiss = { dialog.dismiss() }
+                    )
+                }
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
-
-        val tvTitle    = dialog.findViewById<TextView>(R.id.tvThreadTitle)
-        val tvSubtitle = dialog.findViewById<TextView>(R.id.tvThreadSubtitle)
-        val btnClose   = dialog.findViewById<TextView>(R.id.btnCloseThread)
-        val rvThread   = dialog.findViewById<RecyclerView>(R.id.rvThread)
-        val etReply    = dialog.findViewById<TextInputEditText>(R.id.etReply)
-        val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
-
-        tvTitle.text    = "${item.employeeName}"
-        tvSubtitle.text = "Conversation thread · Admin view"
-
-        val lm = LinearLayoutManager(this).apply { stackFromEnd = true }
-        rvThread.layoutManager = lm
-
-        // Admin's original message as first bubble
-        val adminName = FirebaseAuth.getInstance().currentUser?.email
-            ?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "Admin"
-
-        val adminEntry = ChatEntry(
-            id        = item.msgId,
-            from      = adminName,
-            text      = item.originalMsg,
-            timestamp = 0L,
-            isReply   = false
-        )
-
-        var threadListener: ListenerRegistration? = null
-
-        // Listen to replies sub-collection under employee's inbox
-        threadListener = db.collection("messages").document(item.employeeUid)
-            .collection("inbox").document(item.msgId)
-            .collection("replies")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snap: com.google.firebase.firestore.QuerySnapshot?, _ ->
-                val replies = snap?.documents?.mapNotNull { doc: com.google.firebase.firestore.DocumentSnapshot ->
-                    ChatEntry(
-                        id        = doc.id,
-                        from      = doc.getString("from") ?: item.employeeName,
-                        text      = doc.getString("text") ?: "",
-                        timestamp = doc.getLong("timestamp") ?: 0L,
-                        isReply   = doc.getBoolean("isReply") ?: true
-                    )
-                } ?: emptyList()
-
-                // Fetch admin's original message timestamp
-                db.collection("messages").document(item.employeeUid)
-                    .collection("inbox").document(item.msgId)
-                    .get()
-                    .addOnSuccessListener { doc ->
-                        val adminTs = doc.getLong("timestamp") ?: 0L
-                        val adminWithTs = adminEntry.copy(timestamp = adminTs)
-                        val combined = (listOf(adminWithTs) + replies).sortedBy { it.timestamp }
-                        rvThread.adapter = ChatBubbleAdapter(combined)
-                        rvThread.scrollToPosition(combined.size - 1)
-                    }
-                    .addOnFailureListener {
-                        val combined = (listOf(adminEntry) + replies).sortedBy { it.timestamp }
-                        rvThread.adapter = ChatBubbleAdapter(combined)
-                        rvThread.scrollToPosition(combined.size - 1)
-                    }
-            }
-
-        // Admin sends a reply back to employee
-        btnSend.setOnClickListener {
-            val text = etReply.text?.toString()?.trim() ?: ""
-            if (text.isBlank()) {
-                etReply.error = "Reply cannot be empty"
-                return@setOnClickListener
-            }
-
-            val replyData = hashMapOf(
-                "from"      to adminName,
-                "text"      to text,
-                "timestamp" to System.currentTimeMillis(),
-                "isReply"   to false
-            )
-
-            // Write to employee's inbox as a new message
-            val newMsg = hashMapOf(
-                "from"       to adminName,
-                "text"       to text,
-                "timestamp"  to System.currentTimeMillis(),
-                "read"       to false,
-                "replyCount" to 0
-            )
-
-            db.collection("messages")
-                .document(item.employeeUid)
-                .collection("inbox")
-                .add(newMsg)
-                .addOnSuccessListener {
-                    etReply.setText("")
-                    Toast.makeText(
-                        this,
-                        "Reply sent to ${item.employeeName}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    // FCM Token notification push
-                    db.collection("users")
-                        .document(item.employeeUid)
-                        .get()
-                        .addOnSuccessListener { document ->
-                            val token = document.getString("fcmToken")
-                            if (!token.isNullOrEmpty()) {
-                                GasNotificationSender.sendNotification(
-                                    this,
-                                    token,
-                                    "New Message",
-                                    text
-                                )
-                            }
-                        }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(
-                        this,
-                        "${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        }
-
-        btnClose.setOnClickListener {
-            threadListener?.remove()
-            dialog.dismiss()
-        }
-        dialog.setOnDismissListener { threadListener?.remove() }
         dialog.show()
     }
 
@@ -265,7 +151,9 @@ data class AdminReplyItem(
     val originalMsg  : String,
     val replyText    : String,
     val timestamp    : Long,
-    val read         : Boolean
+    val read         : Boolean,
+    val fileUrl      : String = "",
+    val fileType     : String = ""
 )
 
 // ── AdminReplyAdapter recycler adapter ─────────────────────────────────────────
@@ -302,7 +190,9 @@ class AdminReplyAdapter(
         
         holder.viewUnreadDot.visibility = if (item.read) View.GONE else View.VISIBLE
         holder.tvOriginal.text = item.originalMsg
-        holder.tvReply.text = item.replyText
+        holder.tvReply.text = if (item.replyText.isNotEmpty()) item.replyText
+                              else if (item.fileUrl.isNotEmpty()) "[${item.fileType.uppercase()} Attachment]"
+                              else ""
 
         val action = View.OnClickListener { onViewThread(item) }
         holder.btnViewThread.setOnClickListener(action)

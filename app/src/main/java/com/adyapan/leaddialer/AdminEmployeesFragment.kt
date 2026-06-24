@@ -709,101 +709,24 @@ class AdminEmployeesFragment : Fragment() {
     ) {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_message_thread)
+        val composeView = androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+            setContent {
+                HRPortalTheme {
+                    ChatThreadScreen(
+                        isAdminView = true,
+                        employeeUid = employeeUid,
+                        msgId = msgId,
+                        employeeName = employeeName,
+                        onDismiss = { dialog.dismiss() }
+                    )
+                }
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
-
-        val tvTitle    = dialog.findViewById<TextView>(R.id.tvThreadTitle)
-        val tvSubtitle = dialog.findViewById<TextView>(R.id.tvThreadSubtitle)
-        val btnClose   = dialog.findViewById<TextView>(R.id.btnCloseThread)
-        val rvThread   = dialog.findViewById<RecyclerView>(R.id.rvThread)
-        val etReply    = dialog.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etReply)
-        val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
-
-        tvTitle.text    = "$employeeName"
-        tvSubtitle.text = "Conversation thread · you are Admin"
-
-        val lm = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
-        rvThread.layoutManager = lm
-
-        val db = FirebaseFirestore.getInstance()
-
-        val adminEntry = ChatEntry(
-            id        = msgId,
-            from      = adminName,
-            text      = adminMsgText,
-            timestamp = adminMsgTs,
-            isReply   = false   // admin msg shown on LEFT (same layout)
-        )
-
-        var threadListener: ListenerRegistration? = null
-        threadListener = db.collection("messages").document(employeeUid)
-            .collection("inbox").document(msgId)
-            .collection("replies")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snap, _ ->
-                val replies = snap?.documents?.mapNotNull { doc ->
-                    ChatEntry(
-                        id        = doc.id,
-                        from      = doc.getString("from") ?: employeeName,
-                        text      = doc.getString("text") ?: "",
-                        timestamp = doc.getLong("timestamp") ?: 0L,
-                        isReply   = true   // employee reply on RIGHT
-                    )
-                } ?: emptyList()
-
-                val combined = (listOf(adminEntry) + replies).sortedBy { it.timestamp }
-                rvThread.adapter = ChatBubbleAdapter(combined)
-                rvThread.scrollToPosition(combined.size - 1)
-            }
-
-        // Admin can also reply back in thread
-        btnSend.setOnClickListener {
-            val text = etReply.text?.toString()?.trim() ?: ""
-            if (text.isBlank()) { etReply.error = "Cannot be empty"; return@setOnClickListener }
-
-            // Send as a new inbox message (so employee gets notification)
-            val newMsg = hashMapOf(
-                "from"       to adminName,
-                "text"       to text,
-                "timestamp"  to System.currentTimeMillis(),
-                "read"       to false,
-                "replyCount" to 0
-            )
-            db.collection("messages").document(employeeUid)
-                .collection("inbox").add(newMsg)
-                .addOnSuccessListener { 
-                    etReply.setText("") 
-                    
-                    // Send FCM Notification via GAS
-                    FirebaseFirestore.getInstance().collection("users")
-                        .document(employeeUid)
-                        .get()
-                        .addOnSuccessListener { document ->
-                            val token = document.getString("fcmToken")
-                            if (!token.isNullOrEmpty()) {
-                                GasNotificationSender.sendNotification(
-                                    requireContext(),
-                                    token,
-                                    "New Message",
-                                    text
-                                )
-                            }
-                        }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        }
-
-        btnClose.setOnClickListener {
-            threadListener?.remove()
-            dialog.dismiss()
-        }
-        dialog.setOnDismissListener { threadListener?.remove() }
         dialog.show()
     }
 

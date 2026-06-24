@@ -26,7 +26,10 @@ data class InboxMessage(
     val text      : String  = "",
     val timestamp : Long    = 0L,
     val read      : Boolean = false,
-    val replyCount: Int     = 0
+    val replyCount: Int     = 0,
+    val fileUrl   : String  = "",
+    val fileName  : String  = "",
+    val fileType  : String  = ""
 )
 
 data class ChatEntry(
@@ -34,7 +37,10 @@ data class ChatEntry(
     val from      : String  = "",
     val text      : String  = "",
     val timestamp : Long    = 0L,
-    val isReply   : Boolean = false   // true = employee reply, false = admin msg
+    val isReply   : Boolean = false,   // true = employee reply, false = admin msg
+    val fileUrl   : String  = "",
+    val fileName  : String  = "",
+    val fileType  : String  = ""
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,7 +81,10 @@ class InboxFragment : Fragment() {
                         text       = doc.getString("text")      ?: "",
                         timestamp  = doc.getLong("timestamp")   ?: 0L,
                         read       = doc.getBoolean("read")     ?: false,
-                        replyCount = (doc.getLong("replyCount") ?: 0L).toInt()
+                        replyCount = (doc.getLong("replyCount") ?: 0L).toInt(),
+                        fileUrl    = doc.getString("fileUrl")   ?: "",
+                        fileName   = doc.getString("fileName")  ?: "",
+                        fileType   = doc.getString("fileType")  ?: ""
                     )
                 }
 
@@ -120,116 +129,24 @@ class InboxFragment : Fragment() {
     private fun openThreadDialog(uid: String, msg: InboxMessage) {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_message_thread)
+        val composeView = androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+            setContent {
+                HRPortalTheme {
+                    ChatThreadScreen(
+                        isAdminView = false,
+                        employeeUid = uid,
+                        msgId = msg.id,
+                        employeeName = msg.from,
+                        onDismiss = { dialog.dismiss() }
+                    )
+                }
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
-
-        val tvTitle    = dialog.findViewById<TextView>(R.id.tvThreadTitle)
-        val tvSubtitle = dialog.findViewById<TextView>(R.id.tvThreadSubtitle)
-        val btnClose   = dialog.findViewById<TextView>(R.id.btnCloseThread)
-        val rvThread   = dialog.findViewById<RecyclerView>(R.id.rvThread)
-        val etReply    = dialog.findViewById<TextInputEditText>(R.id.etReply)
-        val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
-
-        tvTitle.text    = "${msg.from}"
-        tvSubtitle.text = "Conversation thread"
-
-        val lm = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
-        rvThread.layoutManager = lm
-
-        val db = FirebaseFirestore.getInstance()
-
-        // Build initial entry from the admin message itself
-        val adminEntry = ChatEntry(
-            id        = msg.id,
-            from      = msg.from,
-            text      = msg.text,
-            timestamp = msg.timestamp,
-            isReply   = false
-        )
-
-        // Realtime listener on replies sub-collection
-        var threadListener: ListenerRegistration? = null
-        threadListener = db.collection("messages").document(uid)
-            .collection("inbox").document(msg.id)
-            .collection("replies")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snap, _ ->
-                val replies = snap?.documents?.mapNotNull { doc ->
-                    ChatEntry(
-                        id        = doc.id,
-                        from      = doc.getString("from") ?: "You",
-                        text      = doc.getString("text") ?: "",
-                        timestamp = doc.getLong("timestamp") ?: 0L,
-                        isReply   = doc.getBoolean("isReply") ?: true
-                    )
-                } ?: emptyList()
-
-                // Combine admin msg + replies sorted by time
-                val combined = (listOf(adminEntry) + replies).sortedBy { it.timestamp }
-                rvThread.adapter = ChatBubbleAdapter(combined)
-                rvThread.scrollToPosition(combined.size - 1)
-            }
-
-        // Get current user name
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val userName = currentUser?.displayName?.ifBlank { null }
-            ?: currentUser?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
-            ?: "Employee"
-
-        btnSend.setOnClickListener {
-            val text = etReply.text?.toString()?.trim() ?: ""
-            if (text.isBlank()) {
-                etReply.error = "Reply cannot be empty"
-                return@setOnClickListener
-            }
-
-            val replyData = hashMapOf(
-                "from"      to userName,
-                "text"      to text,
-                "timestamp" to System.currentTimeMillis(),
-                "isReply"   to true
-            )
-
-            db.collection("messages").document(uid)
-                .collection("inbox").document(msg.id)
-                .collection("replies")
-                .add(replyData)
-                .addOnSuccessListener {
-                    etReply.setText("")
-                    // Bump reply count on parent doc
-                    db.collection("messages").document(uid)
-                        .collection("inbox").document(msg.id)
-                        .update("replyCount", (msg.replyCount + 1))
-
-                    // Also write reply to admin's inbox so admin can see it
-                    // Admin uid stored in a known path or we use a "adminReplies" collection
-                    db.collection("adminReplies")
-                        .add(hashMapOf(
-                            "employeeUid"  to uid,
-                            "employeeName" to userName,
-                            "msgId"        to msg.id,
-                            "originalMsg"  to msg.text,
-                            "replyText"    to text,
-                            "timestamp"    to System.currentTimeMillis(),
-                            "read"         to false
-                        ))
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        }
-
-        btnClose.setOnClickListener {
-            threadListener?.remove()
-            dialog.dismiss()
-        }
-
-        dialog.setOnDismissListener { threadListener?.remove() }
-
         dialog.show()
     }
 
@@ -263,7 +180,9 @@ class MessageAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val msg = list[position]
         holder.tvFrom.text = "${msg.from}"
-        holder.tvText.text = msg.text
+        holder.tvText.text = if (msg.text.isNotEmpty()) msg.text
+                             else if (msg.fileUrl.isNotEmpty()) "[${msg.fileType.uppercase()} Attachment]"
+                             else ""
         holder.tvTime.text = formatTime(msg.timestamp)
         holder.dotUnread.visibility = if (msg.read) View.GONE else View.VISIBLE
         holder.tvReplyCnt.text = if (msg.replyCount == 0) "No replies yet"
