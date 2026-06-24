@@ -160,10 +160,14 @@ class SplashActivity : AppCompatActivity() {
 
         val user = FirebaseAuth.getInstance().currentUser ?: return true
 
-        val currentDeviceId = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ANDROID_ID
-        )
+        val currentDeviceId = try {
+            com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+        } catch (e: Exception) {
+            Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.ANDROID_ID
+            )
+        }
 
         try {
 
