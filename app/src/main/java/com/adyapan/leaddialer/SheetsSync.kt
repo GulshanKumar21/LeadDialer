@@ -19,11 +19,11 @@ object SheetsSync {
 
     private const val TAG = "SheetsSync"
 
-    // 🔒 SECURITY FIX: URL now read from BuildConfig (injected at build time, not hardcoded in source)
+    //  SECURITY FIX: URL now read from BuildConfig (injected at build time, not hardcoded in source)
     private val DEFAULT_SCRIPT_URL: String
         get() = BuildConfig.GAS_SCRIPT_URL
 
-    // 🔒 SECURITY FIX: HMAC secret token from BuildConfig
+    //  SECURITY FIX: HMAC secret token from BuildConfig
     private val GAS_SECRET: String
         get() = BuildConfig.GAS_SECRET_TOKEN
 
@@ -32,7 +32,7 @@ object SheetsSync {
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
     /**
-     * 🔒 SECURITY: Compute HMAC-SHA256 signature for Apps Script authentication.
+     *  SECURITY: Compute HMAC-SHA256 signature for Apps Script authentication.
      * The GAS script verifies this token in doGet/doPost before processing any request.
      */
     private fun computeHmacSignature(body: String): String {
@@ -441,16 +441,16 @@ object SheetsSync {
         return try {
             val url = URL(scriptUrl)
             val conn = url.openConnection() as HttpURLConnection
-            // 🔒 SECURITY FIX: Add HMAC-SHA256 signature header to authenticate each request
+            //  SECURITY FIX: Add HMAC-SHA256 signature header to authenticate each request
             val signature = computeHmacSignature(body)
             conn.apply {
                 requestMethod = "POST"
                 doOutput = true
                 connectTimeout = 15000
                 readTimeout = 15000
-                instanceFollowRedirects = true   // ✅ 302 redirect follow karega
+                instanceFollowRedirects = true   //  302 redirect follow karega
                 setRequestProperty("Content-Type", "application/json")
-                setRequestProperty("X-Auth-Token", signature)   // 🔒 HMAC auth header
+                setRequestProperty("X-Auth-Token", signature)   //  HMAC auth header
                 outputStream.write(body.toByteArray(Charsets.UTF_8))
             }
 
@@ -460,10 +460,10 @@ object SheetsSync {
 
             Log.d(TAG, "postToScript code=$responseCode body=$responseBody")
 
-            // ✅ 200 ya 302 dono accept karo
+            //  200 ya 302 dono accept karo
             val ok = responseCode in 200..299 || responseCode in 300..399
 
-            // ✅ GAS response mein "success:true" check karo
+            //  GAS response mein "success:true" check karo
             if (ok) {
                 try {
                     JSONObject(responseBody).optBoolean("success", false)

@@ -30,7 +30,7 @@ class TlManageAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val tl = getItem(position)
-        holder.tvName.text = "👤 ${tl.name}"
+        holder.tvName.text = "${tl.name}"
 
         holder.tvUrl.visibility = View.GONE
 

@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:text="📞"
+            android:text=""
             android:textSize="32sp"
             android:gravity="center"
             android:background="@drawable/bg_call_circle"
@@ -76,7 +76,7 @@
         android:padding="12dp"
         android:layout_marginBottom="8dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="✅" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+            android:text="" android:textSize="18sp" android:layout_marginEnd="12dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Connected" android:textSize="14sp"
             android:textColor="#276749" android:textStyle="bold"/>
@@ -93,7 +93,7 @@
         android:padding="12dp"
         android:layout_marginBottom="8dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="❌" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+            android:text="" android:textSize="18sp" android:layout_marginEnd="12dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Not Connected" android:textSize="14sp"
             android:textColor="#4A5568" android:textStyle="bold"/>
@@ -110,7 +110,7 @@
         android:padding="12dp"
         android:layout_marginBottom="8dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="📵" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+            android:text="" android:textSize="18sp" android:layout_marginEnd="12dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Busy" android:textSize="14sp"
             android:textColor="#C05621" android:textStyle="bold"/>
@@ -127,7 +127,7 @@
         android:padding="12dp"
         android:layout_marginBottom="8dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="⭐" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+            android:text="" android:textSize="18sp" android:layout_marginEnd="12dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Interested" android:textSize="14sp"
             android:textColor="#2B6CB0" android:textStyle="bold"/>
@@ -144,7 +144,7 @@
         android:padding="12dp"
         android:layout_marginBottom="16dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="👎" android:textSize="18sp" android:layout_marginEnd="12dp"/>
+            android:text="" android:textSize="18sp" android:layout_marginEnd="12dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Not Interested" android:textSize="14sp"
             android:textColor="#C53030" android:textStyle="bold"/>

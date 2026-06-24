@@ -1,6 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/navAdminDashboard"
+            android:icon="@android:drawable/ic_menu_today"
+            android:title="Dashboard"/>
+
+        <item
             android:id="@+id/navAdminEmployees"
             android:icon="@drawable/ic_leads"
             android:title="Employees"/>

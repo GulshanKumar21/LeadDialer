@@ -48,7 +48,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="📊 Today"
+                    android:text="Today"
                     android:gravity="center"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -112,7 +112,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📞 Calls"
+                        android:text="Calls"
                         android:textSize="11sp"
                         android:textColor="#FFE0B2"
                         android:fontFamily="@font/poppins_regular" />
@@ -148,7 +148,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🗣 Talk Time"
+                        android:text="Talk Time"
                         android:textSize="11sp"
                         android:textColor="#FFE0B2"
                         android:fontFamily="@font/poppins_regular" />
@@ -184,7 +184,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⏳ Gap Time"
+                        android:text="Gap Time"
                         android:textSize="11sp"
                         android:textColor="#FFE0B2"
                         android:fontFamily="@font/poppins_regular" />
@@ -223,7 +223,7 @@
                     android:id="@+id/tvCountdown"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🕗 —h —m left"
+                    android:text="—h —m left"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="#FFE0B2"
@@ -254,7 +254,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:gravity="center"
-            android:text="📞 No calls made yet.\nGo to Leads to start calling!"
+            android:text="No calls made yet.\nGo to Leads to start calling!"
             android:textSize="15sp"
             android:fontFamily="@font/poppins_regular"
             android:textColor="#C47A50"

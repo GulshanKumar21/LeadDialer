@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Selected Item (Brand Orange accent on dark) -->
+    <item android:state_checked="true">
+        <inset android:insetTop="6dp" android:insetBottom="6dp" android:insetLeft="18dp" android:insetRight="18dp">
+            <layer-list>
+                <!-- Subtle orange glow -->
+                <item
+                    android:left="2dp"
+                    android:top="2dp"
+                    android:right="2dp"
+                    android:bottom="2dp">
+                    <shape>
+                        <solid android:color="#20FF6A00"/>
+                        <corners android:radius="22dp"/>
+                    </shape>
+                </item>
+
+                <!-- Dark Orange-tinted Card Surface -->
+                <item>
+                    <shape>
+                        <gradient
+                            android:angle="270"
+                            android:startColor="#2E1A0A"
+                            android:endColor="#2A1508"/>
+                        <corners android:radius="22dp"/>
+                        <stroke
+                            android:width="1.5dp"
+                            android:color="#FF6A00"/>
+                        <padding
+                            android:left="14dp"
+                            android:right="14dp"
+                            android:top="12dp"
+                            android:bottom="12dp"/>
+                    </shape>
+                </item>
+            </layer-list>
+        </inset>
+    </item>
+
+    <!-- Normal Item (Dark surface style) -->
+    <item>
+        <inset android:insetTop="6dp" android:insetBottom="6dp" android:insetLeft="18dp" android:insetRight="18dp">
+            <shape>
+                <solid android:color="#222222"/>
+                <corners android:radius="22dp"/>
+                <stroke
+                    android:width="0.5dp"
+                    android:color="#333333"/>
+                <padding
+                    android:left="14dp"
+                    android:right="14dp"
+                    android:top="12dp"
+                    android:bottom="12dp"/>
+            </shape>
+        </inset>
+    </item>
+
+</selector>

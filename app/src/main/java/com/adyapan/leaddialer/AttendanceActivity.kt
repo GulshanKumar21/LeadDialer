@@ -311,7 +311,7 @@ class AttendanceActivity : AppCompatActivity() {
         sheet.setContentView(view)
 
         val displayFmt = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
-        view.findViewById<TextView>(R.id.tvDayDetailDate).text = "📅 ${displayFmt.format(cal.time)}"
+        view.findViewById<TextView>(R.id.tvDayDetailDate).text = "${displayFmt.format(cal.time)}"
 
         val tvStatus    = view.findViewById<TextView>(R.id.tvDayDetailStatus)
         val tvCheckIn   = view.findViewById<TextView>(R.id.tvDayDetailCheckIn)
@@ -320,7 +320,7 @@ class AttendanceActivity : AppCompatActivity() {
 
         if (isOff) {
             tvWeeklyOff.visibility = View.VISIBLE
-            tvWeeklyOff.text = "🗓 Weekly Off (Tuesday)"
+            tvWeeklyOff.text = "Weekly Off (Tuesday)"
             tvStatus.visibility   = View.GONE
             tvCheckIn.visibility  = View.GONE
             tvCheckOut.visibility = View.GONE
@@ -333,7 +333,7 @@ class AttendanceActivity : AppCompatActivity() {
                 .collection("dates").document(dateKey).get()
                 .addOnSuccessListener { doc ->
                     if (!doc.exists()) {
-                        tvStatus.text  = "❌ No attendance record found"
+                        tvStatus.text  = "No attendance record found"
                         tvCheckIn.text = ""
                         tvCheckOut.text = ""
                     } else {
@@ -348,8 +348,8 @@ class AttendanceActivity : AppCompatActivity() {
                         }
                         tvStatus.text  = "Status: $st"
                         tvStatus.setTextColor(Color.parseColor(stColor))
-                        tvCheckIn.text  = "⏰ Check-In:  $ci"
-                        tvCheckOut.text = "🚪 Check-Out: $co"
+                        tvCheckIn.text  = "Check-In: $ci"
+                        tvCheckOut.text = "Check-Out: $co"
                     }
                 }
         }
@@ -396,7 +396,7 @@ class AttendanceActivity : AppCompatActivity() {
         val fused = LocationServices.getFusedLocationProviderClient(this)
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
 
-        status.text    = "Fetching location... ⏳"
+        status.text    = "Fetching location..."
         subStatus.text = "Please wait a moment."
         btn.isEnabled  = false
 
@@ -411,7 +411,7 @@ class AttendanceActivity : AppCompatActivity() {
                     fused.lastLocation.addOnSuccessListener { fallback ->
                         if (fallback != null) handleLocationResult(fallback)
                         else {
-                            status.text    = "Location error ❌"
+                            status.text    = "Location error"
                             subStatus.text = "Enable GPS and try again."
                             btn.isEnabled  = true
                         }
@@ -422,7 +422,7 @@ class AttendanceActivity : AppCompatActivity() {
 
     private fun handleLocationResult(location: android.location.Location) {
         if (location.isFromMockProvider) {
-            status.text    = "Mock Location Detected ❌"
+            status.text    = "Mock Location Detected"
             subStatus.text = "Fake GPS is not allowed."
             return
         }
@@ -432,12 +432,12 @@ class AttendanceActivity : AppCompatActivity() {
         Location.distanceBetween(lat, lng, officeLat, officeLng, result)
         val distanceMeters = result[0].toInt()
         if (distanceMeters <= allowedRadius) {
-            status.text    = "Inside Office ✅"
+            status.text    = "Inside Office"
             subStatus.text = "You are within ${distanceMeters}m of the office."
             btn.isEnabled  = true
             checkToday()
         } else {
-            status.text    = "Outside Office ❌"
+            status.text    = "Outside Office"
             subStatus.text = "You are ${distanceMeters}m away. Move inside the office to mark attendance."
             btn.isEnabled  = false
         }
@@ -454,7 +454,7 @@ class AttendanceActivity : AppCompatActivity() {
             .collection("devices").document(deviceId).get()
             .addOnSuccessListener { doc ->
                 if (doc.exists() && doc.getString("userId") != userId) {
-                    status.text    = "Device Locked ⚠️"
+                    status.text    = "Device Locked"
                     subStatus.text = "This phone has already been used to mark attendance for another employee today."
                     btn.visibility = View.GONE
                     return@addOnSuccessListener
@@ -620,7 +620,7 @@ class AttendanceActivity : AppCompatActivity() {
         batch.set(db.collection("attendance").document(userId).collection("dates").document(date), attData)
         batch.commit()
             .addOnSuccessListener {
-                Toast.makeText(this, "Check-In Successful ✅", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Check-In Successful", Toast.LENGTH_SHORT).show()
                 btn.text      = "Check-Out"
                 btn.isEnabled = true   // re-enable for checkout
                 isCheckedIn   = true
@@ -697,9 +697,9 @@ class AttendanceActivity : AppCompatActivity() {
                 attendanceMap[date] = newStatus
                 renderCalendar()
                 val msg = if (isEarlyLeave) {
-                    if (newStatus == "Absent") "Check-Out ❌ Absent (Worked < 2.5h)" else "Check-Out ⚠️ Early Leave (Half Day)"
+                    if (newStatus == "Absent") "Check-Out Absent (Worked < 2.5h)" else "Check-Out Early Leave (Half Day)"
                 } else {
-                    if (newStatus == "Absent") "Check-Out ❌ Absent (Worked < 2.5h)" else "Check-Out Successful ✅"
+                    if (newStatus == "Absent") "Check-Out Absent (Worked < 2.5h)" else "Check-Out Successful"
                 }
                 Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                 btn.isEnabled = false
@@ -710,7 +710,7 @@ class AttendanceActivity : AppCompatActivity() {
             }
     }
 
-    private fun isLateCheckInTime(timeStr: String): Boolean {
+    private fun isExceptionCheckInTime(timeStr: String): Boolean {
         if (timeStr.isBlank() || timeStr == "N/A" || timeStr == "--") return false
         try {
             val parts = timeStr.split(":")
@@ -719,10 +719,10 @@ class AttendanceActivity : AppCompatActivity() {
                 val m = parts[1].toInt()
                 val s = if (parts.size > 2) parts[2].toInt() else 0
                 val totalSeconds = h * 3600 + m * 60 + s
-                // 11:05:01 to 11:10:00 (Grace period)
+                // 11:05:01 to 11:15:00
                 // 11:05:00 is 39900 seconds
-                // 11:10:00 is 40200 seconds
-                return totalSeconds in 39901..40200
+                // 11:15:00 is 40500 seconds
+                return totalSeconds in 39901..40500
             }
         } catch (e: Exception) {
             // ignore
@@ -730,12 +730,12 @@ class AttendanceActivity : AppCompatActivity() {
         return false
     }
 
-    private fun getLateCountForCurrentMonth(): Int {
+    private fun getExceptionCountForCurrentMonth(): Int {
         val monthPrefix = SimpleDateFormat("yyyy-MM-", Locale.getDefault()).format(Date())
         var count = 0
         for ((dateKey, timeStr) in checkInTimeMap) {
             if (dateKey.startsWith(monthPrefix)) {
-                if (isLateCheckInTime(timeStr)) {
+                if (isExceptionCheckInTime(timeStr) && attendanceMap[dateKey] == "Present") {
                     count++
                 }
             }
@@ -752,17 +752,14 @@ class AttendanceActivity : AppCompatActivity() {
                 val s = if (parts.size > 2) parts[2].toInt() else 0
                 val totalSeconds = h * 3600 + m * 60 + s
                 
-                if (totalSeconds <= 39900) { // 11:05:00 or earlier
-                    return "Present"
-                } else if (totalSeconds <= 40200) { // 11:05:01 to 11:10:00
-                    val priorLateCount = getLateCountForCurrentMonth()
-                    return if (priorLateCount >= 3) {
-                        "Half Day"
-                    } else {
-                        "Late"
+                return when {
+                    totalSeconds <= 39600 -> "Present" // Up to 11:00:00
+                    totalSeconds <= 39900 -> "Late"    // 11:00:01 to 11:05:00
+                    totalSeconds <= 40500 -> {         // 11:05:01 to 11:15:00
+                        val priorExceptions = getExceptionCountForCurrentMonth()
+                        if (priorExceptions < 3) "Present" else "Half Day"
                     }
-                } else { // 11:10:01 or later
-                    return "Half Day"
+                    else -> "Half Day"                 // 11:15:01 onwards
                 }
             }
         } catch (e: Exception) {

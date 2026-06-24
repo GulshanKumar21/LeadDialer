@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="👎 Not Interested — Reason"
+        android:text="Not Interested — Reason"
         android:textSize="17sp"
         android:textStyle="bold"
         android:textColor="#1A1A2E"
@@ -73,7 +73,7 @@
 
         <Button
             android:id="@+id/btnConfirmNotInterested"
-            android:text="✅ Confirm"
+            android:text="Confirm"
             android:textColor="@android:color/white"
             android:backgroundTint="#EF4444"
             android:textAllCaps="false"

@@ -226,7 +226,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
 
         val statuses = arrayOf("Present", "Late", "Half Day", "Absent", "LOP", "Remove Record")
         AlertDialog.Builder(this)
-            .setTitle("✏️ Edit Status: ${row.displayDate}")
+            .setTitle("Edit Status: ${row.displayDate}")
             .setItems(statuses) { dialog, which ->
                 val selectedOption = statuses[which]
                 if (selectedOption == "Remove Record") {
@@ -234,7 +234,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
                         .collection("dates").document(row.dateKey)
                         .delete()
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Record deleted ✅", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Record deleted", Toast.LENGTH_SHORT).show()
                             loadMonth()
                         }
                         .addOnFailureListener {
@@ -256,7 +256,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
                         .collection("dates").document(row.dateKey)
                         .set(data)
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Attendance updated to $selectedOption ✅", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Attendance updated to $selectedOption", Toast.LENGTH_SHORT).show()
                             loadMonth()
                         }
                         .addOnFailureListener {
@@ -296,7 +296,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
         decodeAndShow(row.checkOutSelfie, imgOut, tvOut)
 
         AlertDialog.Builder(this)
-            .setTitle("📸 ${name} — ${row.displayDate}")
+            .setTitle("${name} — ${row.displayDate}")
             .setView(dialogView)
             .setPositiveButton("Close") { d, _ -> d.dismiss() }
             .show()
@@ -362,7 +362,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
                     .collection("dates").document(row.dateKey)
                     .delete()
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Marked Absent ✅", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Marked Absent", Toast.LENGTH_SHORT).show()
                         dialog.dismiss(); loadMonth()
                     }
                     .addOnFailureListener {
@@ -383,7 +383,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
                     .collection("dates").document(row.dateKey)
                     .set(data)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "Saved ✅", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                         dialog.dismiss(); loadMonth()
                     }
                     .addOnFailureListener {
@@ -402,7 +402,7 @@ class AdminEmployeeAttendanceActivity : AppCompatActivity() {
                         .collection("dates").document(row.dateKey)
                         .delete()
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Deleted ✅", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
                             dialog.dismiss(); loadMonth()
                         }
                         .addOnFailureListener {
@@ -449,7 +449,7 @@ class DayRowAdapter(
 
         when {
             row.holidayName != null -> {
-                holder.tvStatus.text = "🎉 ${row.holidayName}"
+                holder.tvStatus.text = "${row.holidayName}"
                 holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#EA580C"))
                 holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     android.graphics.Color.parseColor("#FFEDD5"))
@@ -481,7 +481,7 @@ class DayRowAdapter(
                 holder.ivPhoto.visibility = View.GONE
             }
             row.status.equals("LOP", ignoreCase = true) -> {
-                holder.tvStatus.text = "⚠️ LOP"
+                holder.tvStatus.text = "LOP"
                 holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#EF4444"))
                 holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     android.graphics.Color.parseColor("#FEE2E2"))
@@ -489,7 +489,7 @@ class DayRowAdapter(
                 holder.ivPhoto.visibility = View.GONE
             }
             row.status.equals("Half Day", ignoreCase = true) -> {
-                holder.tvStatus.text = "🔵 Half Day"
+                holder.tvStatus.text = "Half Day"
                 holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#0284C7"))
                 holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     android.graphics.Color.parseColor("#E0F2FE"))
@@ -499,7 +499,7 @@ class DayRowAdapter(
                 holder.ivPhoto.alpha      = if (hasSelfie) 1.0f else 0.25f
             }
             row.status.equals("Late", ignoreCase = true) -> {
-                holder.tvStatus.text = "🔴 Late"
+                holder.tvStatus.text = "Late"
                 holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#DC2626"))
                 holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     android.graphics.Color.parseColor("#FEE2E2"))
@@ -509,7 +509,7 @@ class DayRowAdapter(
                 holder.ivPhoto.alpha      = if (hasSelfie) 1.0f else 0.25f
             }
             else -> {
-                holder.tvStatus.text = "🟢 Present"
+                holder.tvStatus.text = "Present"
                 holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#10B981"))
                 holder.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     android.graphics.Color.parseColor("#D1FAE5"))

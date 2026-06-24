@@ -22,7 +22,7 @@
         <item
             android:id="@+id/navInbox"
             android:icon="@android:drawable/ic_dialog_email"
-            android:title="💬 Inbox"/>
+            android:title="Inbox"/>
 
         <item
             android:id="@+id/navDocuments"
@@ -37,7 +37,7 @@
         <item
             android:id="@+id/navDirectSale"
             android:icon="@android:drawable/ic_menu_add"
-            android:title="💰 Direct Sale"/>
+            android:title="Direct Sale"/>
 
         <item
             android:id="@+id/navSettings"

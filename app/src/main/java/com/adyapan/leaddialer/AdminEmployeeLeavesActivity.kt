@@ -128,7 +128,7 @@ class AdminEmployeeLeavesActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val ok = FirestoreSource.updateLeaveStatus(req.id, newStatus)
             if (ok) {
-                val emoji = if (newStatus == "Approved") "✅" else "❌"
+                val emoji = if (newStatus == "Approved") "" else ""
                 Toast.makeText(
                     this@AdminEmployeeLeavesActivity,
                     "$emoji Leave ${newStatus.lowercase()} for ${req.employeeName}",
@@ -146,7 +146,7 @@ class AdminEmployeeLeavesActivity : AppCompatActivity() {
                     )
                 }
             } else {
-                Toast.makeText(this@AdminEmployeeLeavesActivity, "❌ Failed to update. Check internet.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AdminEmployeeLeavesActivity, "Failed to update. Check internet.", Toast.LENGTH_SHORT).show()
             }
         }
     }

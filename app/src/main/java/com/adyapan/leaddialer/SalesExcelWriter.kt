@@ -36,7 +36,7 @@ object SalesExcelWriter {
             val fileName = "$baseFileName.xls"
             val success = exportXls(context, sortedSales, fileName)
             if (success) {
-                return "✅ Sales Excel saved to Downloads! ($fileName)"
+                return "Sales Excel saved to Downloads! ($fileName)"
             } else {
                 throw Exception("Write to storage failed")
             }
@@ -46,9 +46,9 @@ object SalesExcelWriter {
             val csvFileName = "$baseFileName.csv"
             val csvSuccess = exportCsv(context, sortedSales, csvFileName)
             if (csvSuccess) {
-                return "⚠️ Excel error, saved as CSV to Downloads: $csvFileName"
+                return "Excel error, saved as CSV to Downloads: $csvFileName"
             } else {
-                return "❌ Download failed: ${poiError.localizedMessage ?: "Storage write failed"}"
+                return "Download failed: ${poiError.localizedMessage ?:"Storage write failed"}"
             }
         }
     }

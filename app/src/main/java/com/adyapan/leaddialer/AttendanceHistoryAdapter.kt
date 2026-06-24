@@ -49,7 +49,7 @@ class AttendanceHistoryAdapter : ListAdapter<AttendanceHistoryItem, AttendanceHi
 
         when {
             item.holidayName != null -> {
-                holder.tvStatus.text = "🎉 ${item.holidayName}"
+                holder.tvStatus.text = "${item.holidayName}"
                 holder.tvStatus.setTextColor(Color.parseColor("#EA580C"))
                 holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FFEDD5"))
                 holder.tvTime.text = "Holiday"
@@ -83,37 +83,37 @@ class AttendanceHistoryAdapter : ListAdapter<AttendanceHistoryItem, AttendanceHi
 
                 when {
                     item.status.equals("LOP", ignoreCase = true) -> {
-                        holder.tvStatus.text = "⚠️ LOP"
+                        holder.tvStatus.text = "LOP"
                         holder.tvStatus.setTextColor(Color.parseColor("#EF4444"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
                     }
                     item.status.equals("Absent", ignoreCase = true) -> {
-                        holder.tvStatus.text = "❌ Absent"
+                        holder.tvStatus.text = "Absent"
                         holder.tvStatus.setTextColor(Color.parseColor("#EF4444"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
                     }
                     item.status.equals("Half Day", ignoreCase = true) -> {
-                        holder.tvStatus.text = "🔵 Half Day"
+                        holder.tvStatus.text = "Half Day"
                         holder.tvStatus.setTextColor(Color.parseColor("#0284C7"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E0F2FE"))
                     }
                     item.status.equals("Late", ignoreCase = true) && item.earlyLeave -> {
-                        holder.tvStatus.text = "🔴 Late + Early Leave"
+                        holder.tvStatus.text = "Late + Early Leave"
                         holder.tvStatus.setTextColor(Color.parseColor("#DC2626"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
                     }
                     item.status.equals("Late", ignoreCase = true) -> {
-                        holder.tvStatus.text = "🔴 Late"
+                        holder.tvStatus.text = "Late"
                         holder.tvStatus.setTextColor(Color.parseColor("#DC2626"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
                     }
                     item.earlyLeave -> {
-                        holder.tvStatus.text = "⚠️ Early Leave"
+                        holder.tvStatus.text = "Early Leave"
                         holder.tvStatus.setTextColor(Color.parseColor("#D97706"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEF3C7"))
                     }
                     else -> {
-                        holder.tvStatus.text = "🟢 Present"
+                        holder.tvStatus.text = "Present"
                         holder.tvStatus.setTextColor(Color.parseColor("#10B981"))
                         holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#D1FAE5"))
                     }

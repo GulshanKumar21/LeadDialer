@@ -113,12 +113,12 @@ class AdminLeadsFragment : Fragment() {
                                 viewModel.updateLeadSalesDoneLocally(fid, newVal)
                                 val ok = FirestoreSource.updateSalesDone(fid, newVal, userId)
                                 if (ok) {
-                                    val msg = if (newVal) "✅ Sales Done marked!" else "↩️ Sales Done removed"
+                                    val msg = if (newVal) "Sales Done marked!" else "↩ Sales Done removed"
                                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                 } else {
                                     // Revert on failure
                                     viewModel.updateLeadSalesDoneLocally(fid, lead.salesDone)
-                                    Toast.makeText(context, "❌ Failed to update", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Failed to update", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -259,7 +259,7 @@ fun AdminLeadsScreen(
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("📞 View Call Logs & Timings", fontFamily = NunitoFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("View Call Logs & Timings", fontFamily = NunitoFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 }
             }

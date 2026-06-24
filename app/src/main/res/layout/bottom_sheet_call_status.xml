@@ -24,7 +24,7 @@
 
             <TextView
                 android:id="@+id/tvTitle"
-                android:text="📞 Call Summary"
+                android:text="Call Summary"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="#1A1A2E"
@@ -42,7 +42,7 @@
 
             <TextView
                 android:id="@+id/tvCallTime"
-                android:text="🕐 Called at: 10:30 AM"
+                android:text="Called at: 10:30 AM"
                 android:textSize="13sp"
                 android:textColor="#3B82F6"
                 android:layout_marginTop="2dp"
@@ -62,7 +62,7 @@
                 android:visibility="gone">
 
                 <TextView
-                    android:text="🙋"
+                    android:text=""
                     android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
 
                 <Button
                     android:id="@+id/btnInterested"
-                    android:text="⭐ Interested"
+                    android:text="Interested"
                     android:backgroundTint="#6366F1"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"
@@ -126,7 +126,7 @@
 
                 <Button
                     android:id="@+id/btnBusy"
-                    android:text="📵 Busy"
+                    android:text="Busy"
                     android:backgroundTint="#F59E0B"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"
@@ -148,7 +148,7 @@
 
                 <Button
                     android:id="@+id/btnNotConnected"
-                    android:text="❌ No Answer"
+                    android:text="No Answer"
                     android:backgroundTint="#EF4444"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"
@@ -163,7 +163,7 @@
 
                 <Button
                     android:id="@+id/btnNotInterested"
-                    android:text="👎 Not Interested"
+                    android:text="Not Interested"
                     android:backgroundTint="#6B7280"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
@@ -185,7 +185,7 @@
 
                 <Button
                     android:id="@+id/btnCustom"
-                    android:text="✏️ Custom"
+                    android:text="Custom"
                     android:backgroundTint="#8B5CF6"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
@@ -200,7 +200,7 @@
 
                 <Button
                     android:id="@+id/btnConnected"
-                    android:text="🔢 Wrong Number"
+                    android:text="Wrong Number"
                     android:backgroundTint="#8B0000"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"

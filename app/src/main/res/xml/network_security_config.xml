@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- 🔒 SECURITY: Block all cleartext traffic everywhere -->
+    <!--  SECURITY: Block all cleartext traffic everywhere -->
     <base-config cleartextTrafficPermitted="false" />
 
     <!--
-        🔒 SECURITY: Google Trust Services & Firebase Connections
+         SECURITY: Google Trust Services & Firebase Connections
         - Cleartext is blocked.
         - Enforces standard secure HTTPS using Android's system certificates.
         - SSL certificate pinning removed to prevent "Pin verification failed" login errors.
@@ -21,7 +21,7 @@
     </domain-config>
 
     <!--
-        🔒 DEBUG OVERRIDE:
+         DEBUG OVERRIDE:
         - User-installed certs allowed (e.g. Charles Proxy for testing)
         - In release builds this block is IGNORED by Android
     -->

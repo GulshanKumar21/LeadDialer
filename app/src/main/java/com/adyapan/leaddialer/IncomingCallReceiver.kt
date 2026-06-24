@@ -112,7 +112,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                             .apply()
                         Log.d(TAG, "Outgoing call ended → KEY_ACTUAL_END written, launching popup")
 
-                        // ✅ Directly launch CallPopupActivity so popup ALWAYS appears
+                        //  Directly launch CallPopupActivity so popup ALWAYS appears
                         // regardless of whether MainActivity is in foreground or not
                         launchCallPopup(context, prefs, actualEnd)
 
@@ -135,7 +135,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                         Log.d(TAG, "Cleared pending state for missed incoming call")
                     } else {
                         // KEY_PENDING intentionally left so next real call attempt still works.
-                        // No KEY_ACTUAL_END written → no popup. ✅
+                        // No KEY_ACTUAL_END written → no popup. 
                     }
                 }
 
@@ -183,7 +183,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                     withContext(Dispatchers.Main) {
                         android.widget.Toast.makeText(
                             context,
-                            "📞 ADYAPAN LEAD: ${lead.name}\n" +
+                            "ADYAPAN LEAD: ${lead.name}\n" +
                             "Status: ${lead.status.ifBlank { "Pending" }}",
                             android.widget.Toast.LENGTH_LONG
                         ).show()
@@ -192,7 +192,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                         kotlinx.coroutines.delay(2500)
                         android.widget.Toast.makeText(
                             context,
-                            "📞 ADYAPAN LEAD: ${lead.name}\n" +
+                            "ADYAPAN LEAD: ${lead.name}\n" +
                             "Status: ${lead.status.ifBlank { "Pending" }}",
                             android.widget.Toast.LENGTH_LONG
                         ).show()
@@ -205,52 +205,6 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 Log.e(TAG, "handleIncomingCall error: ${e.message}")
             }
         }
-    }
-
-    private data class CallLogEntry(val number: String, val date: Long)
-
-    private fun getLastCallLogEntry(context: Context): CallLogEntry? {
-        if (androidx.core.content.ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.READ_CALL_LOG
-            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.w(TAG, "getLastCallLogEntry: READ_CALL_LOG permission not granted")
-            return null
-        }
-        var entry: CallLogEntry? = null
-        try {
-            val cursor = context.contentResolver.query(
-                android.provider.CallLog.Calls.CONTENT_URI,
-                arrayOf(android.provider.CallLog.Calls.NUMBER, android.provider.CallLog.Calls.DATE),
-                null,
-                null,
-                "${android.provider.CallLog.Calls.DATE} DESC LIMIT 1"
-            )
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val numIdx = it.getColumnIndex(android.provider.CallLog.Calls.NUMBER)
-                    val dateIdx = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
-                    if (numIdx != -1 && dateIdx != -1) {
-                        val number = it.getString(numIdx)
-                        val date = it.getLong(dateIdx)
-                        if (!number.isNullOrBlank()) {
-                            entry = CallLogEntry(number, date)
-                        }
-                    }
-                }
-            }
-        } catch (e: java.lang.Exception) {
-            Log.e(TAG, "Error querying call log: ${e.message}")
-        }
-        return entry
-    }
-
-    private fun comparePhoneNumbers(num1: String, num2: String): Boolean {
-        val clean1 = num1.filter { it.isDigit() }
-        val clean2 = num2.filter { it.isDigit() }
-        if (clean1.isEmpty() || clean2.isEmpty()) return false
-        return clean1.takeLast(10) == clean2.takeLast(10)
     }
 
     /**
@@ -290,76 +244,21 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Real call ended: name=$name phone=$phone duration=${duration}s calledAt=$calledAtStr")
 
-        // Run validation against call logs and launch popup in a coroutine
-        CoroutineScope(Dispatchers.IO).launch {
-            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.READ_CALL_LOG
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val record = CallRecord(
+            phone     = phone,
+            name      = name,
+            duration  = duration,
+            calledAt  = calledAt,
+            status    = "Pending"
+        )
 
-            var verified = !hasPermission // If no permission, bypass verification and let it show (fallback)
-            var lastLoggedNumber: String? = null
-
-            if (hasPermission) {
-                var attempts = 0
-                while (attempts < 6) { // 6 attempts * 500ms = 3 seconds max wait
-                    val logEntry = getLastCallLogEntry(context)
-                    if (logEntry != null) {
-                        val ageMs = System.currentTimeMillis() - logEntry.date
-                        Log.d(TAG, "Call log entry check: number=${logEntry.number}, date=${logEntry.date}, age=${ageMs}ms")
-                        
-                        // If log entry is fresh (within last 12 seconds), verify it
-                        if (ageMs < 12000L) {
-                            lastLoggedNumber = logEntry.number
-                            if (comparePhoneNumbers(phone, lastLoggedNumber)) {
-                                verified = true
-                                break
-                            } else {
-                                // It is fresh but does not match!
-                                Log.d(TAG, "Fresh call log mismatch: expected $phone, got $lastLoggedNumber")
-                                break
-                            }
-                        }
-                    }
-                    attempts++
-                    kotlinx.coroutines.delay(500)
-                }
-            }
-
-            if (!verified) {
-                Log.w(TAG, "Call log verification failed. Expected: $phone, Last Logged: $lastLoggedNumber. Suppressing popup.")
-                withContext(Dispatchers.Main) {
-                    prefs.edit()
-                        .putBoolean(CallManager.KEY_PENDING, false)
-                        .putBoolean(CallManager.KEY_CONNECTED, false)
-                        .putLong(CallManager.KEY_ACTUAL_END, 0L)
-                        .putLong(CallManager.KEY_OFFHOOK_TIME, 0L)
-                        .putString("call_phone", "")
-                        .putString("call_name", "")
-                        .apply()
-                    CallManager.callActive = false
-                }
-                return@launch
-            }
-
-            withContext(Dispatchers.Main) {
-                val record = CallRecord(
-                    phone     = phone,
-                    name      = name,
-                    duration  = duration,
-                    calledAt  = calledAt,
-                    status    = "Pending"
-                )
-
-                // Launch CallPopupActivity — always shows, even when app is in background
-                val intent = Intent(context, CallPopupActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("call_record", record)
-                    putExtra("called_at_str", calledAtStr)   // human-readable time string
-                }
-                context.startActivity(intent)
-                Log.d(TAG, "Successfully verified call and launched popup activity.")
-            }
+        // Launch CallPopupActivity — always shows, even when app is in background
+        val intent = Intent(context, CallPopupActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("call_record", record)
+            putExtra("called_at_str", calledAtStr)   // human-readable time string
         }
+        context.startActivity(intent)
+        Log.d(TAG, "Successfully launched popup activity immediately.")
     }
 }

@@ -97,7 +97,7 @@
                     android:id="@+id/btnRefreshLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔄 Refresh Location"
+                    android:text="Refresh Location"
                     android:textColor="#4285F4"
                     android:textSize="13sp"
                     android:textStyle="bold"

@@ -38,7 +38,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 🔥 Root Detection
+        //  Root Detection
         if (isRooted()) {
 
             Toast.makeText(
@@ -53,12 +53,12 @@ class SplashActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_splash)
 
-        // ✨ Entrance Animations
+        //  Entrance Animations
         playEntranceAnimations()
 
         lifecycleScope.launch {
 
-            // 🔥 Device Validation
+            //  Device Validation
             val deviceValid = validateActiveDevice()
             if (!deviceValid) return@launch
 
@@ -66,7 +66,7 @@ class SplashActivity : AppCompatActivity() {
                 updateFcmToken()
             }
 
-            // 🔥 Admin Check
+            //  Admin Check
             checkAdminStatus()
         }
 
@@ -78,7 +78,7 @@ class SplashActivity : AppCompatActivity() {
         }, 1800)
     }
 
-    // ✨ Smooth Entrance Animations
+    //  Smooth Entrance Animations
     private fun playEntranceAnimations() {
         val mascot = findViewById<ImageView>(R.id.splashMascot)
         val glow = findViewById<ImageView>(R.id.glowBehind)
@@ -129,7 +129,7 @@ class SplashActivity : AppCompatActivity() {
         dot.startAnimation(pulse)
     }
 
-    // 🔥 Enhanced Root Detection
+    //  Enhanced Root Detection
     private fun isRooted(): Boolean {
         val suPaths = listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/system/su",
             "/data/local/xbin/su", "/data/local/bin/su", "/data/local/su")
@@ -155,7 +155,7 @@ class SplashActivity : AppCompatActivity() {
         return false
     }
 
-    // 🔥 One Device Login Validation
+    //  One Device Login Validation
     private suspend fun validateActiveDevice(): Boolean {
 
         val user = FirebaseAuth.getInstance().currentUser ?: return true
@@ -181,7 +181,7 @@ class SplashActivity : AppCompatActivity() {
 
             val savedDeviceId = doc.getString("activeDeviceId")
 
-            // 🔥 First Login
+            //  First Login
             if (savedDeviceId.isNullOrEmpty()) {
 
                 firestore.collection("users")
@@ -197,7 +197,7 @@ class SplashActivity : AppCompatActivity() {
                 return true
             }
 
-            // 🔥 Another Device Login
+            //  Another Device Login
             if (savedDeviceId != currentDeviceId) {
 
                 FirebaseAuth.getInstance().signOut()
@@ -223,7 +223,7 @@ class SplashActivity : AppCompatActivity() {
         return true
     }
 
-    // 🔥 Admin Check
+    //  Admin Check
     private suspend fun checkAdminStatus() {
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
@@ -237,7 +237,7 @@ class SplashActivity : AppCompatActivity() {
 
         val firestore = FirebaseFirestore.getInstance()
 
-        // ✅ 5-second timeout so splash never hangs forever when offline.
+        //  5-second timeout so splash never hangs forever when offline.
         val doc = try {
             withTimeoutOrNull(5_000L) {
                 firestore
@@ -283,35 +283,35 @@ class SplashActivity : AppCompatActivity() {
         val pref = getSharedPreferences("app", MODE_PRIVATE)
 
         when {
-            // 🔥 FIRST TIME
+            //  FIRST TIME
             pref.getBoolean("firstTime", true) -> {
                 startActivity(
                     Intent(this, OnboardingActivity::class.java)
                 )
             }
 
-            // 🔥 NOT LOGGED IN
+            //  NOT LOGGED IN
             !isLoggedIn -> {
                 startActivity(
                     Intent(this, LoginPage::class.java)
                 )
             }
 
-            // 🔥 ADMIN
+            //  ADMIN
             isAdminUser -> {
                 startActivity(
                     Intent(this, AdminPanelActivity::class.java)
                 )
             }
 
-            // 🔥 HR
+            //  HR
             isHRUser -> {
                 startActivity(
                     Intent(this, HRPanelActivity::class.java)
                 )
             }
 
-            // 🔥 NORMAL USER
+            //  NORMAL USER
             else -> {
                 startActivity(
                     Intent(this, MainActivity::class.java)

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark mode glass card  dark surface with subtle border and shadow -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer ambient glow (very soft, all sides) -->
+    <item android:top="2dp" android:bottom="2dp" android:left="2dp" android:right="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#15000000"/>
+            <corners android:radius="22dp"/>
+        </shape>
+    </item>
+
+    <!-- Bottom shadow slightly stronger -->
+    <item android:top="4dp" android:left="2dp" android:bottom="0dp" android:right="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#20000000"/>
+            <corners android:radius="22dp"/>
+        </shape>
+    </item>
+
+    <!-- Card surface  dark -->
+    <item android:top="2dp" android:bottom="2dp" android:left="2dp" android:right="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#252525"/>
+            <corners android:radius="20dp"/>
+            <stroke android:width="0.5dp" android:color="#333333"/>
+        </shape>
+    </item>
+
+</layer-list>

@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="👥 Assign Members"
+            android:text="Assign Members"
             android:textColor="#1A202C"
             android:textSize="20sp"
             android:textStyle="bold"/>
@@ -48,7 +48,7 @@
         android:id="@+id/etSearchAssign"
         android:layout_width="match_parent"
         android:layout_height="46dp"
-        android:hint="🔍 Search employee..."
+        android:hint="Search employee..."
         android:background="@drawable/bg_neu_inset"
         android:padding="12dp"
         android:textColor="#2A2A35"

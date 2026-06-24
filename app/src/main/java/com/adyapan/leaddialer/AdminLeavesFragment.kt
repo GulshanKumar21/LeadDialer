@@ -131,7 +131,7 @@ fun AdminSimpleListScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search Employee...", fontFamily = NunitoFamily, fontSize = 15.sp) },
-                leadingIcon = { Text("🔍", modifier = Modifier.padding(start = 8.dp)) },
+                leadingIcon = { Text("", modifier = Modifier.padding(start = 8.dp)) },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
@@ -325,7 +325,7 @@ fun AdminLeavesScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "📅 $displayDate",
+                        text = "$displayDate",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontFamily = NunitoFamily,
@@ -377,7 +377,7 @@ fun AdminLeavesScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search Employee...", fontFamily = NunitoFamily, fontSize = 15.sp) },
-                leadingIcon = { Text("🔍", modifier = Modifier.padding(start = 8.dp)) },
+                leadingIcon = { Text("", modifier = Modifier.padding(start = 8.dp)) },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,

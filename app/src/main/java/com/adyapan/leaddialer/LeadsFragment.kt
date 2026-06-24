@@ -134,7 +134,7 @@ class LeadsFragment : Fragment() {
                 val updated = lead.copy(salesDone = newValue, firestoreId = fid)
                 leadViewModel.updateLeadDirectly(updated)
                 
-                val msg = if (newValue) "✅ Sale marked as Done!" else "↩️ Sale marked as Not Done"
+                val msg = if (newValue) "Sale marked as Done!" else "↩ Sale marked as Not Done"
                 Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
                 // Background Sync
@@ -143,7 +143,7 @@ class LeadsFragment : Fragment() {
                         FirestoreSource.updateSalesDone(fid, newValue)
                     }
                     if (!ok) {
-                        Toast.makeText(requireContext(), "⚠️ Saved locally, but cloud sync failed (check internet)", Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), "Saved locally, but cloud sync failed (check internet)", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -277,7 +277,7 @@ class LeadsFragment : Fragment() {
 
                     Log.d(
                         TAG,
-                        "✅ Auto sync completed"
+                        "Auto sync completed"
                     )
 
                 } catch (e: Exception) {
@@ -293,7 +293,7 @@ class LeadsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // ✅ Call popup is now handled globally in MainActivity.onResume()
+        //  Call popup is now handled globally in MainActivity.onResume()
         // so the popup shows regardless of which fragment the user is on.
         callInProgress = false
         leadViewModel.syncFromFirebaseOnce()
@@ -317,7 +317,7 @@ class LeadsFragment : Fragment() {
             }
         } else {
             Log.d(TAG, "Cache miss — fetching for ${lead.phone}")
-            Toast.makeText(requireContext(), "⏳ Checking...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Checking...", Toast.LENGTH_SHORT).show()
 
             lifecycleScope.launch {
                 val result = withContext(Dispatchers.IO) {
@@ -359,21 +359,21 @@ class LeadsFragment : Fragment() {
             .ifBlank { "Someone" }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("⚠️ Call Already Made!")
+            .setTitle("Call Already Made!")
             .setMessage(
-                "👤 ${lead.name}\n📞 ${lead.phone}\n\n" +
-                "✅ Called By: $callerName\n" +
-                "📋 Status: ${result.status.ifBlank { lead.status }}\n\n" +
+                "${lead.name}\n ${lead.phone}\n\n" +
+                "Called By: $callerName\n" +
+                "Status: ${result.status.ifBlank { lead.status }}\n\n" +
                 "Do you still want to make the call?"
             )
-            .setPositiveButton("📞 Call Anyway") { _, _ ->
+            .setPositiveButton("Call Anyway") { _, _ ->
                 if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     handleFirstCallAttendance(lead)
                 } else {
                     callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
                 }
             }
-            .setNegativeButton("❌ Skip") { _, _ ->
+            .setNegativeButton("Skip") { _, _ ->
                 val updatedLead = lead.copy(
                     status = result.status.ifBlank { lead.status },
                     notes  = "Already called by: $callerName | Status: ${result.status.ifBlank { lead.status }}"
@@ -393,7 +393,7 @@ class LeadsFragment : Fragment() {
 
                 Toast.makeText(
                     requireContext(),
-                    "⚠️ $callerName has already made the call",
+                    "$callerName has already made the call",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -429,7 +429,7 @@ class LeadsFragment : Fragment() {
                         Log.d(TAG, "Punched in on time: ${record.punchInTime}")
                         Toast.makeText(
                             requireContext(),
-                            "✅ Punch-in: ${record.punchInTime}",
+                            "Punch-in: ${record.punchInTime}",
                             Toast.LENGTH_SHORT
                         ).show()
                         startCall(lead)
@@ -454,7 +454,7 @@ class LeadsFragment : Fragment() {
         CallManager.currentLead = lead
         CallManager.callActive  = true
 
-        // ✅ SIM-aware call: uses the SIM selected in Settings, bypasses system SIM picker
+        //  SIM-aware call: uses the SIM selected in Settings, bypasses system SIM picker
         CallManager.placeCall(requireContext(), lead) { intent ->
             startActivity(intent)   // only reached when no SIM is selected (Ask Every Time)
         }
@@ -469,7 +469,7 @@ class LeadsFragment : Fragment() {
         val view   = layoutInflater.inflate(R.layout.bottom_sheet_call_status, null)
         dialog.setContentView(view)
 
-        view.findViewById<TextView>(R.id.tvTitle).text   = "📞 Call Summary"
+        view.findViewById<TextView>(R.id.tvTitle).text   = "Call Summary"
         view.findViewById<TextView>(R.id.tvDetails).text =
             "${record.name} • ${CallManager.formatDuration(record.duration)}"
 
@@ -511,7 +511,7 @@ class LeadsFragment : Fragment() {
             dialog.dismiss()
 
             if (isAdded) {
-                Toast.makeText(safeContext, "✅ $selected", Toast.LENGTH_SHORT).show()
+                Toast.makeText(safeContext, "$selected", Toast.LENGTH_SHORT).show()
                 if (selected == "Interested" || selected == "Busy" || selected == "Not Connected") {
                     showWhatsAppDialog(record, selected)
                 }
@@ -558,7 +558,7 @@ class LeadsFragment : Fragment() {
             val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             val clip = android.content.ClipData.newPlainText("WhatsApp Message", msg)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(requireContext(), "Copied to clipboard! 📋", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Copied to clipboard!", Toast.LENGTH_SHORT).show()
         }
 
         // ── Load brochures from assets ────────────────────────────────────────
@@ -645,7 +645,7 @@ class LeadsFragment : Fragment() {
                 etMessage.setText(fullMessage)
                 tvGenerating.visibility = View.GONE
                 btnGenerate.isEnabled   = true
-                btnGenerate.text        = "✨ Regenerate"
+                btnGenerate.text        = "Regenerate"
             }
         }
 
@@ -666,7 +666,7 @@ class LeadsFragment : Fragment() {
             btnSend.isEnabled       = false
             btnBrochure.isEnabled   = false
             tvDownloadStatus.visibility = View.VISIBLE
-            tvDownloadStatus.text   = "⬇️ Downloading PDF..."
+            tvDownloadStatus.text   = "Downloading PDF..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -677,7 +677,7 @@ class LeadsFragment : Fragment() {
                     message     = msg
                 )
                 if (error != null) {
-                    tvDownloadStatus.text = "❌ $error"
+                    tvDownloadStatus.text = "$error"
                     btnSend.isEnabled     = true
                     btnBrochure.isEnabled = true
                 } else {
@@ -702,13 +702,13 @@ class LeadsFragment : Fragment() {
                 Toast.makeText(requireContext(), "Please select a course first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val simpleMsg = "Hello ${record.name}! 🙏\n\n" +
+            val simpleMsg = "Hello ${record.name}! \n\n" +
                 "Please find the brochure for *${course.title}* attached.\n— Adyapan Team"
 
             btnSend.isEnabled       = false
             btnBrochure.isEnabled   = false
             tvDownloadStatus.visibility = View.VISIBLE
-            tvDownloadStatus.text   = "⬇️ Downloading PDF..."
+            tvDownloadStatus.text   = "Downloading PDF..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -719,7 +719,7 @@ class LeadsFragment : Fragment() {
                     message     = simpleMsg
                 )
                 if (error != null) {
-                    tvDownloadStatus.text = "❌ $error"
+                    tvDownloadStatus.text = "$error"
                     btnSend.isEnabled     = true
                     btnBrochure.isEnabled = true
                 } else {
@@ -782,7 +782,7 @@ class LeadsFragment : Fragment() {
                     if (!isAdded) return@withContext
                     if (leads.isNotEmpty()) {
                         leadViewModel.insertAll(leads)
-                        Toast.makeText(appCtx, "✅ ${leads.size} leads imported", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(appCtx, "${leads.size} leads imported", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(appCtx, "No valid leads found in file", Toast.LENGTH_SHORT).show()
                     }

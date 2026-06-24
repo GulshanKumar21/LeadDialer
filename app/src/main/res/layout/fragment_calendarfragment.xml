@@ -46,7 +46,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📞"
+                        android:text=""
                         android:textSize="24sp"/>
 
                     <TextView
@@ -85,7 +85,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⏰"
+                        android:text=""
                         android:textSize="24sp"/>
 
                     <TextView
@@ -125,7 +125,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📅"
+                        android:text=""
                         android:textSize="24sp"/>
 
                     <TextView
@@ -199,7 +199,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🗓 Attendance"
+                        android:text="Attendance"
                         android:textColor="#111111"
                         android:textStyle="bold"
                         android:textSize="16sp"
@@ -273,7 +273,7 @@
                         android:id="@+id/tvMonthHolidaysTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎉 Month's Holidays"
+                        android:text="Month's Holidays"
                         android:textColor="#111111"
                         android:textStyle="bold"
                         android:textSize="16sp"
@@ -314,7 +314,7 @@
                         android:id="@+id/tvCallCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📞 Call History"
+                        android:text="Call History"
                         android:textColor="#111111"
                         android:textStyle="bold"
                         android:textSize="16sp"

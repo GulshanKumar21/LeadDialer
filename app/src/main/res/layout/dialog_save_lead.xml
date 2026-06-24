@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <TextView
-            android:text="💾 Save as Lead"
+            android:text="Save as Lead"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="#1A1A2E"
@@ -28,7 +28,7 @@
 
         <TextView
             android:id="@+id/tvLeadPhone"
-            android:text="📱 9876543210"
+            android:text="9876543210"
             android:textSize="14sp"
             android:textColor="#3B82F6"
             android:layout_marginTop="4dp"
@@ -41,7 +41,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="👤 Name *"
+            android:hint="Student Name *"
             android:layout_marginBottom="14dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -61,7 +61,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="🏫 College Name"
+            android:hint="College Name"
             android:layout_marginBottom="14dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -81,7 +81,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="📍 City"
+            android:hint="City"
             android:layout_marginBottom="20dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -99,7 +99,7 @@
         <!-- Buttons -->
         <Button
             android:id="@+id/btnSaveLeadConfirm"
-            android:text="💾 Save Lead"
+            android:text="Save Lead"
             android:backgroundTint="#0D9488"
             android:textColor="@android:color/white"
             android:textSize="15sp"

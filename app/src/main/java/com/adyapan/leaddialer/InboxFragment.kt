@@ -134,7 +134,7 @@ class InboxFragment : Fragment() {
         val etReply    = dialog.findViewById<TextInputEditText>(R.id.etReply)
         val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
 
-        tvTitle.text    = "💬 ${msg.from}"
+        tvTitle.text    = "${msg.from}"
         tvSubtitle.text = "Conversation thread"
 
         val lm = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
@@ -219,7 +219,7 @@ class InboxFragment : Fragment() {
                         ))
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "❌ Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
 
@@ -262,7 +262,7 @@ class MessageAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val msg = list[position]
-        holder.tvFrom.text = "👤 ${msg.from}"
+        holder.tvFrom.text = "${msg.from}"
         holder.tvText.text = msg.text
         holder.tvTime.text = formatTime(msg.timestamp)
         holder.dotUnread.visibility = if (msg.read) View.GONE else View.VISIBLE

@@ -69,7 +69,7 @@ class AdminAttendanceAdapter : ListAdapter<AdminAttendanceItem, AdminAttendanceA
                 holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEE2E2"))
             }
             item.earlyLeave -> {
-                holder.tvStatus.text = "⚠️ Early Leave"
+                holder.tvStatus.text = "Early Leave"
                 holder.tvStatus.setTextColor(Color.parseColor("#D97706"))
                 holder.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEF3C7"))
             }

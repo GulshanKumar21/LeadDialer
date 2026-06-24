@@ -129,14 +129,14 @@ class CallHistoryFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val options = arrayOf("📞 Download Today's Calls", "🕒 Download Yesterday's Calls", "📂 Download All Calls")
+            val options = arrayOf("Download Today's Calls", "Download Yesterday's Calls", "Download All Calls")
 
             AlertDialog.Builder(requireContext())
                 .setTitle("Download Call History")
                 .setItems(options) { _, which ->
                     val filtered = when (which) {
-                        0    -> records.filter { getDayHeader(it.calledAt) == "📞 Today" }
-                        1    -> records.filter { getDayHeader(it.calledAt) == "🕒 Yesterday" }
+                        0    -> records.filter { getDayHeader(it.calledAt) == "Today" }
+                        1    -> records.filter { getDayHeader(it.calledAt) == "Yesterday" }
                         else -> records
                     }
                     lifecycleScope.launch {
@@ -239,7 +239,7 @@ class CallHistoryFragment : Fragment() {
         tvSummaryGapTime?.text    = formatDurationShort(gapSec)
         tvSummaryAvg?.text        = "⌀ Avg/call: ${CallManager.formatDuration(avgSec)}"
 
-        view?.findViewById<TextView>(R.id.tvSummaryTitle)?.text = "📊 ${getDayHeader(currentSummaryDate)}"
+        view?.findViewById<TextView>(R.id.tvSummaryTitle)?.text = "${getDayHeader(currentSummaryDate)}"
     }
 
     /**
@@ -251,7 +251,7 @@ class CallHistoryFragment : Fragment() {
      * Capped at 8:00 PM. Deducts 1 hr 30 mins (5400 seconds) for lunch break.
      */
     private fun computeTotalGap(ascRecords: List<CallRecord>, dateMs: Long): Long {
-        val isToday = getDayHeader(dateMs) == "📞 Today"
+        val isToday = getDayHeader(dateMs) == "Today"
 
         // Work start time for the selected date
         val cal = Calendar.getInstance().apply { timeInMillis = dateMs }
@@ -384,7 +384,7 @@ class CallHistoryFragment : Fragment() {
         liveGapTimer?.cancel()
 
         // Only run live ticker for today
-        val isToday = getDayHeader(System.currentTimeMillis()) == "📞 Today"
+        val isToday = getDayHeader(System.currentTimeMillis()) == "Today"
         if (!isToday) return
 
         val now = System.currentTimeMillis()
@@ -441,7 +441,7 @@ class CallHistoryFragment : Fragment() {
         val msLeft = eod - now
 
         if (msLeft <= 0) {
-            tvCountdown?.text = "✅ Work day ended at 8:00 PM"
+            tvCountdown?.text = "Work day ended at 8:00 PM"
             return
         }
 
@@ -453,13 +453,13 @@ class CallHistoryFragment : Fragment() {
                 val h = millisUntilFinished / 3_600_000L
                 val m = (millisUntilFinished % 3_600_000L) / 60_000L
                 tvCountdown?.text = when {
-                    h > 0 -> "🕗 ${h}h ${m}m left to 8PM"
-                    else  -> "🕗 ${m}m left to 8PM"
+                    h > 0 -> "${h}h ${m}m left to 8PM"
+                    else  -> "${m}m left to 8PM"
                 }
             }
 
             override fun onFinish() {
-                tvCountdown?.text = "✅ Work day ended at 8:00 PM"
+                tvCountdown?.text = "Work day ended at 8:00 PM"
                 // Refresh summary one final time
                 callViewModel.allRecords.value?.let { updateSummaryCard(it) }
             }
@@ -482,8 +482,8 @@ class CallHistoryFragment : Fragment() {
         val callDate  = Calendar.getInstance().apply { timeInMillis = time }
 
         return when {
-            isSameDay(callDate, today)     -> "📞 Today"
-            isSameDay(callDate, yesterday) -> "🕒 Yesterday"
+            isSameDay(callDate, today)     -> "Today"
+            isSameDay(callDate, yesterday) -> "Yesterday"
             else -> SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(time))
         }
     }

@@ -24,7 +24,7 @@
 
             <TextView
                 android:id="@+id/tvMsgFrom"
-                android:text="👤 Admin"
+                android:text="Admin"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#FF6A00"
@@ -81,7 +81,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReply"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:text="💬 Reply"
+                android:text="Reply"
                 android:textSize="12sp"
                 android:textColor="#FF6A00"
                 app:strokeColor="#FF6A00"

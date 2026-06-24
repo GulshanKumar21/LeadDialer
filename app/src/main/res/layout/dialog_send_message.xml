@@ -26,7 +26,7 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:text="💬"
+                android:text=""
                 android:textSize="22sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -84,35 +84,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <TextView android:id="@+id/tag1" android:text="⚠️ Urgent"
+                <TextView android:id="@+id/tag1" android:text="Urgent"
                     android:textSize="12sp" android:textColor="#EF4444"
                     android:background="#FFEEEE" android:paddingStart="12dp"
                     android:paddingEnd="12dp" android:paddingTop="6dp"
                     android:paddingBottom="6dp" android:layout_marginEnd="8dp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
-                <TextView android:id="@+id/tag2" android:text="📋 Task"
+                <TextView android:id="@+id/tag2" android:text="Task"
                     android:textSize="12sp" android:textColor="#6366F1"
                     android:background="#EEF2FF" android:paddingStart="12dp"
                     android:paddingEnd="12dp" android:paddingTop="6dp"
                     android:paddingBottom="6dp" android:layout_marginEnd="8dp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
-                <TextView android:id="@+id/tag3" android:text="⭐ Good Work"
+                <TextView android:id="@+id/tag3" android:text="Good Work"
                     android:textSize="12sp" android:textColor="#10B981"
                     android:background="#ECFDF5" android:paddingStart="12dp"
                     android:paddingEnd="12dp" android:paddingTop="6dp"
                     android:paddingBottom="6dp" android:layout_marginEnd="8dp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
-                <TextView android:id="@+id/tag4" android:text="📞 Call Now"
+                <TextView android:id="@+id/tag4" android:text="Call Now"
                     android:textSize="12sp" android:textColor="#F59E0B"
                     android:background="#FFFBEB" android:paddingStart="12dp"
                     android:paddingEnd="12dp" android:paddingTop="6dp"
                     android:paddingBottom="6dp" android:layout_marginEnd="8dp"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
-                <TextView android:id="@+id/tag5" android:text="📊 Report Submit"
+                <TextView android:id="@+id/tag5" android:text="Report Submit"
                     android:textSize="12sp" android:textColor="#0EA5E9"
                     android:background="#F0F9FF" android:paddingStart="12dp"
                     android:paddingEnd="12dp" android:paddingTop="6dp"
@@ -127,7 +127,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="✍️ Write your message..."
+            android:hint="Write your message..."
             android:layout_marginBottom="20dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -148,7 +148,7 @@
         <!-- Send button -->
         <Button
             android:id="@+id/btnSendMsg"
-            android:text="📨 Send Message"
+            android:text="Send Message"
             android:backgroundTint="#FF6A00"
             android:textColor="@android:color/white"
             android:textSize="15sp"

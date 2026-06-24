@@ -56,9 +56,9 @@ class TlAssignEmployeeAdapter(
         holder.tvName.text   = item.name
 
         holder.tvCurrentTl.text = when {
-            item.currentTlId.isBlank()              -> "⚪ No TL assigned"
-            tlNameMap.containsKey(item.currentTlId) -> "📌 ${tlNameMap[item.currentTlId]}"
-            else                                    -> "📌 Assigned"
+            item.currentTlId.isBlank()              -> "No TL assigned"
+            tlNameMap.containsKey(item.currentTlId) -> "${tlNameMap[item.currentTlId]}"
+            else                                    -> "Assigned"
         }
 
         // Avoid triggering listener during rebind

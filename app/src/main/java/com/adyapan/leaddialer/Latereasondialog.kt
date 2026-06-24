@@ -40,7 +40,7 @@ object LateReasonDialog {
         val radioGroup    = dialogView.findViewById<RadioGroup>(R.id.radioGroupReasons)
         val etOtherReason = dialogView.findViewById<EditText>(R.id.etOtherReason)
 
-        tvTime.text = "⏰ Your punch-in time: $currentTime\n(After 11:30 AM)"
+        tvTime.text = "Your punch-in time: $currentTime\n(After 11:30 AM)"
 
         REASONS.forEachIndexed { index, reason ->
             val rb = RadioButton(context).apply {
@@ -103,15 +103,15 @@ object LateReasonDialog {
         onDone      : () -> Unit
     ) {
         AlertDialog.Builder(context)
-            .setTitle("📲 Notify Manager?")
+            .setTitle("Notify Manager?")
             .setMessage(
                 "Do you want to inform the manager about your late attendance via WhatsApp?\n\n" +
-                        "⏰ Time: $currentTime\n" +
-                        "❗ Reason: $reason"
+                        "Time: $currentTime\n" +
+                        "Reason: $reason"
             )
             .setCancelable(false)
 
-            .setPositiveButton("✅ Yes, send it") { _, _ ->
+            .setPositiveButton("Yes, send it") { _, _ ->
                 notifyManagerOnWhatsApp(
                     context      = context,
                     employeeName = getEmployeeName(context),
@@ -120,7 +120,7 @@ object LateReasonDialog {
                     onSent       = { onDone() }  // WhatsApp open hone ke baad call
                 )
             }
-            .setNegativeButton("❌ No, Skip") { _, _ ->
+            .setNegativeButton("No, Skip") { _, _ ->
                 onDone()
             }
             .show()
@@ -137,17 +137,15 @@ object LateReasonDialog {
             "dd/MM/yyyy", java.util.Locale.getDefault()
         ).format(java.util.Date())
 
-        val message = """
-📢 Late Attendance Report
+        val message = """Late Attendance Report
 
-👤 Employee: $employeeName
-⏰ Punch-in Time: $punchInTime
-📅 Date: $date
+ Employee: $employeeName
+ Punch-in Time: $punchInTime
+ Date: $date
 
-❗ Wajah: $reason
+ Wajah: $reason
 
-— Adyapan CRM System
-        """.trimIndent()
+— Adyapan CRM System""".trimIndent()
 
         try {
             val encoded = java.net.URLEncoder.encode(message, "UTF-8")

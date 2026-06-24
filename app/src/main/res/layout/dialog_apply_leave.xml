@@ -171,7 +171,7 @@
                 android:id="@+id/btnAttachDocument"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="📎 Choose File"
+                android:text="Choose File"
                 android:textColor="#2A2A35"
                 android:textSize="13sp"
                 android:backgroundTint="#E5E7EB"
@@ -221,7 +221,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔒 Verified Only"
+                android:text="Verified Only"
                 android:textColor="#FF6A00"
                 android:textSize="11sp"
                 android:textStyle="bold"/>

@@ -61,13 +61,13 @@ class ReportsFragment : Fragment() {
     private fun openFiltered(status: String) {
         val fragment = FilteredLeadsFragment.newInstance(status)
         val title = when (status) {
-            "All Called"     -> "📊 All Called"
-            "Wrong Number"   -> "🔢 Wrong Number"
-            "Not Connected"  -> "❌ Not Connected"
-            "Busy"           -> "📵 Busy"
-            "Interested"     -> "⭐ Interested"
-            "Not Interested" -> "👎 Not Interested"
-            "Pending"        -> "🕐 Pending"
+            "All Called"     -> "All Called"
+            "Wrong Number"   -> "Wrong Number"
+            "Not Connected"  -> "Not Connected"
+            "Busy"           -> "Busy"
+            "Interested"     -> "Interested"
+            "Not Interested" -> "Not Interested"
+            "Pending"        -> "Pending"
             else             -> status
         }
         // loadFragmentWithBack → back press returns to Reports, not Dashboard

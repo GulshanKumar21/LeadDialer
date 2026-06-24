@@ -16,6 +16,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import android.util.Log
+import androidx.compose.runtime.livedata.observeAsState
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.animateFloatAsState
@@ -64,12 +73,20 @@ import androidx.compose.ui.graphics.SolidColor
 
 class DialerActivity : AppCompatActivity() {
 
+    private lateinit var attendanceViewModel: AttendanceViewModel
+    private lateinit var leadViewModel: LeadViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        attendanceViewModel = ViewModelProvider(this, AttendanceViewModelFactory(application))[AttendanceViewModel::class.java]
+        leadViewModel = ViewModelProvider(this, LeadViewModelFactory(application))[LeadViewModel::class.java]
+
         setContent {
             MaterialTheme {
+                val leads by leadViewModel.allLeads.observeAsState(initial = emptyList())
                 DialerScreen(
+                    leads = leads,
                     onBackClick = { finish() },
                     onCallClick = { number -> makeCall(number) },
                     onSaveClick = { number -> saveContact(number) },
@@ -103,10 +120,13 @@ class DialerActivity : AppCompatActivity() {
         val etCollege = dialogView.findViewById<EditText>(R.id.etLeadCollege)
         val etCity    = dialogView.findViewById<EditText>(R.id.etLeadCity)
         val tvPhone   = dialogView.findViewById<TextView>(R.id.tvLeadPhone)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btnSaveLeadConfirm)
+        val btnCancel  = dialogView.findViewById<Button>(R.id.btnCancelSaveLead)
 
+        btnConfirm.text = "✅ Save"
+        btnCancel.text = "❌ Cancel"
         etName.setText("")
-        etName.hint = "Student Name"
-        tvPhone.text = "📱 $number"
+        tvPhone.text = "$number"
 
         val saveDialog = AlertDialog.Builder(this)
             .setView(dialogView)
@@ -115,7 +135,7 @@ class DialerActivity : AppCompatActivity() {
 
         saveDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogView.findViewById<Button>(R.id.btnSaveLeadConfirm).setOnClickListener {
+        btnConfirm.setOnClickListener {
             val name    = etName.text.toString().trim()
             val college = etCollege.text.toString().trim()
             val city    = etCity.text.toString().trim()
@@ -125,7 +145,6 @@ class DialerActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val leadViewModel = ViewModelProvider(this, LeadViewModelFactory(application))[LeadViewModel::class.java]
             val newLead = Lead(
                 name        = name,
                 phone       = number,
@@ -140,7 +159,7 @@ class DialerActivity : AppCompatActivity() {
             Toast.makeText(this, "✅ Lead saved: $name", Toast.LENGTH_SHORT).show()
         }
 
-        dialogView.findViewById<Button>(R.id.btnCancelSaveLead).setOnClickListener {
+        btnCancel.setOnClickListener {
             saveDialog.dismiss()
         }
 
@@ -154,6 +173,77 @@ class DialerActivity : AppCompatActivity() {
             return
         }
 
+        // Show checking progress
+        Toast.makeText(this, "🔍 Checking...", Toast.LENGTH_SHORT).show()
+
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                SheetsSync.checkIfAlreadyCalled(number)
+            }
+
+            if (result.called) {
+                showAlreadyCalledWarning(number, result)
+            } else {
+                handleFirstCallAttendance(number)
+            }
+        }
+    }
+
+    private fun showAlreadyCalledWarning(number: String, result: CallCheckResult) {
+        val callerName = result.calledBy.ifBlank { "Someone" }
+
+        AlertDialog.Builder(this)
+            .setTitle("⚠️ Call Already Made!")
+            .setMessage(
+                "📞 Phone: $number\n\n" +
+                "👤 Called By: $callerName\n" +
+                "📊 Status: ${result.status.ifBlank { "Pending" }}\n\n" +
+                "Do you still want to make the call?"
+            )
+            .setPositiveButton("📞 Call Anyway") { _, _ ->
+                handleFirstCallAttendance(number)
+            }
+            .setNegativeButton("❌ Cancel", null)
+            .show()
+    }
+
+    private fun handleFirstCallAttendance(number: String) {
+        lifecycleScope.launch {
+            val alreadyPunchedIn = attendanceViewModel.isTodayPunchedIn()
+
+            if (alreadyPunchedIn) {
+                proceedWithCall(number)
+            } else {
+                val isLate = attendanceViewModel.isCurrentlyLate()
+                val time   = attendanceViewModel.getCurrentTime()
+
+                if (isLate) {
+                    LateReasonDialog.show(
+                        context        = this@DialerActivity,
+                        currentTime    = time,
+                        onReasonSubmit = { reason ->
+                            attendanceViewModel.punchIn(this@DialerActivity, reason) { record ->
+                                Log.d("DialerActivity", "Punched in LATE: ${record.punchInTime}")
+                                proceedWithCall(number)
+                            }
+                        }
+                    )
+                } else {
+                    attendanceViewModel.punchIn(this@DialerActivity) { record ->
+                        Log.d("DialerActivity", "Punched in on time: ${record.punchInTime}")
+                        Toast.makeText(
+                            this@DialerActivity,
+                            "✅ Punch-in: ${record.punchInTime}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        proceedWithCall(number)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun proceedWithCall(number: String) {
         // Register with CallManager
         val manualLead = Lead(
             id = 0,
@@ -178,6 +268,7 @@ private val NunitoFamily = FontFamily(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DialerScreen(
+    leads: List<Lead>,
     onBackClick: () -> Unit,
     onCallClick: (String) -> Unit,
     onSaveClick: (String) -> Unit,
@@ -228,7 +319,11 @@ fun DialerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F6F8))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0))
+                )
+            )
             .padding(16.dp)
     ) {
         Column(
@@ -242,101 +337,140 @@ fun DialerScreen(
                     .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow_back),
-                        contentDescription = "Back",
-                        tint = Color(0xFF1E293B),
-                        modifier = Modifier.size(24.dp)
-                    )
+                Card(
+                    shape = CircleShape,
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable { onBackClick() }
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Back",
+                            tint = Color(0xFF475569),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Dialed Number TextField Box
-            Box(
+            // Dialed Number Display Card
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp)
-                    .padding(horizontal = 24.dp),
-                contentAlignment = Alignment.Center
+                    .height(90.dp)
+                    .padding(horizontal = 12.dp)
             ) {
-                BasicTextField(
-                    value = numberText,
-                    onValueChange = {
-                        val filteredText = it.text.filter { char ->
-                            char.isDigit() || char == '*' || char == '#' || char == '+' || char == ' ' || char == '-'
-                        }
-                        if (filteredText.length <= 15) {
-                            numberText = it.copy(text = filteredText)
-                        }
-                    },
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        textAlign = TextAlign.Center,
-                        fontSize = 36.sp,
-                        fontFamily = NunitoFamily,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF0F172A)
-                    ),
-                    cursorBrush = SolidColor(Color(0xFFFF6A00)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester)
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                keyboardController?.hide()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    BasicTextField(
+                        value = numberText,
+                        onValueChange = {
+                            val filteredText = it.text.filter { char ->
+                                char.isDigit() || char == '*' || char == '#' || char == '+' || char == ' ' || char == '-'
+                            }
+                            if (filteredText.length <= 15) {
+                                numberText = it.copy(text = filteredText)
                             }
                         },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Phone,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            keyboardController?.hide()
-                        }
+                        singleLine = true,
+                        textStyle = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontSize = 34.sp,
+                            fontFamily = NunitoFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF0F172A)
+                        ),
+                        cursorBrush = SolidColor(Color(0xFFFF6A00)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                    keyboardController?.hide()
+                                }
+                            },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                keyboardController?.hide()
+                            }
+                        )
                     )
-                )
 
-                if (numberText.text.isEmpty()) {
-                    Text(
-                        text = "Enter number",
-                        fontSize = 32.sp,
-                        fontFamily = NunitoFamily,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF94A3B8),
-                        textAlign = TextAlign.Center
-                    )
+                    if (numberText.text.isEmpty()) {
+                        Text(
+                            text = "Enter number",
+                            fontSize = 28.sp,
+                            fontFamily = NunitoFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF94A3B8),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            val query = numberText.text.filter { it.isDigit() }
+            val matchedLead = remember(query, leads) {
+                if (query.isEmpty()) null
+                else leads.find { lead ->
+                    lead.phone.filter { it.isDigit() }.contains(query)
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (matchedLead != null) {
+                    LeadMatchCard(matchedLead = matchedLead)
+                }
+            }
 
             // Dial Pad Layout
             val keys = listOf(
-                listOf("1", "2", "3"),
-                listOf("4", "5", "6"),
-                listOf("7", "8", "9"),
-                listOf("*", "0", "#")
+                listOf("1" to "", "2" to "A B C", "3" to "D E F"),
+                listOf("4" to "G H I", "5" to "J K L", "6" to "M N O"),
+                listOf("7" to "P Q R S", "8" to "T U V", "9" to "W X Y Z"),
+                listOf("*" to "", "0" to "+", "#" to "")
             )
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(bottom = 12.dp)
             ) {
                 keys.forEach { row ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        row.forEach { digit ->
+                        row.forEach { pair ->
                             DialKeyButton(
-                                digit = digit,
+                                digit = pair.first,
+                                letters = pair.second,
                                 onClick = {
                                     vibrateFeedback()
-                                    insertDigit(digit)
+                                    insertDigit(pair.first)
                                 }
                             )
                         }
@@ -349,11 +483,11 @@ fun DialerScreen(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     // Save Button
                     DialActionButton(
-                        iconRes = R.drawable.ic_edit, // R.drawable.ic_save representation
+                        iconRes = R.drawable.ic_edit,
                         bgColor = Color(0xFFE2E8F0),
                         iconTint = Color(0xFF475569),
                         onClick = {
@@ -367,16 +501,24 @@ fun DialerScreen(
                     )
 
                     // Call Button (Vibrant Orange Gradient)
+                    val callInteractionSource = remember { MutableInteractionSource() }
+                    val callPressed by callInteractionSource.collectIsPressedAsState()
+                    val callScale by animateFloatAsState(
+                        targetValue = if (callPressed) 0.90f else 1f,
+                        animationSpec = tween(100)
+                    )
+
                     Box(
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(76.dp)
+                            .scale(callScale)
                             .clip(CircleShape)
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(Color(0xFFFF6A00), Color(0xFFFF8F3C))
                                 )
                             )
-                            .clickable {
+                            .clickable(interactionSource = callInteractionSource, indication = null) {
                                 vibrateFeedback()
                                 if (numberText.text.isNotEmpty()) {
                                     onCallClick(numberText.text)
@@ -390,17 +532,34 @@ fun DialerScreen(
                             painter = painterResource(id = R.drawable.ic_phone),
                             contentDescription = "Call",
                             tint = Color.White,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(34.dp)
                         )
                     }
 
                     // Backspace / Clear Button
-                    Box(
+                    val backspaceInteractionSource = remember { MutableInteractionSource() }
+                    val backspacePressed by backspaceInteractionSource.collectIsPressedAsState()
+                    val backspaceScale by animateFloatAsState(
+                        targetValue = if (backspacePressed) 0.90f else 1f,
+                        animationSpec = tween(100)
+                    )
+                    val backspaceElevation by animateFloatAsState(
+                        targetValue = if (backspacePressed) 1f else 3f,
+                        animationSpec = tween(100)
+                    )
+
+                    Card(
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (backspacePressed) Color(0xFFCBD5E1) else Color(0xFFE2E8F0)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = backspaceElevation.dp),
                         modifier = Modifier
                             .size(56.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFE2E8F0))
+                            .scale(backspaceScale)
                             .combinedClickable(
+                                interactionSource = backspaceInteractionSource,
+                                indication = null,
                                 onClick = {
                                     vibrateFeedback()
                                     deleteDigit()
@@ -410,15 +569,19 @@ fun DialerScreen(
                                     numberText = TextFieldValue("")
                                     Toast.makeText(context, "Cleared", Toast.LENGTH_SHORT).show()
                                 }
-                            ),
-                        contentAlignment = Alignment.Center
+                            )
                     ) {
-                        Text(
-                            text = "⌫",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569)
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "⌫",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF475569)
+                            )
+                        }
                     }
                 }
             }
@@ -429,33 +592,55 @@ fun DialerScreen(
 @Composable
 fun DialKeyButton(
     digit: String,
+    letters: String,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.90f else 1f,
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = tween(100)
+    )
+    val elevation by animateFloatAsState(
+        targetValue = if (isPressed) 1f else 4f,
         animationSpec = tween(100)
     )
 
-    Box(
+    Card(
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPressed) Color(0xFFF1F5F9) else Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation.dp),
         modifier = Modifier
-            .size(72.dp)
+            .size(76.dp)
             .scale(scale)
-            .clip(CircleShape)
-            .background(Color.White)
             .clickable(interactionSource = interactionSource, indication = null) {
                 onClick()
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
-        Text(
-            text = digit,
-            fontSize = 28.sp,
-            fontFamily = NunitoFamily,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1E293B)
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = digit,
+                fontSize = 28.sp,
+                fontFamily = NunitoFamily,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF0F172A)
+            )
+            if (letters.isNotEmpty()) {
+                Text(
+                    text = letters,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF94A3B8),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -472,23 +657,160 @@ fun DialActionButton(
         targetValue = if (isPressed) 0.90f else 1f,
         animationSpec = tween(100)
     )
+    val elevation by animateFloatAsState(
+        targetValue = if (isPressed) 1f else 3f,
+        animationSpec = tween(100)
+    )
 
-    Box(
+    Card(
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPressed) Color(0xFFE2E8F0) else bgColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation.dp),
         modifier = Modifier
             .size(56.dp)
             .scale(scale)
-            .clip(CircleShape)
-            .background(bgColor)
             .clickable(interactionSource = interactionSource, indication = null) {
                 onClick()
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = "Action",
-            tint = iconTint,
-            modifier = Modifier.size(22.dp)
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = "Action",
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun LeadMatchCard(matchedLead: Lead) {
+    val isCalled = matchedLead.calledAt > 0L || matchedLead.status != "Pending"
+    val statusText = if (isCalled) matchedLead.status else "Not Called Yet"
+    
+    val badgeBg = when (matchedLead.status) {
+        "Interested" -> Color(0xFFDCFCE7)
+        "Not Connected", "Wrong Number" -> Color(0xFFFEE2E2)
+        "Busy" -> Color(0xFFFEF3C7)
+        "Pending" -> Color(0xFFF1F5F9)
+        else -> Color(0xFFF1F5F9)
+    }
+    val badgeText = when (matchedLead.status) {
+        "Interested" -> Color(0xFF16A34A)
+        "Not Connected", "Wrong Number" -> Color(0xFFDC2626)
+        "Busy" -> Color(0xFFD97706)
+        "Pending" -> Color(0xFF475569)
+        else -> Color(0xFF475569)
+    }
+    val leftBorderColor = badgeText
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+        ) {
+            // Status colored left bar
+            Box(
+                modifier = Modifier
+                    .width(6.dp)
+                    .fillMaxHeight()
+                    .background(leftBorderColor)
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = matchedLead.name,
+                        fontSize = 18.sp,
+                        fontFamily = NunitoFamily,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF1E293B)
+                    )
+
+                    // Badge
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(badgeBg)
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = statusText,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = badgeText
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "📞 ${matchedLead.phone}",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF475569)
+                )
+
+                if (matchedLead.collegeName.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "🏫 ${matchedLead.collegeName}${if (matchedLead.collegeCity.isNotBlank()) ", ${matchedLead.collegeCity}" else ""}",
+                        fontSize = 12.sp,
+                        color = Color(0xFF64748B),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                if (matchedLead.calledAt > 0L) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Color(0xFFE2E8F0))
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "⏳ Last call: ${SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(matchedLead.calledAt))}",
+                        fontSize = 11.sp,
+                        color = Color(0xFF94A3B8),
+                        fontWeight = FontWeight.Medium
+                    )
+                    if (matchedLead.calledBy.isNotBlank()) {
+                        Text(
+                            text = "👤 Called by: ${matchedLead.calledBy}",
+                            fontSize = 11.sp,
+                            color = Color(0xFF94A3B8),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
     }
 }

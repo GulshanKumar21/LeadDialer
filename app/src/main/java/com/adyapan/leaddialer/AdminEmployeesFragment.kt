@@ -91,15 +91,15 @@ class AdminEmployeesFragment : Fragment() {
             onTlAssign = { emp, tl ->
                 if (tl == null) {
                     viewModel.removeTlAssignment(emp.userId)
-                    Toast.makeText(requireContext(), "❌ TL removed: ${emp.employeeName}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "TL removed: ${emp.employeeName}", Toast.LENGTH_SHORT).show()
                 } else {
                     viewModel.saveTlAssignment(emp.userId, tl)
-                    Toast.makeText(requireContext(), "✅ ${emp.employeeName} → ${tl.name}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "${emp.employeeName} → ${tl.name}", Toast.LENGTH_SHORT).show()
                     lifecycleScope.launch {
                         Toast.makeText(requireContext(), "Syncing data to ${tl.name}...", Toast.LENGTH_SHORT).show()
                         val success = SheetsSync.adminSyncEmployeeToTl(requireContext(), emp.userId, emp.employeeName, tl.id)
                         if (success) {
-                            Toast.makeText(requireContext(), "✅ Data synced!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Data synced!", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -305,10 +305,10 @@ class AdminEmployeesFragment : Fragment() {
                 }
 
                 if (profileOk && tlOk) {
-                    Toast.makeText(requireContext(), "✅ Profile + TL saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Profile + TL saved", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 } else {
-                    Toast.makeText(requireContext(), "❌ Save failed, try again", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Save failed, try again", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -337,13 +337,13 @@ class AdminEmployeesFragment : Fragment() {
 
         tvChangeSheet.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle("📋 Sheet Full? Here's how to change it")
+                .setTitle("Sheet Full? Here's how to change it")
                 .setMessage(
-                    "1️⃣  Google Apps Script mein naya Spreadsheet banao.\n\n" +
-                    "2️⃣  Script ko wahan deploy karo (Extensions → Apps Script → Deploy → New Deployment).\n\n" +
-                    "3️⃣  Naya URL copy karo.\n\n" +
-                    "4️⃣  Yahan us TL ka ✏️ Edit button dabaao, nayi URL paste karo, aur Save karo.\n\n" +
-                    "✅ Agla sync automatically naye sheet mein jayega!"
+                    "1⃣ Google Apps Script mein naya Spreadsheet banao.\n\n" +
+                    "2⃣ Script ko wahan deploy karo (Extensions → Apps Script → Deploy → New Deployment).\n\n" +
+                    "3⃣ Naya URL copy karo.\n\n" +
+                    "4⃣ Yahan us TL ka Edit button dabaao, nayi URL paste karo, aur Save karo.\n\n" +
+                    "Agla sync automatically naye sheet mein jayega!"
                 )
                 .setPositiveButton("Got it", null)
                 .show()
@@ -363,7 +363,7 @@ class AdminEmployeesFragment : Fragment() {
                 spinnerEmployee.setSelection(if (idx >= 0) idx else 0)
                 etUrl.setText(tl.sheetUrl)
                 editingTlId = tl.id
-                btnAdd.text = "✏️ Update Team Leader"
+                btnAdd.text = "Update Team Leader"
             },
             onDelete = { tl ->
                 AlertDialog.Builder(requireContext())
@@ -374,7 +374,7 @@ class AdminEmployeesFragment : Fragment() {
                             TeamLeaderManager.deleteTeamLeader(tl.id)
                             tlAdapter?.let { refreshTlList(rvTls, it) }
                             editingTlId = null
-                            btnAdd.text = "💾 Save Team Leader"
+                            btnAdd.text = "Save Team Leader"
                         }
                     }
                     .setNegativeButton("Cancel", null)
@@ -444,11 +444,11 @@ class AdminEmployeesFragment : Fragment() {
 
             // Fix: validate by userId (not name) to handle blank-name edge case
             if (selectedPos == 0 || userId.isBlank()) {
-                Toast.makeText(requireContext(), "❌ Pehle employee select karo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Pehle employee select karo", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (url.isBlank()) {
-                Toast.makeText(requireContext(), "❌ Google Sheet URL daalna zaroori hai", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Google Sheet URL daalna zaroori hai", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -456,13 +456,13 @@ class AdminEmployeesFragment : Fragment() {
                 val editId = editingTlId
                 if (editId != null) {
                     TeamLeaderManager.updateTeamLeader(editId, name, url, userId)
-                    Toast.makeText(requireContext(), "✅ TL updated", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "TL updated", Toast.LENGTH_SHORT).show()
                     editingTlId = null
-                    btnAdd.text = "💾 Save Team Leader"
+                    btnAdd.text = "Save Team Leader"
                 } else {
                     // New TL
                     TeamLeaderManager.addTeamLeader(name, url, userId)
-                    Toast.makeText(requireContext(), "✅ TL added: $name", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "TL added: $name", Toast.LENGTH_SHORT).show()
                 }
                 spinnerEmployee.setSelection(0)
                 etUrl.setText("")
@@ -489,8 +489,8 @@ class AdminEmployeesFragment : Fragment() {
         val btnSave    = dialogView.findViewById<Button>(R.id.btnSaveAssign)
         val btnCancel  = dialogView.findViewById<Button>(R.id.btnCancelAssign)
 
-        tvTitle.text    = "👥 ${tl.name} — Members"
-        tvSubtitle.text = "☑️ Checked = in this TL  ☐ Unchecked = not in this TL"
+        tvTitle.text    = "${tl.name} — Members"
+        tvSubtitle.text = "Checked = in this TL Unchecked = not in this TL"
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
@@ -578,9 +578,9 @@ class AdminEmployeesFragment : Fragment() {
                     }
 
                     val msg = if (failCount == 0)
-                        "✅ ${successCount} changes saved! New syncs will use the new sheet."
+                        "${successCount} changes saved! New syncs will use the new sheet."
                     else
-                        "⚠️ $successCount saved, $failCount failed"
+                        "$successCount saved, $failCount failed"
 
                     activity?.runOnUiThread {
                         Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
@@ -611,11 +611,11 @@ class AdminEmployeesFragment : Fragment() {
 
         // Quick tag chips
         val tags = mapOf(
-            R.id.tag1 to "⚠️ Urgent: ",
-            R.id.tag2 to "📋 Task: ",
-            R.id.tag3 to "⭐ Good Work! ",
-            R.id.tag4 to "📞 Please call now. ",
-            R.id.tag5 to "📊 Please submit your report. "
+            R.id.tag1 to "Urgent:",
+            R.id.tag2 to "Task:",
+            R.id.tag3 to "Good Work!",
+            R.id.tag4 to "Please call now.",
+            R.id.tag5 to "Please submit your report."
         )
         tags.forEach { (id, prefix) ->
             dialogView.findViewById<TextView>(id).setOnClickListener {
@@ -658,7 +658,7 @@ class AdminEmployeesFragment : Fragment() {
                 .add(message)
                 .addOnSuccessListener { docRef ->
                     Toast.makeText(requireContext(),
-                        "✅ Message sent to ${emp.employeeName}", Toast.LENGTH_SHORT).show()
+                        "Message sent to ${emp.employeeName}", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                     // Open thread so admin can follow replies
                     openAdminThreadDialog(
@@ -679,7 +679,7 @@ class AdminEmployeesFragment : Fragment() {
                                 GasNotificationSender.sendNotification(
                                     requireContext(),
                                     token,
-                                    "📩 New Message",
+                                    "New Message",
                                     text
                                 )
                             }
@@ -687,7 +687,7 @@ class AdminEmployeesFragment : Fragment() {
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(requireContext(),
-                        "❌ Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
 
@@ -723,7 +723,7 @@ class AdminEmployeesFragment : Fragment() {
         val etReply    = dialog.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etReply)
         val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
 
-        tvTitle.text    = "💬 $employeeName"
+        tvTitle.text    = "$employeeName"
         tvSubtitle.text = "Conversation thread · you are Admin"
 
         val lm = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
@@ -788,14 +788,14 @@ class AdminEmployeesFragment : Fragment() {
                                 GasNotificationSender.sendNotification(
                                     requireContext(),
                                     token,
-                                    "📩 New Message",
+                                    "New Message",
                                     text
                                 )
                             }
                         }
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "❌ ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
 
@@ -818,17 +818,17 @@ class AdminEmployeesFragment : Fragment() {
         }
 
         AlertDialog.Builder(ctx)
-            .setTitle("🎯 Set Target for ${emp.employeeName}")
+            .setTitle("Set Target for ${emp.employeeName}")
             .setMessage("Current target: ${if (emp.adminTarget > 0) emp.adminTarget else "Not set"}")
             .setView(etTarget)
             .setPositiveButton("Save") { _, _ ->
                 val input = etTarget.text.toString().trim().toIntOrNull()
                 if (input == null || input <= 0) {
-                    Toast.makeText(ctx, "❌ Enter a valid number", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, "Enter a valid number", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 viewModel.saveAdminTarget(emp.userId, input)
-                Toast.makeText(ctx, "✅ Target set: $input for ${emp.employeeName}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, "Target set: $input for ${emp.employeeName}", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()

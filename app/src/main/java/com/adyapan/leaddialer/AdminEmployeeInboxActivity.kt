@@ -127,7 +127,7 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
         val etReply    = dialog.findViewById<TextInputEditText>(R.id.etReply)
         val btnSend    = dialog.findViewById<android.widget.Button>(R.id.btnSendReply)
 
-        tvTitle.text    = "💬 ${item.employeeName}"
+        tvTitle.text    = "${item.employeeName}"
         tvSubtitle.text = "Conversation thread · Admin view"
 
         val lm = LinearLayoutManager(this).apply { stackFromEnd = true }
@@ -213,7 +213,7 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
                     etReply.setText("")
                     Toast.makeText(
                         this,
-                        "✅ Reply sent to ${item.employeeName}",
+                        "Reply sent to ${item.employeeName}",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -227,7 +227,7 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
                                 GasNotificationSender.sendNotification(
                                     this,
                                     token,
-                                    "📩 New Message",
+                                    "New Message",
                                     text
                                 )
                             }
@@ -236,7 +236,7 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
                 .addOnFailureListener { e ->
                     Toast.makeText(
                         this,
-                        "❌ ${e.message}",
+                        "${e.message}",
                         Toast.LENGTH_SHORT
                     ).show()
                 }

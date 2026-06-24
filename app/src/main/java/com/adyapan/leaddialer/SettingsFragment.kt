@@ -64,19 +64,19 @@ class SettingsFragment : Fragment() {
             }
             btnSync.isEnabled = false
             btnSync.text      = "Syncing..."
-            tvSyncStatus.text = "⏳ Syncing ${leads.size} leads to Google Sheets..."
+            tvSyncStatus.text = "Syncing ${leads.size} leads to Google Sheets..."
             tvSyncStatus.visibility = View.VISIBLE
 
             lifecycleScope.launch {
                 val success = SheetsSync.syncAllLeads(requireContext(), leads)
                 btnSync.isEnabled = true
-                btnSync.text      = "🔄  Sync to Google Sheets"
+                btnSync.text      = "Sync to Google Sheets"
                 if (success) {
-                    tvSyncStatus.text = "✅ Synced successfully! Check Google Sheets."
-                    Toast.makeText(requireContext(), "✅ Synced to Google Sheets!", Toast.LENGTH_SHORT).show()
+                    tvSyncStatus.text = "Synced successfully! Check Google Sheets."
+                    Toast.makeText(requireContext(), "Synced to Google Sheets!", Toast.LENGTH_SHORT).show()
                 } else {
-                    tvSyncStatus.text = "❌ Sync failed. Check internet connection."
-                    Toast.makeText(requireContext(), "❌ Sync failed. Check internet.", Toast.LENGTH_SHORT).show()
+                    tvSyncStatus.text = "Sync failed. Check internet connection."
+                    Toast.makeText(requireContext(), "Sync failed. Check internet.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -89,7 +89,7 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton("Yes, Restore") { _, _ ->
                     btnForceFullSync.isEnabled = false
                     btnForceFullSync.text      = "Uploading..."
-                    tvSyncStatus.text          = "⏳ Fetching all records..."
+                    tvSyncStatus.text          = "Fetching all records..."
                     tvSyncStatus.visibility    = View.VISIBLE
 
                     lifecycleScope.launch {
@@ -98,20 +98,20 @@ class SettingsFragment : Fragment() {
                             val allRecs = db.callRecordDao().getAllOnce()
 
                             if (allRecs.isEmpty()) {
-                                tvSyncStatus.text = "ℹ️ No call records found in local database."
+                                tvSyncStatus.text = "ℹ No call records found in local database."
                                 btnForceFullSync.isEnabled = true
                                 btnForceFullSync.text      = "Restore All Calls to Sheet"
                                 return@launch
                             }
 
-                            tvSyncStatus.text = "⏳ Sending ${allRecs.size} records in batches..."
+                            tvSyncStatus.text = "Sending ${allRecs.size} records in batches..."
 
                             // Send in batches of 150 to avoid timeout
                             val batchSize = 150
                             var success   = true
                             var sent      = 0
                             allRecs.chunked(batchSize).forEachIndexed { idx, batch ->
-                                tvSyncStatus.text = "⏳ Batch ${idx + 1}/${(allRecs.size + batchSize - 1) / batchSize} (${sent}/${allRecs.size} sent)..."
+                                tvSyncStatus.text = "Batch ${idx + 1}/${(allRecs.size + batchSize - 1) / batchSize} (${sent}/${allRecs.size} sent)..."
                                 val ok = SheetsSync.syncCallRecords(requireContext(), batch)
                                 if (!ok) success = false
                                 sent += batch.size
@@ -121,16 +121,16 @@ class SettingsFragment : Fragment() {
                             btnForceFullSync.text      = "Restore All Calls to Sheet"
 
                             if (success) {
-                                tvSyncStatus.text = "✅ ${allRecs.size} records restored to Google Sheet!"
-                                Toast.makeText(requireContext(), "✅ All call records restored!", Toast.LENGTH_LONG).show()
+                                tvSyncStatus.text = "${allRecs.size} records restored to Google Sheet!"
+                                Toast.makeText(requireContext(), "All call records restored!", Toast.LENGTH_LONG).show()
                             } else {
-                                tvSyncStatus.text = "⚠️ Some batches failed. Try again."
-                                Toast.makeText(requireContext(), "⚠️ Partial sync. Check internet.", Toast.LENGTH_LONG).show()
+                                tvSyncStatus.text = "Some batches failed. Try again."
+                                Toast.makeText(requireContext(), "Partial sync. Check internet.", Toast.LENGTH_LONG).show()
                             }
                         } catch (e: Exception) {
                             btnForceFullSync.isEnabled = true
                             btnForceFullSync.text      = "Restore All Calls to Sheet"
-                            tvSyncStatus.text          = "❌ Error: ${e.message}"
+                            tvSyncStatus.text          = "Error: ${e.message}"
                         }
                     }
                 }
@@ -140,12 +140,12 @@ class SettingsFragment : Fragment() {
 
         btnClearLeads.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle("⚠️ Clear All Leads")
+                .setTitle("Clear All Leads")
                 .setMessage("This will permanently delete ALL leads. Are you sure?")
                 .setPositiveButton("Yes, Delete All") { _, _ ->
                     viewModel.deleteAll()
                     tvSyncStatus.visibility = View.GONE
-                    Toast.makeText(requireContext(), "✅ All leads deleted", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "All leads deleted", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -159,7 +159,7 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton("Logout") { _, _ ->
                     // Show syncing progress before logout to prevent data loss
                     val progressDialog = AlertDialog.Builder(requireContext())
-                        .setTitle("⏳ Syncing Data")
+                        .setTitle("Syncing Data")
                         .setMessage("Uploading pending call records to cloud before logout...")
                         .setCancelable(false)
                         .create()
@@ -182,7 +182,7 @@ class SettingsFragment : Fragment() {
         val btnRequestDeletion = view.findViewById<Button>(R.id.btnRequestDeletion)
         btnRequestDeletion.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle("⚠️ Request Account Deletion")
+                .setTitle("Request Account Deletion")
                 .setMessage("Are you sure you want to submit an account deletion request? This will compose an email to support@adyapan.com requesting the permanent removal of your account and all associated data.")
                 .setPositiveButton("Submit Request") { _, _ ->
                     val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email ?: "N/A"
@@ -247,7 +247,7 @@ class SettingsFragment : Fragment() {
         // "Ask Every Time" option (index = -1)
         addSimButton(
             container    = llSimButtons,
-            label        = "📱  Ask Every Time",
+            label        = "Ask Every Time",
             sublabel     = "System will show SIM chooser on each call",
             isSelected   = SimManager.getSelectedIndex(requireContext()) == SimManager.INDEX_SYSTEM_DEFAULT,
             onClick      = {
@@ -264,14 +264,14 @@ class SettingsFragment : Fragment() {
             val simLabel = "SIM ${idx + 1}  —  $label"
             addSimButton(
                 container  = llSimButtons,
-                label      = "📶  $simLabel",
+                label      = "$simLabel",
                 sublabel   = "All calls will go through this SIM automatically",
                 isSelected = SimManager.getSelectedIndex(requireContext()) == idx,
                 onClick    = {
                     SimManager.saveSelectedIndex(requireContext(), idx)
                     tvCurrentSim.text = simLabel
                     refreshSimButtons(llSimButtons, accounts, tvCurrentSim, idx)
-                    Toast.makeText(requireContext(), "✅ Calls will use $simLabel", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Calls will use $simLabel", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -290,7 +290,7 @@ class SettingsFragment : Fragment() {
 
         addSimButton(
             container  = container,
-            label      = "📱  Ask Every Time",
+            label      = "Ask Every Time",
             sublabel   = "System will show SIM chooser on each call",
             isSelected = selectedIdx == SimManager.INDEX_SYSTEM_DEFAULT,
             onClick    = {
@@ -306,14 +306,14 @@ class SettingsFragment : Fragment() {
             val simLabel = "SIM ${idx + 1}  —  $label"
             addSimButton(
                 container  = container,
-                label      = "📶  $simLabel",
+                label      = "$simLabel",
                 sublabel   = "All calls will go through this SIM automatically",
                 isSelected = selectedIdx == idx,
                 onClick    = {
                     SimManager.saveSelectedIndex(requireContext(), idx)
                     tvCurrentSim.text = simLabel
                     refreshSimButtons(container, accounts, tvCurrentSim, idx)
-                    Toast.makeText(requireContext(), "✅ Calls will use $simLabel", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Calls will use $simLabel", Toast.LENGTH_SHORT).show()
                 }
             )
         }

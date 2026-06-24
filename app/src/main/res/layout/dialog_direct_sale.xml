@@ -17,7 +17,7 @@
 
         <!-- Header -->
         <TextView
-            android:text="💰 Report Direct Sale"
+            android:text="Report Direct Sale"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="#1A1A2E"
@@ -38,7 +38,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="👤 Customer Name *"
+            android:hint="Customer Name *"
             android:layout_marginBottom="14dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -58,7 +58,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="📱 Customer Phone Number *"
+            android:hint="Customer Phone Number *"
             android:layout_marginBottom="20dp"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
@@ -76,7 +76,7 @@
         <!-- Buttons -->
         <Button
             android:id="@+id/btnSubmitDirectSale"
-            android:text="💰 Submit Direct Sale"
+            android:text="Submit Direct Sale"
             android:backgroundTint="#0D9488"
             android:textColor="@android:color/white"
             android:textSize="15sp"

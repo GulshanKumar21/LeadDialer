@@ -375,7 +375,7 @@ class ProfileFragment : Fragment() {
                     toSelected = true
                 }
             }, fromCal.get(Calendar.YEAR), fromCal.get(Calendar.MONTH), fromCal.get(Calendar.DAY_OF_MONTH))
-            dp.datePicker.minDate = todayMs   // 🔒 No past dates
+            dp.datePicker.minDate = todayMs   //  No past dates
             dp.show()
         }
 
@@ -386,7 +386,7 @@ class ProfileFragment : Fragment() {
                 tvTo.setTextColor(resources.getColor(android.R.color.black, null))
                 toSelected = true
             }, toCal.get(Calendar.YEAR), toCal.get(Calendar.MONTH), toCal.get(Calendar.DAY_OF_MONTH))
-            dp.datePicker.minDate = if (fromSelected) fromCal.timeInMillis else todayMs   // 🔒
+            dp.datePicker.minDate = if (fromSelected) fromCal.timeInMillis else todayMs   // 
             dp.show()
         }
 
@@ -441,7 +441,7 @@ class ProfileFragment : Fragment() {
             }
 
             if (leaveType == "LOP" && !selectedType.equals("LOP", ignoreCase = true)) {
-                Toast.makeText(requireContext(), "⚠️ Out of paid leave balance. Applied as LOP (Loss of Pay).", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Out of paid leave balance. Applied as LOP (Loss of Pay).", Toast.LENGTH_LONG).show()
             }
 
             val fromDate   = tvFrom.text.toString()
@@ -498,7 +498,7 @@ class ProfileFragment : Fragment() {
                     tvText.text = "Uploading Document..."
                     val uploadedUrl = uploadLeaveDocument(uri, documentName)
                     if (uploadedUrl == null) {
-                        Toast.makeText(requireContext(), "❌ Document upload failed. Please try again.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Document upload failed. Please try again.", Toast.LENGTH_SHORT).show()
                         btnSubmit.isEnabled = true
                         btnSubmit.text = "Submit Leave Request"
                         progressDialog.dismiss()
@@ -540,14 +540,14 @@ class ProfileFragment : Fragment() {
                     )
 
                     if (gasSent) {
-                        // ✅ Email sent automatically via GAS — no user action needed
+                        //  Email sent automatically via GAS — no user action needed
                         Toast.makeText(
                             requireContext(),
-                            "✅ Leave submitted! Email sent to admin automatically.",
+                            "Leave submitted! Email sent to admin automatically.",
                             Toast.LENGTH_LONG
                         ).show()
                     } else {
-                        // ⚠️ GAS failed (offline / error) — open email app as fallback
+                        //  GAS failed (offline / error) — open email app as fallback
                         openLeaveEmailApp(
                             adminEmail = adminEmail,
                             empName    = empName,
@@ -561,7 +561,7 @@ class ProfileFragment : Fragment() {
                         )
                         Toast.makeText(
                             requireContext(),
-                            "✅ Leave submitted! Please press Send in the email app to notify admin.",
+                            "Leave submitted! Please press Send in the email app to notify admin.",
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -576,8 +576,8 @@ class ProfileFragment : Fragment() {
                     val loggedIn = FirebaseAuth.getInstance().currentUser != null
                     Toast.makeText(
                         requireContext(),
-                        if (loggedIn) "❌ Submit failed. Check internet & try again."
-                        else          "❌ Session expired. Please log in again.",
+                        if (loggedIn) "Submit failed. Check internet & try again."
+                        else          "Session expired. Please log in again.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -620,7 +620,7 @@ Thank you,
 $empName
         """.trimIndent()
 
-        // ✅ Correct mailto URI construction — Uri.encode each part separately
+        //  Correct mailto URI construction — Uri.encode each part separately
         val mailto = "mailto:${android.net.Uri.encode(adminEmail)}" +
             "?subject=${android.net.Uri.encode(subject)}" +
             "&body=${android.net.Uri.encode(body)}"
@@ -641,7 +641,7 @@ $empName
                 startActivity(Intent.createChooser(fallback, "Send via Email"))
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "❌ No email app found. Please email $adminEmail manually.", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "No email app found. Please email $adminEmail manually.", Toast.LENGTH_LONG).show()
         }
     }
 }

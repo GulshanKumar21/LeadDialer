@@ -17,17 +17,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,6 +52,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+// Custom Font Family setup
+private val PoppinsFamily = FontFamily(
+    Font(R.font.poppins_regular, FontWeight.Normal),
+    Font(R.font.poppins_medium, FontWeight.Medium),
+    Font(R.font.poppins_semibold, FontWeight.SemiBold),
+    Font(R.font.poppins_bold, FontWeight.Bold)
+)
 
 enum class HRScreen(val title: String, val icon: ImageVector) {
     Dashboard("Dashboard", Icons.Default.Home),
@@ -108,7 +123,7 @@ class HRPanelActivity : AppCompatActivity() {
     private fun performLogout() {
         viewModel.clearAllListeners()
         val progressDialog = AlertDialog.Builder(this)
-            .setTitle("⏳ Syncing Data")
+            .setTitle("Syncing Data")
             .setMessage("Cleaning up and logging out...")
             .setCancelable(false)
             .create()
@@ -402,210 +417,227 @@ fun DashboardScreen(viewModel: AdminViewModel) {
         }
     }
 
-    LazyColumn(
+    // Dynamic Top Performers based on salesDone and connected calls
+    val topPerformers = remember(employees) {
+        employees.filter { it.salesDone > 0 || it.connected > 0 }
+            .sortedWith(compareByDescending<EmployeeSummary> { it.salesDone }.thenByDescending { it.connected })
+            .take(3)
+    }
+
+    // Dynamic Pending Leaves (top 3)
+    val pendingLeaves = remember(leaveRequests) {
+        leaveRequests.filter { it.status == "Pending" }
+            .sortedByDescending { it.appliedAt }
+            .take(3)
+    }
+
+    val bgGradient = remember {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFFF8FAFC), Color(0xFFEDF2F7))
+        )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(bgGradient)
     ) {
-        // Welcome and Refresh Section
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "HR Dashboard",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
-                    )
-                    Text(
-                        text = "Live workforce, attendance, leave and recruitment overview.",
-                        fontSize = 12.sp,
-                        color = Color(0xFF7F8C8D)
-                    )
-                }
-                IconButton(
-                    onClick = { viewModel.loadAllEmployeeData() },
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFF3F4F6))
-                        .border(BorderStroke(1.dp, Color(0xFFE5E7EB)), RoundedCornerShape(8.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh",
-                        tint = Color(0xFF111827)
-                    )
-                }
-            }
-        }
-
-        // Attendance Quick Mark banner
-        item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE6D5)),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(context, AttendanceActivity::class.java)
-                        context.startActivity(intent)
-                    }
-            ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Welcome and Refresh Section
+            item {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Clock",
-                        tint = Color(0xFFFF6A00),
-                        modifier = Modifier.size(36.dp)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(
-                            text = "Mark Attendance",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF6A00)
-                        )
-                        Text(
-                            text = "Clock-In or Clock-Out for today",
-                            fontSize = 12.sp,
-                            color = Color(0xFF7F8C8D)
-                        )
-                    }
-                }
-            }
-        }
-
-        // Stats Cards: 3 rows of 2 cards each (total 6 cards)
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DashboardCard(
-                    title = "Total Employees",
-                    count = totalEmployees.toString(),
-                    subtitle = "Live employee records",
-                    icon = Icons.Default.People,
-                    color = Color(0xFF5856D6),
-                    modifier = Modifier.weight(1f)
-                )
-                DashboardCard(
-                    title = "Active Employees",
-                    count = totalEmployees.toString(),
-                    subtitle = if (joinedThisMonthCount > 0) "$joinedThisMonthCount joined this month" else "No new joiners this month",
-                    icon = Icons.Default.PersonAdd,
-                    color = Color(0xFF22C55E),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DashboardCard(
-                    title = "Open Positions",
-                    count = "0",
-                    subtitle = "Currently accepting candidates",
-                    icon = Icons.Default.Work,
-                    color = Color(0xFFFF9500),
-                    modifier = Modifier.weight(1f)
-                )
-                DashboardCard(
-                    title = "Pending Leaves",
-                    count = pendingLeavesCount.toString(),
-                    subtitle = "Awaiting HR review",
-                    icon = Icons.Default.WatchLater,
-                    color = Color(0xFF9B51E0),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DashboardCard(
-                    title = "Attendance Rate",
-                    count = "$attendanceRate%",
-                    subtitle = "Current month records",
-                    icon = Icons.Default.DateRange,
-                    color = Color(0xFF007AFF),
-                    modifier = Modifier.weight(1f)
-                )
-                DashboardCard(
-                    title = "Upcoming Birthdays",
-                    count = upcomingBirthdaysCount.toString(),
-                    subtitle = "Next seven days",
-                    icon = Icons.Default.Cake,
-                    color = Color(0xFFE91E63),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        // Top Performers and Pending Leave Requests Section
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .shadow(4.dp, RoundedCornerShape(16.dp))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("🎗️", fontSize = 16.sp)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Top Performers",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2C3E50)
-                                )
+                        val hrGreeting = remember {
+                            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                            when (hour) {
+                                in 0..11 -> "Good Morning, HR Team ☕"
+                                in 12..16 -> "Good Afternoon, HR Team 🌤️"
+                                in 17..20 -> "Good Evening, HR Team 🌆"
+                                else -> "Good Night, HR Team 🌌"
                             }
-                            Text(
-                                text = "View reviews",
-                                fontSize = 11.sp,
-                                color = Color(0xFFFF6A00),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clickable {}
+                        }
+                        Text(
+                            text = hrGreeting,
+                            fontSize = 12.sp,
+                            fontFamily = PoppinsFamily,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF64748B)
+                        )
+                        Text(
+                            text = "HR Command Center",
+                            fontSize = 24.sp,
+                            fontFamily = PoppinsFamily,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF0F172A)
+                        )
+                    }
+                    Card(
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable { viewModel.loadAllEmployeeData() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Refresh",
+                                tint = Color(0xFF475569),
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "No performance reviews have been recorded.",
-                                fontSize = 12.sp,
-                                color = Color(0xFF95A5A6),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
+            }
 
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
+            // Attendance Quick Mark banner (as CTA card)
+            item {
+                val orangeTintGradient = remember {
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFFFF7ED), Color(0xFFFFEDD5))
+                    )
+                }
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .shadow(4.dp, RoundedCornerShape(16.dp))
+                        .fillMaxWidth()
+                        .cleanCardEffect(isClickable = true, onClick = {
+                            val intent = Intent(context, AttendanceActivity::class.java)
+                            context.startActivity(intent)
+                        })
+                        .background(orangeTintGradient)
+                        .border(BorderStroke(1.dp, Color(0xFFFFD8BE)), RoundedCornerShape(16.dp))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFE6D5)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Clock",
+                                tint = Color(0xFFFF6A00),
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Mark Attendance",
+                                fontSize = 16.sp,
+                                fontFamily = PoppinsFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF6A00)
+                            )
+                            Text(
+                                text = "Clock-In or Clock-Out for today ⏰",
+                                fontSize = 12.sp,
+                                fontFamily = PoppinsFamily,
+                                color = Color(0xFF7F8C8D)
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Go",
+                            tint = Color(0xFFFF6A00),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            // Stats Cards: 3 rows of 2 cards each (total 6 cards)
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DashboardCard(
+                        title = "Total Employees",
+                        count = totalEmployees.toString(),
+                        subtitle = "Live employee records 📋",
+                        icon = Icons.Default.People,
+                        color = Color(0xFF5856D6),
+                        modifier = Modifier.weight(1f)
+                    )
+                    DashboardCard(
+                        title = "Active Employees",
+                        count = totalEmployees.toString(),
+                        subtitle = if (joinedThisMonthCount > 0) "$joinedThisMonthCount joined this month ✨" else "No new joiners this month",
+                        icon = Icons.Default.PersonAdd,
+                        color = Color(0xFF22C55E),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DashboardCard(
+                        title = "Open Positions",
+                        count = "0",
+                        subtitle = "Accepting candidates 💼",
+                        icon = Icons.Default.Work,
+                        color = Color(0xFFFF9500),
+                        modifier = Modifier.weight(1f)
+                    )
+                    DashboardCard(
+                        title = "Pending Leaves",
+                        count = pendingLeavesCount.toString(),
+                        subtitle = if (pendingLeavesCount > 0) "$pendingLeavesCount awaiting review ⌛" else "All caught up! ✅",
+                        icon = Icons.Default.WatchLater,
+                        color = Color(0xFF9B51E0),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DashboardCard(
+                        title = "Attendance Rate",
+                        count = "$attendanceRate%",
+                        subtitle = "Today's attendance 📊",
+                        icon = Icons.Default.DateRange,
+                        color = Color(0xFF007AFF),
+                        modifier = Modifier.weight(1f)
+                    )
+                    DashboardCard(
+                        title = "Upcoming Birthdays",
+                        count = upcomingBirthdaysCount.toString(),
+                        subtitle = "Next 7 days 🎂",
+                        icon = Icons.Default.Cake,
+                        color = Color(0xFFE91E63),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            // Pending Leaves List (Full-Width Card)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .cleanCardEffect(isClickable = false)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -616,14 +648,16 @@ fun DashboardScreen(viewModel: AdminViewModel) {
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Pending Leaves",
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
+                                    fontFamily = PoppinsFamily,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2C3E50)
+                                    color = Color(0xFF0F172A)
                                 )
                             }
                             Text(
                                 text = "View all",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
+                                fontFamily = PoppinsFamily,
                                 color = Color(0xFFFF6A00),
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.clickable {
@@ -636,31 +670,237 @@ fun DashboardScreen(viewModel: AdminViewModel) {
                                 }
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = if (pendingLeavesCount > 0) "$pendingLeavesCount leaves pending review" else "No leave requests are awaiting review.",
-                                fontSize = 12.sp,
-                                color = Color(0xFF95A5A6),
-                                textAlign = TextAlign.Center
-                            )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        if (pendingLeaves.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("🎉", fontSize = 32.sp)
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "All caught up! No pending leaves.",
+                                        fontSize = 12.sp,
+                                        fontFamily = PoppinsFamily,
+                                        color = Color(0xFF64748B),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        } else {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                pendingLeaves.forEach { leave ->
+                                    val initials = leave.employeeName.take(1).uppercase()
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color(0xFFF8FAFC))
+                                            .padding(10.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFFFE6D5)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = initials,
+                                                color = Color(0xFFFF6A00),
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsFamily
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = leave.employeeName,
+                                                fontSize = 13.sp,
+                                                fontFamily = PoppinsFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF0F172A)
+                                            )
+                                            Text(
+                                                text = "${leave.leaveType} · ${leave.fromDate} to ${leave.toDate}",
+                                                fontSize = 11.sp,
+                                                fontFamily = PoppinsFamily,
+                                                color = Color(0xFF64748B)
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .background(Color(0xFFFEF3C7))
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Pending",
+                                                fontSize = 10.sp,
+                                                fontFamily = PoppinsFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFFD97706)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
+
+            // Top Performers List (Full-Width Card)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .cleanCardEffect(isClickable = false)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🏆", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Top Performers Today",
+                                    fontSize = 14.sp,
+                                    fontFamily = PoppinsFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF0F172A)
+                                )
+                            }
+                            Text(
+                                text = "View details",
+                                fontSize = 12.sp,
+                                fontFamily = PoppinsFamily,
+                                color = Color(0xFFFF6A00),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable {
+                                    // Navigate to Sales performance or similar screen
+                                }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        if (topPerformers.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("💪", fontSize = 32.sp)
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "No stats recorded yet. Push your team to dial! 📞",
+                                        fontSize = 12.sp,
+                                        fontFamily = PoppinsFamily,
+                                        color = Color(0xFF64748B),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        } else {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                topPerformers.forEachIndexed { index, summary ->
+                                    val rankEmoji = when (index) {
+                                        0 -> "🥇"
+                                        1 -> "🥈"
+                                        2 -> "🥉"
+                                        else -> "${index + 1}."
+                                    }
+                                    val initials = summary.employeeName.take(1).uppercase()
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color(0xFFF8FAFC))
+                                            .padding(10.dp)
+                                    ) {
+                                        Text(
+                                            text = rankEmoji,
+                                            fontSize = 18.sp,
+                                            modifier = Modifier.width(28.dp)
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFE0F2FE)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = initials,
+                                                color = Color(0xFF0369A1),
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsFamily
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = summary.employeeName,
+                                                fontSize = 13.sp,
+                                                fontFamily = PoppinsFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF0F172A)
+                                            )
+                                            Text(
+                                                text = "TL: ${summary.tlName.ifEmpty { "None" }}",
+                                                fontSize = 11.sp,
+                                                fontFamily = PoppinsFamily,
+                                                color = Color(0xFF64748B)
+                                            )
+                                        }
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                text = "🔥 ${summary.salesDone} Sales",
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF22C55E)
+                                            )
+                                            Text(
+                                                text = "📞 ${summary.connected} Connected",
+                                                fontSize = 10.sp,
+                                                fontFamily = PoppinsFamily,
+                                                color = Color(0xFF64748B)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
-        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
 @Composable
 fun FunnelRow(label: String, count: Int, ratio: Float, color: Color) {
-
     Column(modifier = Modifier.padding(vertical = 6.dp)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text(label, fontSize = 13.sp, color = Color(0xFF7F8C8D))
-            Text(count.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2C3E50))
+            Text(label, fontSize = 13.sp, color = Color(0xFF7F8C8D), fontFamily = PoppinsFamily)
+            Text(count.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2C3E50), fontFamily = PoppinsFamily)
         }
         Spacer(modifier = Modifier.height(4.dp))
         LinearProgressIndicator(
@@ -681,10 +921,10 @@ fun DashboardCard(
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier.shadow(4.dp, RoundedCornerShape(16.dp))
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .cleanCardEffect(isClickable = false)
     ) {
         Column(
             modifier = Modifier
@@ -698,36 +938,83 @@ fun DashboardCard(
             ) {
                 Text(
                     text = title.uppercase(),
-                    fontSize = 11.sp,
-                    color = Color(0xFF7F8C8D),
-                    fontWeight = FontWeight.Bold
+                    fontSize = 10.sp,
+                    color = Color(0xFF64748B),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = PoppinsFamily
                 )
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(32.dp)
                         .clip(CircleShape)
-                        .background(color.copy(alpha = 0.15f)),
+                        .background(color.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = title, tint = color, modifier = Modifier.size(18.dp))
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = color,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = count,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF2C3E50)
+                color = Color(0xFF0F172A),
+                fontFamily = PoppinsFamily
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = subtitle,
                 fontSize = 11.sp,
-                color = Color(0xFF95A5A6),
-                fontWeight = FontWeight.Normal
+                color = Color(0xFF94A3B8),
+                fontWeight = FontWeight.Normal,
+                fontFamily = PoppinsFamily
             )
         }
     }
+}
+
+// iOS-style Clean White Card Effect — smooth shadow + scale on press
+private fun Modifier.cleanCardEffect(
+    isClickable: Boolean = true,
+    onClick: (() -> Unit)? = null
+): Modifier = this.composed {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed = if (isClickable) interactionSource.collectIsPressedAsState().value else false
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else 6.dp,
+        animationSpec = tween(150)
+    )
+    this
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .shadow(
+            elevation = elevation,
+            shape = RoundedCornerShape(16.dp),
+            ambientColor = Color(0x1A000000),
+            spotColor = Color(0x1A000000)
+        )
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color.White)
+        .then(
+            if (isClickable && onClick != null) {
+                Modifier.clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+            } else Modifier
+        )
 }
 
 // ── 3. RECRUITMENT SCREEN (HR ONLY - Job creation) ──
@@ -773,7 +1060,7 @@ fun RecruitmentScreen() {
             }
     }
 
-    val tabs = listOf("📋 Job Openings", "👤 Applications")
+    val tabs = listOf("Job Openings", "Applications")
 
     Scaffold(
         floatingActionButton = {
@@ -845,7 +1132,7 @@ fun JobOpeningsTab(
     if (jobs.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("📋", fontSize = 48.sp)
+                Text("", fontSize = 48.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("No job openings yet", color = Color(0xFF7F8C8D), fontSize = 16.sp)
                 Text("Tap + to create the first opening", color = Color(0xFFBDC3C7), fontSize = 13.sp)
@@ -904,7 +1191,7 @@ fun JobOpeningsTab(
                                 .background(Color(0xFFFFE6D5)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("💼", fontSize = 20.sp)
+                            Text("", fontSize = 20.sp)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -928,17 +1215,17 @@ fun JobOpeningsTab(
                     // Stats row
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("👥", fontSize = 13.sp)
+                            Text("", fontSize = 13.sp)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("$applicantCount applied", fontSize = 12.sp, color = Color(0xFF64748B))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🪑", fontSize = 13.sp)
+                            Text("", fontSize = 13.sp)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("$vacancies vacancies", fontSize = 12.sp, color = Color(0xFF64748B))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("⏰", fontSize = 13.sp)
+                            Text("", fontSize = 13.sp)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(employmentType, fontSize = 12.sp, color = Color(0xFF64748B))
                         }
@@ -977,18 +1264,18 @@ fun JobOpeningsTab(
                                                 if (label.lowercase() == "linkedin") {
                                                     // Build a job post text with all details
                                                     val postText = buildString {
-                                                        append("🚀 We're Hiring!\n\n")
-                                                        append("📋 Position: $title\n")
-                                                        if (dept.isNotBlank()) append("🏢 Department: $dept\n")
-                                                        if (location.isNotBlank()) append("📍 Location: $location\n")
-                                                        if (vacancies.isNotBlank()) append("💺 Vacancies: $vacancies\n")
-                                                        if (employmentType.isNotBlank()) append("⏰ Type: $employmentType\n")
-                                                        if (description.isNotBlank()) append("\n📝 ${description.take(300)}\n")
-                                                        if (requirements.isNotBlank()) append("\n✅ Requirements: ${requirements.take(200)}\n")
+                                                        append("We're Hiring!\n\n")
+                                                        append("Position: $title\n")
+                                                        if (dept.isNotBlank()) append("Department: $dept\n")
+                                                        if (location.isNotBlank()) append("Location: $location\n")
+                                                        if (vacancies.isNotBlank()) append("Vacancies: $vacancies\n")
+                                                        if (employmentType.isNotBlank()) append("Type: $employmentType\n")
+                                                        if (description.isNotBlank()) append("\n ${description.take(300)}\n")
+                                                        if (requirements.isNotBlank()) append("\n Requirements: ${requirements.take(200)}\n")
                                                         if (applyLink.isNotBlank()) {
-                                                            append("\n📩 Apply Now: $applyLink\n")
+                                                            append("\n Apply Now: $applyLink\n")
                                                         } else {
-                                                            append("\n📩 Interested? DM us or send your CV!\n")
+                                                            append("\n Interested? DM us or send your CV!\n")
                                                         }
                                                         append("\n#Hiring #Jobs #Recruitment #${title.replace(" ", "")} #${dept.replace(" ", "")}")
                                                     }
@@ -1049,7 +1336,7 @@ fun JobOpeningsTab(
                                         }
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text("🔗 $label", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("$label", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -1061,7 +1348,7 @@ fun JobOpeningsTab(
                         HorizontalDivider(color = Color(0xFFF1F5F9))
                         Spacer(modifier = Modifier.height(12.dp))
                         if (closingDate.isNotBlank()) {
-                            Text("📅 Closing: $closingDate", fontSize = 12.sp, color = Color(0xFF64748B))
+                            Text("Closing: $closingDate", fontSize = 12.sp, color = Color(0xFF64748B))
                             Spacer(modifier = Modifier.height(6.dp))
                         }
                         if (description.isNotBlank()) {
@@ -1083,7 +1370,7 @@ fun JobOpeningsTab(
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("📩 Apply Now", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Apply Now", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         }
 
                         if (showApplyDialog) {
@@ -1134,7 +1421,7 @@ fun ApplyJobDialog(jobId: String, jobTitle: String, onDismiss: () -> Unit) {
             ) {
                 // Header
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("📩", fontSize = 22.sp)
+                    Text("", fontSize = 22.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text("Apply for Position", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E293B))
@@ -1225,7 +1512,7 @@ fun ApplyJobDialog(jobId: String, jobTitle: String, onDismiss: () -> Unit) {
                             db.collection("jobApplications").add(data)
                                 .addOnSuccessListener {
                                     isSubmitting = false
-                                    android.widget.Toast.makeText(context, "✅ Application submitted successfully!", android.widget.Toast.LENGTH_LONG).show()
+                                    android.widget.Toast.makeText(context, "Application submitted successfully!", android.widget.Toast.LENGTH_LONG).show()
                                     onDismiss()
                                 }
                                 .addOnFailureListener { e ->
@@ -1254,7 +1541,7 @@ fun ApplicationsTab(applications: List<Map<String, Any>>) {
     if (applications.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("📨", fontSize = 48.sp)
+                Text("", fontSize = 48.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("No applications yet", color = Color(0xFF7F8C8D), fontSize = 16.sp)
             }
@@ -1301,7 +1588,7 @@ fun ApplicationsTab(applications: List<Map<String, Any>>) {
                         Text(name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                         Text("For: $jobTitle", fontSize = 11.sp, color = Color(0xFF64748B))
                         if (email.isNotBlank()) Text(email, fontSize = 11.sp, color = Color(0xFF94A3B8))
-                        if (phone.isNotBlank()) Text("📞 $phone", fontSize = 11.sp, color = Color(0xFF94A3B8))
+                        if (phone.isNotBlank()) Text("$phone", fontSize = 11.sp, color = Color(0xFF94A3B8))
                         if (experience.isNotBlank()) Text("Exp: $experience", fontSize = 11.sp, color = Color(0xFF94A3B8))
                         if (dateStr.isNotBlank()) Text("Applied: $dateStr", fontSize = 10.sp, color = Color(0xFFBDC3C7))
                     }
@@ -1363,7 +1650,7 @@ fun CreateJobDialog(
             ) {
                 // Header
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("💼", fontSize = 22.sp)
+                    Text("", fontSize = 22.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Create Job Opening", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E293B))
                 }
@@ -1477,7 +1764,7 @@ fun CreateJobDialog(
                 // Apply Link
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("📩", fontSize = 14.sp)
+                    Text("", fontSize = 14.sp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Apply Link", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFF6A00))
                 }
@@ -1488,7 +1775,7 @@ fun CreateJobDialog(
                 OutlinedTextField(
                     value = applyLink, onValueChange = { applyLink = it },
                     label = { Text("Apply Link / Google Form URL *") },
-                    leadingIcon = { Text("📩", fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp)) },
+                    leadingIcon = { Text("", fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp)) },
                     placeholder = { Text("https://forms.gle/...", fontSize = 11.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
@@ -1498,7 +1785,7 @@ fun CreateJobDialog(
                 // Section: Posting Links
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🔗", fontSize = 14.sp)
+                    Text("", fontSize = 14.sp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Posting Links", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFF6A00))
                 }
@@ -1537,7 +1824,7 @@ fun CreateJobDialog(
                 customUrls.forEachIndexed { idx, (label, url) ->
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("🔗 $label", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6B7280))
+                            Text("$label", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6B7280))
                             Text(url, fontSize = 11.sp, color = Color(0xFF94A3B8))
                         }
                         IconButton(onClick = { customUrls = customUrls.toMutableList().also { it.removeAt(idx) } }) {
@@ -1678,9 +1965,9 @@ fun AdminRecruitmentScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                RecruitmentStatCard("Total Openings", totalOpenings, "💼", Color(0xFF8B5CF6), modifier = Modifier.weight(1f))
-                RecruitmentStatCard("Open Positions", openJobs, "🟢", Color(0xFF10B981), modifier = Modifier.weight(1f))
-                RecruitmentStatCard("Applications", totalApplications, "📨", Color(0xFFFF6A00), modifier = Modifier.weight(1f))
+                RecruitmentStatCard("Total Openings", totalOpenings, "", Color(0xFF8B5CF6), modifier = Modifier.weight(1f))
+                RecruitmentStatCard("Open Positions", openJobs, "", Color(0xFF10B981), modifier = Modifier.weight(1f))
+                RecruitmentStatCard("Applications", totalApplications, "", Color(0xFFFF6A00), modifier = Modifier.weight(1f))
             }
         }
 
@@ -1722,14 +2009,14 @@ fun AdminRecruitmentScreen() {
                         Box(
                             modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFFFFE6D5)),
                             contentAlignment = Alignment.Center
-                        ) { Text("💼", fontSize = 18.sp) }
+                        ) { Text("", fontSize = 18.sp) }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                             Text("$dept · $location", fontSize = 11.sp, color = Color(0xFF7F8C8D))
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 4.dp)) {
-                                Text("🪑 $vacancies vacancies", fontSize = 11.sp, color = Color(0xFF64748B))
-                                Text("👥 $applicantCount applied", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("$vacancies vacancies", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("$applicantCount applied", fontSize = 11.sp, color = Color(0xFF64748B))
                             }
                         }
                         Box(
@@ -1815,7 +2102,7 @@ fun DocumentsScreen() {
 
                         FirebaseFirestore.getInstance().collection("documents").add(newDoc).await()
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Uploaded successfully ✅", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Uploaded successfully", Toast.LENGTH_SHORT).show()
                             showUploadDialog = false
                             uploadTitle = ""
                         }
@@ -2143,7 +2430,7 @@ fun DocumentsScreen() {
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5856D6))
                             ) {
-                                Text("Open File 🌐")
+                                Text("Open File")
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                         }
@@ -2425,9 +2712,9 @@ fun PerformanceScreen(viewModel: AdminViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    PerfStatCard("Team Target", totalTarget.toString(), "🎯", Color(0xFF8B5CF6), Modifier.weight(1f))
-                    PerfStatCard("Achieved", totalAchieved.toString(), "✅", Color(0xFF10B981), Modifier.weight(1f))
-                    PerfStatCard("Attainment", "$overallPct%", "📊", Color(0xFFFF6A00), Modifier.weight(1f))
+                    PerfStatCard("Team Target", totalTarget.toString(), "", Color(0xFF8B5CF6), Modifier.weight(1f))
+                    PerfStatCard("Achieved", totalAchieved.toString(), "", Color(0xFF10B981), Modifier.weight(1f))
+                    PerfStatCard("Attainment", "$overallPct%", "", Color(0xFFFF6A00), Modifier.weight(1f))
                 }
             }
 
@@ -2460,10 +2747,10 @@ fun PerformanceScreen(viewModel: AdminViewModel) {
                         else -> Color(0xFFEF4444)
                     }
                     val badgeLabel = when {
-                        pct >= 95 -> "🏆 Top Performer"
-                        pct >= 70 -> "🔵 On Track"
-                        pct >= 40 -> "⚠️ Needs Boost"
-                        else -> "🔴 Below Target"
+                        pct >= 95 -> "Top Performer"
+                        pct >= 70 -> "On Track"
+                        pct >= 40 -> "Needs Boost"
+                        else -> "Below Target"
                     }
 
                     // Feedback for this employee
@@ -2492,7 +2779,7 @@ fun PerformanceScreen(viewModel: AdminViewModel) {
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(emp.employeeName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                                    Text("⭐".repeat(stars) + " (${"%.0f".format(pct)}%)", fontSize = 12.sp, color = Color(0xFFFF6A00))
+                                    Text("".repeat(stars) + " (${"%.0f".format(pct)}%)", fontSize = 12.sp, color = Color(0xFFFF6A00))
                                 }
                                 Box(
                                     modifier = Modifier
@@ -2528,7 +2815,7 @@ fun PerformanceScreen(viewModel: AdminViewModel) {
                                         .background(Color(0xFFF8F9FA))
                                         .padding(8.dp)
                                 ) {
-                                    Text("💬 ", fontSize = 12.sp)
+                                    Text("", fontSize = 12.sp)
                                     Column {
                                         Text(feedbackText, fontSize = 12.sp, color = Color(0xFF475569))
                                         if (noteDate.isNotBlank()) Text(noteDate, fontSize = 10.sp, color = Color(0xFFBDC3C7))
@@ -2608,7 +2895,7 @@ fun SendFeedbackDialog(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("💬 Send Feedback", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E293B))
+                Text("Send Feedback", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E293B))
                 // Employee dropdown
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
@@ -2748,7 +3035,7 @@ fun AnnouncementsScreen() {
                                     GasNotificationSender.sendNotification(
                                         context,
                                         token,
-                                        "📢 New Announcement",
+                                        "New Announcement",
                                         textToSend
                                     )
                                 }

@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👥 Manage Team Leaders"
+            android:text="Manage Team Leaders"
             android:textColor="#1A202C"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -55,7 +55,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👤 Select Employee as TL"
+            android:text="Select Employee as TL"
             android:textColor="#4A5568"
             android:textSize="12sp"
             android:layout_marginBottom="4dp"/>
@@ -83,14 +83,14 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="🔗 Google Sheet Script URL (Optional)"
+                android:text="Google Sheet Script URL (Optional)"
                 android:textColor="#4A5568"
                 android:textSize="12sp"/>
             <TextView
                 android:id="@+id/tvChangeSheetHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📋 Sheet full? Change URL"
+                android:text="Sheet full? Change URL"
                 android:textColor="#4285F4"
                 android:textSize="11sp"
                 android:paddingStart="8dp"
@@ -119,7 +119,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:text="ℹ️  Jab sheet full ho jaye: naya GAS script deploy karo, URL yahan paste karo aur Save karo."
+            android:text="ℹ Jab sheet full ho jaye: naya GAS script deploy karo, URL yahan paste karo aur Save karo."
             android:textColor="#718096"
             android:textSize="11sp"
             android:layout_marginBottom="14dp"/>
@@ -136,7 +136,7 @@
             android:id="@+id/btnAddTl"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:text="💾 Save Team Leader"
+            android:text="Save Team Leader"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:backgroundTint="#4285F4"

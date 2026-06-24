@@ -108,7 +108,7 @@ class CalendarFragment : Fragment() {
             val holidayName = holidayMap[holidayKey]
 
             detailPanel.visibility = View.VISIBLE
-            tvDate.text = "📅 $displayDate"
+            tvDate.text = "$displayDate"
 
             val year = selected.get(Calendar.YEAR)
             val month = selected.get(Calendar.MONTH) + 1
@@ -118,7 +118,7 @@ class CalendarFragment : Fragment() {
 
             if (sortedHolidays.isNotEmpty()) {
                 val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(selected.time)
-                tvMonthHolidaysTitle.text = "🎉 Holidays in $monthName"
+                tvMonthHolidaysTitle.text = "Holidays in $monthName"
                 val listText = sortedHolidays.map { (dateStr, name) ->
                     val day = dateStr.substringAfterLast("-").toIntOrNull() ?: 0
                     val dayStr = String.format(Locale.getDefault(), "%02d", day)
@@ -136,14 +136,14 @@ class CalendarFragment : Fragment() {
             tvLateReason.visibility = View.GONE
 
             if (isWeeklyOff(selected)) {
-                tvWeeklyOff.text       = "🗓 Weekly Off (Tuesday)"
+                tvWeeklyOff.text       = "Weekly Off (Tuesday)"
                 tvWeeklyOff.setTextColor(Color.parseColor("#6366F1"))
                 tvWeeklyOff.setBackgroundColor(Color.parseColor("#EEF2FF"))
                 tvWeeklyOff.visibility = View.VISIBLE
                 tvPunchIn.text  = ""
                 tvLate.text     = ""
             } else if (holidayName != null) {
-                tvWeeklyOff.text       = "🎉 Holiday: $holidayName"
+                tvWeeklyOff.text       = "Holiday: $holidayName"
                 tvWeeklyOff.setTextColor(Color.parseColor("#EA580C"))
                 tvWeeklyOff.setBackgroundColor(Color.parseColor("#FFEDD5"))
                 tvWeeklyOff.visibility = View.VISIBLE
@@ -154,19 +154,19 @@ class CalendarFragment : Fragment() {
                     ?.find { it.date == selectedDate }
 
                 if (attRecord != null) {
-                    tvPunchIn.text = "⏰ Punch-in: ${attRecord.punchInTime}"
+                    tvPunchIn.text = "Punch-in: ${attRecord.punchInTime}"
                     tvPunchIn.setTextColor(Color.parseColor("#2E7D32"))
                     if (attRecord.isLate) {
-                        tvLate.text = "🔴 Arrived Late"
+                        tvLate.text = "Arrived Late"
                         tvLate.setTextColor(Color.parseColor("#C62828"))
                         tvLateReason.text       = "Reason: ${attRecord.lateReason}"
                         tvLateReason.visibility = View.VISIBLE
                     } else {
-                        tvLate.text = "🟢 Arrived On Time"
+                        tvLate.text = "Arrived On Time"
                         tvLate.setTextColor(Color.parseColor("#2E7D32"))
                     }
                 } else {
-                    tvPunchIn.text = "❌ No Record Found for This Day"
+                    tvPunchIn.text = "No Record Found for This Day"
                     tvPunchIn.setTextColor(Color.parseColor("#757575"))
                     tvLate.text = ""
                 }
@@ -178,19 +178,19 @@ class CalendarFragment : Fragment() {
                 rCal.get(Calendar.YEAR)        == selCal.get(Calendar.YEAR) &&
                 rCal.get(Calendar.DAY_OF_YEAR) == selCal.get(Calendar.DAY_OF_YEAR)
             }
-            tvCallCount.text = "📞 Total calls: ${dayCalls.size}"
+            tvCallCount.text = "Total calls: ${dayCalls.size}"
             if (dayCalls.isNotEmpty()) {
                 tvCallList.text = dayCalls.sortedByDescending { it.calledAt }
                     .joinToString("\n") { record ->
                         val time = SimpleDateFormat("hh:mm a", Locale.getDefault())
                             .format(java.util.Date(record.calledAt))
                         val icon = when (record.status) {
-                            "Connected"      -> "✅"
-                            "Not Connected"  -> "❌"
-                            "Busy"           -> "📵"
-                            "Interested"     -> "⭐"
-                            "Not Interested" -> "👎"
-                            else             -> "🕐"
+                            "Connected"      -> ""
+                            "Not Connected"  -> ""
+                            "Busy"           -> ""
+                            "Interested"     -> ""
+                            "Not Interested" -> ""
+                            else             -> ""
                         }
                         "$icon ${record.name}  •  ${CallManager.formatDuration(record.duration)}  •  $time"
                     }

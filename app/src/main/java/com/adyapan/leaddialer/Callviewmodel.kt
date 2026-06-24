@@ -68,7 +68,7 @@ class CallViewModel(application: Application) : AndroidViewModel(application) {
      *  Step B — Full batch sync runs in background (leads + all records + Sheets).
      */
     fun saveRecord(record: CallRecord) {
-        viewModelScope.launch(Dispatchers.IO) {
+        LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
             // 1. Save to Room immediately (instant, works offline)
             repo.insert(record)
 

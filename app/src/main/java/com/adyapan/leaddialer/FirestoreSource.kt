@@ -880,7 +880,7 @@ object FirestoreSource {
         val uid = currentUid()
         if (uid == null) { close(); return@callbackFlow }
 
-        // ⚠️ Using whereEqualTo + orderBy requires a Firestore composite index.
+        //  Using whereEqualTo + orderBy requires a Firestore composite index.
         // To avoid that setup burden, we filter by uid only and sort client-side.
         val query = if (isAdmin || isHR) leavesCol
         else leavesCol.whereEqualTo("uid", uid)

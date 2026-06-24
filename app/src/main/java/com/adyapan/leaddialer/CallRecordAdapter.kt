@@ -235,11 +235,11 @@ class CallRecordAdapter :
             tvPhone.text = record.phone
 
             tvDuration.text =
-                "⏱ ${
-                    CallManager.formatDuration(
-                        record.duration
-                    )
-                }"
+                "${
+ CallManager.formatDuration(
+ record.duration
+ )
+ }"
 
             tvTime.text =
                 if (record.calledAt > 0)

@@ -12,7 +12,14 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -161,10 +168,10 @@ fun DashboardScreen(
     val greeting = remember {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         when (hour) {
-            in 0..11 -> "Good Morning, ✨"
-            in 12..16 -> "Good Afternoon, ☀️"
-            in 17..20 -> "Good Evening, 🌤️"
-            else -> "Good Night, 🌙"
+            in 0..11 -> "Good Morning,"
+            in 12..16 -> "Good Afternoon,"
+            in 17..20 -> "Good Evening,"
+            else -> "Good Night,"
         }
     }
 
@@ -216,16 +223,16 @@ fun DashboardScreen(
     // Scroll state
     val scrollState = rememberScrollState()
 
-    val milkyWhiteBrush = remember {
-        Brush.linearGradient(
-            colors = listOf(Color(0xFFFAFAF7), Color(0xFFF8F8F5), Color(0xFFF5F0E6))
+    val bgGradient = remember {
+        Brush.verticalGradient(
+            colors = listOf(Color(0xFFF8FAFC), Color(0xFFEDF2F7))
         )
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(milkyWhiteBrush)
+            .background(bgGradient)
     ) {
         Column(
             modifier = Modifier
@@ -237,7 +244,6 @@ fun DashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(milkyWhiteBrush)
                     .padding(horizontal = 16.dp)
                     .padding(top = 16.dp, bottom = 12.dp)
             ) {
@@ -246,24 +252,38 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Hamburger — opens drawer
-                    IconButton(
-                        onClick = {
-                            (context as? MainActivity)?.findViewById<androidx.drawerlayout.widget.DrawerLayout>(R.id.drawerLayout)
-                                ?.openDrawer(androidx.core.view.GravityCompat.START)
-                        },
-                        modifier = Modifier.size(40.dp)
+                    Card(
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.size(42.dp)
                     ) {
-                        Text("☰", fontSize = 24.sp, color = Color(0xFF111827))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    (context as? MainActivity)?.findViewById<androidx.drawerlayout.widget.DrawerLayout>(R.id.drawerLayout)
+                                        ?.openDrawer(androidx.core.view.GravityCompat.START)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = Color(0xFF475569),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     // Avatar circle — click to open Profile
                     Box(
                         modifier = Modifier
                             .size(46.dp)
-                            .clip(RoundedCornerShape(23.dp))
-                            .border(2.dp, Color(0xFFFF6A00).copy(alpha = 0.55f), RoundedCornerShape(23.dp))
+                            .clip(CircleShape)
+                            .border(2.dp, Color(0xFFFF6A00).copy(alpha = 0.55f), CircleShape)
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(Color(0xFFFF6A00), Color(0xFFFF8C00))
@@ -289,14 +309,14 @@ fun DashboardScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = greeting,
-                            color = Color(0xFF6B7280),
+                            color = Color(0xFF64748B),
                             fontSize = 12.sp,
                             fontFamily = PoppinsFamily,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "$displayName 👋",
-                            color = Color(0xFF111827),
+                            text = displayName,
+                            color = Color(0xFF0F172A),
                             fontSize = 20.sp,
                             fontFamily = PoppinsFamily,
                             fontWeight = FontWeight.Bold
@@ -306,34 +326,43 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     // Bell notification button
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(RoundedCornerShape(21.dp))
-                            .background(Color(0xFFF3F4F6))
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(21.dp))
-                            .clickable {
-                                showAnnouncementsDialog = true
-                            },
-                        contentAlignment = Alignment.Center
+                    Card(
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.size(42.dp)
                     ) {
-                        Text("🔔", fontSize = 18.sp)
-                        if (announcementsList.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = (-2).dp, y = 2.dp)
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color(0xFFFF6A00))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    showAnnouncementsDialog = true
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color(0xFF475569),
+                                modifier = Modifier.size(20.dp)
                             )
+                            if (announcementsList.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = (-4).dp, y = 4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFF6A00))
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Stats row: 4 Mini Glass Stats side by side
+                // Stats row: 4 Mini Stats side by side
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -351,8 +380,8 @@ fun DashboardScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(140.dp)
-                    .shadow(4.dp, RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
+                    .shadow(6.dp, RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(20.dp))
             ) {
                 androidx.compose.foundation.Image(
                     painter = painterResource(id = R.drawable.studentbanner),
@@ -362,16 +391,17 @@ fun DashboardScreen(
                 )
             }
 
-            // ── 3. Today's Progress Card (iOS Clean) ──
-            Spacer(modifier = Modifier.height(16.dp))
+            // ── 3. Today's Progress Card (iOS Clean Widget style) ──
+            Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
                     .cleanCardEffect(isClickable = false)
-                    .padding(18.dp)
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.padding(18.dp)
+                ) {
                     // Title + Percentage row
                     val progressPercent = if (totalLeads > 0) (totalCalled * 100 / totalLeads) else 0
                     Row(
@@ -381,18 +411,18 @@ fun DashboardScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Today's Progress",
-                                color = Color(0xFF6B7280),
+                                color = Color(0xFF64748B),
                                 fontSize = 12.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.SemiBold
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "$totalCalled of $totalLeads leads called",
-                                color = Color(0xFF111827),
-                                fontSize = 15.sp,
+                                color = Color(0xFF0F172A),
+                                fontSize = 16.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.ExtraBold
                             )
                         }
                         Box(
@@ -407,7 +437,7 @@ fun DashboardScreen(
                                 color = Color(0xFFFF6A00),
                                 fontSize = 22.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.ExtraBold
                             )
                         }
                     }
@@ -425,7 +455,7 @@ fun DashboardScreen(
                             .fillMaxWidth()
                             .height(10.dp)
                             .clip(RoundedCornerShape(5.dp))
-                            .background(Color(0xFFF3F4F6))
+                            .background(Color(0xFFF1F5F9))
                     ) {
                         Box(
                             modifier = Modifier
@@ -451,23 +481,24 @@ fun DashboardScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFF0FDF4))
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFFECFDF5))
+                                .border(1.dp, Color(0xFFD1FAE5), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
                             Column {
                                 Text(
                                     text = "Expected Sales",
-                                    color = Color(0xFF6B7280),
+                                    color = Color(0xFF047857),
                                     fontSize = 10.sp,
                                     fontFamily = PoppinsFamily,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = expectedSales.toString(),
-                                        color = Color(0xFF16A34A),
+                                        color = Color(0xFF065F46),
                                         fontSize = 20.sp,
                                         fontFamily = PoppinsFamily,
                                         fontWeight = FontWeight.Bold,
@@ -477,7 +508,7 @@ fun DashboardScreen(
                                         modifier = Modifier
                                             .size(28.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(Color(0xFFDCFCE7))
+                                            .background(Color(0xFFA7F3D0))
                                             .clickable {
                                                 val input = EditText(context).apply {
                                                     inputType = InputType.TYPE_CLASS_NUMBER
@@ -499,8 +530,8 @@ fun DashboardScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_edit),
                                             contentDescription = "Edit",
-                                            tint = Color(0xFF16A34A),
-                                            modifier = Modifier.size(14.dp)
+                                            tint = Color(0xFF065F46),
+                                            modifier = Modifier.size(12.dp)
                                         )
                                     }
                                 }
@@ -511,22 +542,23 @@ fun DashboardScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(Color(0xFFEFF6FF))
+                                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
                             Column {
                                 Text(
                                     text = "Admin Target",
-                                    color = Color(0xFF6B7280),
+                                    color = Color(0xFF1D4ED8),
                                     fontSize = 10.sp,
                                     fontFamily = PoppinsFamily,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = adminTarget,
-                                    color = Color(0xFF2563EB),
+                                    color = Color(0xFF1E40AF),
                                     fontSize = 20.sp,
                                     fontFamily = PoppinsFamily,
                                     fontWeight = FontWeight.Bold
@@ -541,12 +573,12 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Overview",
-                    color = Color(0xFF111827),
+                    color = Color(0xFF0F172A),
                     fontSize = 18.sp,
                     fontFamily = PoppinsFamily,
                     fontWeight = FontWeight.Bold,
@@ -562,14 +594,14 @@ fun DashboardScreen(
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
+                                .clip(CircleShape)
                                 .background(Color(0xFFFF6A00))
                         )
-                        Spacer(modifier = Modifier.width(5.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "LIVE",
+                            text = "LIVE STATS",
                             color = Color(0xFFFF6A00),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontFamily = PoppinsFamily,
                             fontWeight = FontWeight.Bold
                         )
@@ -581,83 +613,91 @@ fun DashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp),
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OverviewCard(
                         title = "Total Leads",
                         value = totalLeads,
                         iconRes = R.drawable.ic_group,
                         modifier = Modifier.weight(1f),
-                        onClick = { onCardClick("Total Leads", "👥 Total Leads") }
+                        onClick = { onCardClick("Total Leads", "Total Leads") }
                     )
                     OverviewCard(
                         title = "Connected",
                         value = totalConnected,
                         iconRes = R.drawable.ic_phone,
                         modifier = Modifier.weight(1f),
-                        onClick = { onCardClick("Connected", "📞 Connected") }
+                        onClick = { onCardClick("Connected", "Connected") }
                     )
                 }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OverviewCard(
-                        title = "Busy",
+                        title = "Busy Leads",
                         value = busyCount,
                         emoji = "📵",
                         modifier = Modifier.weight(1f),
-                        onClick = { onCardClick("Busy", "📵 Busy") }
+                        onClick = { onCardClick("Busy", "Busy") }
                     )
                     OverviewCard(
-                        title = "Pending",
+                        title = "Pending Leads",
                         value = totalPending,
                         iconRes = R.drawable.ic_clock,
                         modifier = Modifier.weight(1f),
-                        onClick = { onCardClick("Pending", "🕐 Pending") }
+                        onClick = { onCardClick("Pending", "Pending") }
                     )
                 }
 
-                // Full Width Sales Done Card
+                // Full Width Sales Done Card (Premium Emerald Box)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .cleanCardEffect(isClickable = true, onClick = { onCardClick("SalesDone", "💰 Sales Done") })
-                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                        .cleanCardEffect(isClickable = true, onClick = { onCardClick("SalesDone", "Sales Done") })
+                        .border(1.dp, Color(0xFFD1FAE5), RoundedCornerShape(16.dp))
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFDCFCE7)),
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFD1FAE5)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "💰", fontSize = 20.sp)
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Sales Done",
+                                tint = Color(0xFF059669),
+                                modifier = Modifier.size(22.dp)
+                            )
                         }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(14.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Sales Done",
-                                color = Color(0xFF6B7280),
+                                text = "Sales Done (Total Converted)",
+                                color = Color(0xFF475569),
                                 fontSize = 11.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             AnimatedCounter(
                                 targetValue = salesCount,
-                                color = Color(0xFF111827),
+                                color = Color(0xFF065F46),
                                 fontSize = 22.sp
                             )
                         }
@@ -665,15 +705,16 @@ fun DashboardScreen(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = "Converted",
-                                color = Color(0xFF16A34A),
+                                color = Color(0xFF059669),
                                 fontSize = 10.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.ExtraBold
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "View →",
-                                color = Color(0xFF16A34A),
-                                fontSize = 10.sp,
+                                text = "View List →",
+                                color = Color(0xFF059669),
+                                fontSize = 11.sp,
                                 fontFamily = PoppinsFamily,
                                 fontWeight = FontWeight.Bold
                             )
@@ -686,12 +727,12 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Thought of the Day",
-                    color = Color(0xFF111827),
+                    color = Color(0xFF0F172A),
                     fontSize = 18.sp,
                     fontFamily = PoppinsFamily,
                     fontWeight = FontWeight.Bold,
@@ -699,7 +740,7 @@ fun DashboardScreen(
                 )
                 Text(
                     text = "💡",
-                    fontSize = 20.sp
+                    fontSize = 18.sp
                 )
             }
 
@@ -709,11 +750,13 @@ fun DashboardScreen(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
                     .cleanCardEffect(isClickable = false)
+                    .border(1.dp, Color(0xFFFFEDD5), RoundedCornerShape(16.dp))
+                    .background(Color(0xFFFFF7ED))
             ) {
                 // Orange left accent strip
                 Box(
                     modifier = Modifier
-                        .width(4.dp)
+                        .width(5.dp)
                         .fillMaxHeight()
                         .background(Color(0xFFFF6A00))
                         .align(Alignment.CenterStart)
@@ -721,12 +764,11 @@ fun DashboardScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, end = 18.dp, top = 20.dp, bottom = 20.dp)
+                        .padding(start = 24.dp, end = 18.dp, top = 20.dp, bottom = 20.dp)
                 ) {
-                    // Big quotation mark
                     Text(
                         text = "\u201C",
-                        color = Color(0xFFFF6A00).copy(alpha = 0.25f),
+                        color = Color(0xFFFF6A00).copy(alpha = 0.20f),
                         fontSize = 56.sp,
                         fontFamily = PoppinsFamily,
                         fontWeight = FontWeight.Bold,
@@ -735,7 +777,7 @@ fun DashboardScreen(
                     )
                     Text(
                         text = thoughtText,
-                        color = Color(0xFF1F2937),
+                        color = Color(0xFF334155),
                         fontSize = 15.sp,
                         fontFamily = PoppinsFamily,
                         fontWeight = FontWeight.SemiBold,
@@ -746,7 +788,7 @@ fun DashboardScreen(
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
+                                .clip(CircleShape)
                                 .background(Color(0xFFFF6A00))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -771,7 +813,7 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("📢", fontSize = 24.sp)
+                    Text("", fontSize = 24.sp)
                     Text(
                         text = "Announcements",
                         fontFamily = PoppinsFamily,

@@ -53,12 +53,12 @@
                         android:textColor="#FFFFFF"
                         android:background="@drawable/bg_avatar"/>
 
-                    <!-- 🔥 hot badge on avatar -->
+                    <!--  hot badge on avatar -->
                     <TextView
                         android:id="@+id/tvHotBadge"
                         android:layout_width="18dp"
                         android:layout_height="18dp"
-                        android:text="🔥"
+                        android:text=""
                         android:textSize="10sp"
                         android:gravity="center"
                         android:layout_gravity="top|end"
@@ -110,7 +110,7 @@
                         android:id="@+id/tvCollegeCity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="📍 Lucknow"
+                        android:text="Lucknow"
                         android:textColor="#9CA3AF"
                         android:textSize="11sp"
                         android:layout_marginTop="2dp"
@@ -185,7 +185,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:gravity="center"
-                        android:text="💰  Mark as Sale"
+                        android:text="Mark as Sale"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"

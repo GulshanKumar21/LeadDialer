@@ -467,7 +467,7 @@ fun AdminCallHistoryScreen(
                                 .padding(6.dp)
                         )
                         Text(
-                            text = "📊 $dateHeader",
+                            text = "$dateHeader",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = NunitoFamily,
@@ -561,7 +561,7 @@ fun AdminCallHistoryScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "⏱️ Gap: ${CallManager.formatDuration(item.gapSeconds)}",
+                                        text = "Gap: ${CallManager.formatDuration(item.gapSeconds)}",
                                         fontSize = 12.sp,
                                         fontFamily = NunitoFamily,
                                         color = Color(0xFFD97706),
@@ -701,7 +701,7 @@ fun HistoryCallLogCard(record: CallRecord) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "📝 ",
+                            text = "",
                             fontSize = 13.sp
                         )
                         Text(

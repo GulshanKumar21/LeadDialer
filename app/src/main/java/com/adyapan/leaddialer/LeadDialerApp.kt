@@ -7,15 +7,25 @@ import androidx.work.WorkManager
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.TimeUnit
 
 
 class LeadDialerApp : Application() {
+
+    companion object {
+        lateinit var applicationScope: CoroutineScope
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
+        applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         ThemeManager.applyTheme(this)
 
-        // 🔒 SECURITY FIX: Initialize Firebase App Check with Play Integrity
+        //  SECURITY FIX: Initialize Firebase App Check with Play Integrity
         // This prevents bots and unauthorized clients from accessing Firebase APIs.
         // In debug/testing, DebugAppCheckProviderFactory is automatically used
         // when firebase.json debug token is configured.

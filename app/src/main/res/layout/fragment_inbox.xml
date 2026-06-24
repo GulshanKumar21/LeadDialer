@@ -19,7 +19,7 @@
         android:visibility="gone">
 
         <TextView
-            android:text="📭"
+            android:text=""
             android:textSize="56sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

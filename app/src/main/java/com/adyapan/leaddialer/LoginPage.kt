@@ -22,7 +22,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.firestore.SetOptions
-// 🔒 SECURITY FIX: Use Firebase Installation ID instead of hardware ANDROID_ID
+//  SECURITY FIX: Use Firebase Installation ID instead of hardware ANDROID_ID
 // FID is resettable by user and compliant with GDPR/Play Store privacy policies
 import com.google.firebase.installations.FirebaseInstallations
 
@@ -517,7 +517,7 @@ class LoginPage : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "🔥 Let’s Close More Deals Today",
+                        "Let’s Close More Deals Today",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -559,7 +559,7 @@ class LoginPage : AppCompatActivity() {
                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                             auth.signInWithEmailAndPassword(email, password)
                                 .addOnSuccessListener {
-                                    Toast.makeText(this, "🔥 Let's Close More Deals Today", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this, "Let's Close More Deals Today", Toast.LENGTH_SHORT).show()
                                     lifecycleScope.launch { routeByAdminStatus() }
                                 }
                                 .addOnFailureListener { retryEx ->
@@ -567,11 +567,11 @@ class LoginPage : AppCompatActivity() {
                                     btnLogin.text = "→"
                                     val retryMsg = when {
                                         retryEx is com.google.firebase.auth.FirebaseAuthInvalidUserException ->
-                                            "Account not found. Check email ❌"
+                                            "Account not found. Check email"
                                         retryEx is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException ->
-                                            "Wrong password ❌"
+                                            "Wrong password"
                                         retryEx.message?.contains("network", ignoreCase = true) == true ->
-                                            "Network error. Check internet ❌"
+                                            "Network error. Check internet"
                                         else ->
                                             "Retry error: ${retryEx.message}"
                                     }
@@ -591,13 +591,13 @@ class LoginPage : AppCompatActivity() {
                     val errorMsg = when (exception) {
 
                         is FirebaseAuthInvalidUserException ->
-                            "User not found ❌"
+                            "User not found"
 
                         is FirebaseAuthInvalidCredentialsException ->
-                            "Wrong password ❌"
+                            "Wrong password"
 
                         else ->
-                            "Login failed ❌"
+                            "Login failed"
                     }
 
                     Toast.makeText(
@@ -712,7 +712,7 @@ class LoginPage : AppCompatActivity() {
     }
 
     private fun saveUserRole(uid: String, name: String, email: String, token: String, role: String) {
-        // 🔒 SECURITY FIX: Use Firebase Installation ID (FID) instead of ANDROID_ID.
+        //  SECURITY FIX: Use Firebase Installation ID (FID) instead of ANDROID_ID.
         // FID is app-scoped, resettable, and GDPR/Play-Store policy compliant.
         // ANDROID_ID is a non-resettable hardware identifier which violates privacy policies.
         FirebaseInstallations.getInstance().id
@@ -726,7 +726,7 @@ class LoginPage : AppCompatActivity() {
                             "email" to email,
                             "fcmToken" to token,
                             "role" to role,
-                            "activeDeviceId" to fid  // 🔒 FID: resettable, privacy-safe
+                            "activeDeviceId" to fid  //  FID: resettable, privacy-safe
                         ),
                         SetOptions.merge()
                     )

@@ -263,12 +263,12 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun insert(lead: Lead) = viewModelScope.launch(Dispatchers.IO) {
+    fun insert(lead: Lead) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         repo.insert(lead)
         refreshStats()
     }
 
-    fun updateStatus(lead: Lead, status: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateStatus(lead: Lead, status: String) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         val employeeName = SheetsSync.getEmployeeNameStatic(getApplication())
         val updated = lead.copy(
             status   = status,
@@ -283,7 +283,7 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         refreshStats()
     }
 
-    fun updateStatusAndNotes(lead: Lead, status: String, notes: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateStatusAndNotes(lead: Lead, status: String, notes: String) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         val employeeName = SheetsSync.getEmployeeNameStatic(getApplication())
         val updated = lead.copy(
             status   = status,
@@ -299,25 +299,25 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         refreshStats()
     }
 
-    fun updateLeadDirectly(lead: Lead) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateLeadDirectly(lead: Lead) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         repo.update(lead)
         repo.syncLeadToFirestore(lead)
         refreshStats()
     }
 
     /** Patches only the firestoreId field in Room DB — no network call needed. */
-    fun patchFirestoreId(lead: Lead, firestoreId: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun patchFirestoreId(lead: Lead, firestoreId: String) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         val patched = lead.copy(firestoreId = firestoreId)
         repo.updateLocal(patched)
         Log.d(TAG_REPO, "patchFirestoreId: ${lead.phone} → $firestoreId")
     }
 
-    fun delete(lead: Lead) = viewModelScope.launch(Dispatchers.IO) {
+    fun delete(lead: Lead) = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         repo.delete(lead)
         refreshStats()
     }
 
-    fun deleteAll() = viewModelScope.launch(Dispatchers.IO) {
+    fun deleteAll() = LeadDialerApp.applicationScope.launch(Dispatchers.IO) {
         repo.deleteAll()                        // clear Room
         FirestoreSource.deleteAllLeads()        // clear Firestore too
         refreshStats()

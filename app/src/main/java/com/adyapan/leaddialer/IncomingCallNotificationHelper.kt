@@ -30,12 +30,12 @@ object IncomingCallNotificationHelper {
 
         // Status emoji
         val statusEmoji = when (lead.status) {
-            "Interested"     -> "⭐"
-            "Connected"      -> "✅"
-            "Not Connected"  -> "📵"
-            "Busy"           -> "🔴"
-            "Not Interested" -> "❌"
-            else             -> "⏳"
+            "Interested"     -> ""
+            "Connected"      -> ""
+            "Not Connected"  -> ""
+            "Busy"           -> ""
+            "Not Interested" -> ""
+            else             -> ""
         }
 
         // Build college info line
@@ -47,12 +47,12 @@ object IncomingCallNotificationHelper {
             }
         }
 
-        val titleText = "📞 ${lead.name} is calling!"
+        val titleText = "${lead.name} is calling!"
         val bigText = buildString {
-            appendLine("📱 ${lead.phone}")
+            appendLine("${lead.phone}")
             appendLine("$statusEmoji Status: ${lead.status.ifBlank { "Pending" }}")
-            if (collegeInfo.isNotBlank()) appendLine("🏫 $collegeInfo")
-            if (!lead.notes.isNullOrBlank()) appendLine("📝 ${lead.notes}")
+            if (collegeInfo.isNotBlank()) appendLine("$collegeInfo")
+            if (!lead.notes.isNullOrBlank()) appendLine("${lead.notes}")
         }.trim()
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)

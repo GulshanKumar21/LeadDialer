@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="✏️ Custom Status Note"
+        android:text="Custom Status Note"
         android:textSize="17sp"
         android:textStyle="bold"
         android:textColor="#1A1A2E"
@@ -73,7 +73,7 @@
 
         <Button
             android:id="@+id/btnConfirmCustom"
-            android:text="✅ Save"
+            android:text="Save"
             android:textColor="@android:color/white"
             android:backgroundTint="#8B5CF6"
             android:textAllCaps="false"

@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity(),
                     supportActionBar?.title = "Settings"
                 }
                 is InboxFragment -> {
-                    supportActionBar?.title = "💬 Inbox"
+                    supportActionBar?.title = "Inbox"
                 }
                 is CalendarFragment -> {
                     supportActionBar?.title = "Calendar"
@@ -298,17 +298,17 @@ class MainActivity : AppCompatActivity(),
                 is FilteredLeadsFragment -> {
                     val filterStatus = currentFragment.arguments?.getString("status") ?: ""
                     val title = when (filterStatus) {
-                        "All Called"     -> "📊 All Called Leads"
-                        "Wrong Number"   -> "🔢 Wrong Number"
-                        "Not Connected"  -> "❌ Not Connected"
-                        "Busy"           -> "📵 Busy"
-                        "Interested"     -> "⭐ Interested"
-                        "Not Interested" -> "👎 Not Interested"
-                        "Pending"        -> "🕐 Pending"
-                        "HotLead"        -> "🔥 Hot Leads"
-                        "SalesDone"      -> "💰 Sales Done"
-                        "Connected"      -> "📞 Connected"
-                        "Total Leads"    -> "👥 Total Leads"
+                        "All Called"     -> "All Called Leads"
+                        "Wrong Number"   -> "Wrong Number"
+                        "Not Connected"  -> "Not Connected"
+                        "Busy"           -> "Busy"
+                        "Interested"     -> "Interested"
+                        "Not Interested" -> "Not Interested"
+                        "Pending"        -> "Pending"
+                        "HotLead"        -> "Hot Leads"
+                        "SalesDone"      -> "Sales Done"
+                        "Connected"      -> "Connected"
+                        "Total Leads"    -> "Total Leads"
                         else             -> filterStatus
                     }
                     supportActionBar?.title = title
@@ -430,10 +430,10 @@ class MainActivity : AppCompatActivity(),
         val view   = layoutInflater.inflate(R.layout.bottom_sheet_call_status, null)
         dialog.setContentView(view)
 
-        view.findViewById<TextView>(R.id.tvTitle).text   = "📞 Call Summary"
+        view.findViewById<TextView>(R.id.tvTitle).text   = "Call Summary"
         view.findViewById<TextView>(R.id.tvDetails).text =
             "${record.name} • ${CallManager.formatDuration(record.duration)}"
-        view.findViewById<TextView>(R.id.tvCallTime).text = "🕐 Called at: $calledAtStr"
+        view.findViewById<TextView>(R.id.tvCallTime).text = "Called at: $calledAtStr"
 
         val lead = CallManager.currentLead
 
@@ -457,7 +457,7 @@ class MainActivity : AppCompatActivity(),
             }
 
             dialog.dismiss()
-            Toast.makeText(this, "✅ $selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "$selected", Toast.LENGTH_SHORT).show()
 
             // WhatsApp follow-up for Interested, Busy, Not Connected
             if (selected == "Interested" || selected == "Busy" || selected == "Not Connected") {
@@ -513,7 +513,7 @@ class MainActivity : AppCompatActivity(),
             }
 
             R.id.navInbox -> {
-                loadFragment(InboxFragment(), "💬 Inbox")
+                loadFragment(InboxFragment(), "Inbox")
             }
 
             R.id.navDocuments -> {
@@ -538,7 +538,7 @@ class MainActivity : AppCompatActivity(),
                     .setMessage("Are you sure you want to logout?")
                     .setPositiveButton("Logout") { dialog, which ->
                         val progressDialog = MaterialAlertDialogBuilder(this)
-                            .setTitle("⏳ Syncing Data")
+                            .setTitle("Syncing Data")
                             .setMessage("Uploading pending call records to cloud before logout...")
                             .setCancelable(false)
                             .create()
@@ -697,7 +697,7 @@ class MainActivity : AppCompatActivity(),
 
                             // Write call record row to Google Sheets
                             SheetsSync.syncCallRecords(appCtx, listOf(callRecord))
-                            // Mark this row as SALES DONE (✅ Yes) via syncAllLeads
+                            // Mark this row as SALES DONE ( Yes) via syncAllLeads
                             SheetsSync.syncAllLeads(appCtx, listOf(lead))
                         }
                         saved
@@ -708,12 +708,12 @@ class MainActivity : AppCompatActivity(),
                 }
 
                 if (success) {
-                    android.widget.Toast.makeText(this@MainActivity, "✅ Direct sale logged successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(this@MainActivity, "Direct sale logged successfully!", android.widget.Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 } else {
-                    android.widget.Toast.makeText(this@MainActivity, "❌ Failed to save sale. Please try again.", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(this@MainActivity, "Failed to save sale. Please try again.", android.widget.Toast.LENGTH_SHORT).show()
                     btnSubmit.isEnabled = true
-                    btnSubmit.text = "💰 Submit Direct Sale"
+                    btnSubmit.text = "Submit Direct Sale"
                 }
             }
         }

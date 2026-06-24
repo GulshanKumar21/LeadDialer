@@ -267,7 +267,7 @@ fun AdminSalesScreen(viewModel: AdminViewModel) {
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.height(56.dp)
                     ) {
-                        Text("📥 Export", fontFamily = NunitoFamily, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Export", fontFamily = NunitoFamily, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -537,7 +537,7 @@ fun SalesDetailDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "👤 $name",
+                text = "$name",
                 fontFamily = NunitoFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
@@ -558,7 +558,7 @@ fun SalesDetailDialog(
                 }
                 HorizontalDivider(color = Color(0xFFE2E8F0))
                 Text(
-                    text = if (isAchieved) "+$diff ✅ Target Achieved!" else "$diff ⚠️ Below Target",
+                    text = if (isAchieved) "+$diff Target Achieved!" else "$diff Below Target",
                     color = if (isAchieved) Color(0xFF1B7A34) else Color(0xFFD32F2F),
                     fontWeight = FontWeight.ExtraBold,
                     fontFamily = NunitoFamily,
@@ -584,7 +584,7 @@ fun SalesDetailDialog(
 
                     if (completedSales.isNotEmpty()) {
                         Text(
-                            text = "📥 Export",
+                            text = "Export",
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFF6A00),
                             fontFamily = NunitoFamily,

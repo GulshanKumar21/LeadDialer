@@ -87,7 +87,7 @@ class OnboardingActivity : AppCompatActivity() {
             OnboardingItem(
                 image       = R.drawable.onboarding_5_welcome1,
                 title       = "Welcome to Adyapan CRM!",
-                description = "India's smart CRM for education teams. Built to help you reach more students, close more admissions, every day. 🎉",
+                description = "India's smart CRM for education teams. Built to help you reach more students, close more admissions, every day.",
                 accentColor = "#F59E0B"
             )
         )
@@ -129,7 +129,7 @@ class OnboardingActivity : AppCompatActivity() {
                 super.onPageSelected(position)
                 updateDots(position)
                 btnPrev.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
-                btnNext.text = if (position == list.size - 1) "Get Started 🚀" else "Next →"
+                btnNext.text = if (position == list.size - 1) "Get Started" else "Next →"
             }
         })
     }
@@ -150,14 +150,14 @@ class OnboardingActivity : AppCompatActivity() {
      */
     private fun showProminentDisclosure(onAccept: () -> Unit) {
         val msg = "Adyapan CRM requires certain device permissions to function as an enterprise tool:\n\n" +
-            "📞 Call Log & Phone State — To automatically track calls made to CRM leads and support dual-SIM routing. Only calls to registered leads are logged.\n\n" +
-            "📍 Location — To verify your physical presence when clocking in for attendance. No background tracking.\n\n" +
-            "📷 Camera — To capture a selfie for enterprise attendance verification.\n\n" +
-            "🔔 Notifications — To receive real-time CRM alerts and lead updates.\n\n" +
+            "Call Log & Phone State — To automatically track calls made to CRM leads and support dual-SIM routing. Only calls to registered leads are logged.\n\n" +
+            "Location — To verify your physical presence when clocking in for attendance. No background tracking.\n\n" +
+            "Camera — To capture a selfie for enterprise attendance verification.\n\n" +
+            "Notifications — To receive real-time CRM alerts and lead updates.\n\n" +
             "This data is used exclusively for internal enterprise operations and is never sold or shared with third parties. See Settings > Privacy Policy for full details."
 
         AlertDialog.Builder(this)
-            .setTitle("📋 Data & Permissions Notice")
+            .setTitle("Data & Permissions Notice")
             .setMessage(msg)
             .setCancelable(false)
             .setPositiveButton("I Understand & Accept") { _, _ -> onAccept() }

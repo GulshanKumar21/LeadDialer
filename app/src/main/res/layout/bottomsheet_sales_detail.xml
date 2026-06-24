@@ -34,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="🎯 Expected Sales"
+            android:text="Expected Sales"
             android:textSize="14sp"
             android:textColor="#4A5568"
             android:fontFamily="@font/poppins_semibold"/>
@@ -65,7 +65,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="✅ Sales Done"
+            android:text="Sales Done"
             android:textSize="14sp"
             android:textColor="#4A5568"
             android:fontFamily="@font/poppins_semibold"/>

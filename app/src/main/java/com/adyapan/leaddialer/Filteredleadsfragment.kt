@@ -64,17 +64,17 @@ class FilteredLeadsFragment : Fragment() {
         val rvLeads   = view.findViewById<RecyclerView>(R.id.rvFilteredLeads)
 
         tvTitle?.text = when (filterStatus) {
-            "All Called"     -> "📊 All Called Leads"
-            "Wrong Number"   -> "🔢 Wrong Number"
-            "Not Connected"  -> "❌ Not Connected"
-            "Busy"           -> "📵 Busy"
-            "Interested"     -> "⭐ Interested"
-            "Not Interested" -> "👎 Not Interested"
-            "Pending"        -> "🕐 Pending"
-            "HotLead"        -> "🔥 Hot Leads"
-            "SalesDone"      -> "💰 Sales Done"
-            "Connected"      -> "📞 Connected"
-            "Total Leads"    -> "👥 Total Leads"
+            "All Called"     -> "All Called Leads"
+            "Wrong Number"   -> "Wrong Number"
+            "Not Connected"  -> "Not Connected"
+            "Busy"           -> "Busy"
+            "Interested"     -> "Interested"
+            "Not Interested" -> "Not Interested"
+            "Pending"        -> "Pending"
+            "HotLead"        -> "Hot Leads"
+            "SalesDone"      -> "Sales Done"
+            "Connected"      -> "Connected"
+            "Total Leads"    -> "Total Leads"
             else             -> filterStatus
         }
 
@@ -131,17 +131,17 @@ class FilteredLeadsFragment : Fragment() {
             }, 1500)
         }
         val title = when (filterStatus) {
-            "All Called"     -> "📊 All Called Leads"
-            "Wrong Number"   -> "🔢 Wrong Number"
-            "Not Connected"  -> "❌ Not Connected"
-            "Busy"           -> "📵 Busy"
-            "Interested"     -> "⭐ Interested"
-            "Not Interested" -> "👎 Not Interested"
-            "Pending"        -> "🕐 Pending"
-            "HotLead"        -> "🔥 Hot Leads"
-            "SalesDone"      -> "💰 Sales Done"
-            "Connected"      -> "📞 Connected"
-            "Total Leads"    -> "👥 Total Leads"
+            "All Called"     -> "All Called Leads"
+            "Wrong Number"   -> "Wrong Number"
+            "Not Connected"  -> "Not Connected"
+            "Busy"           -> "Busy"
+            "Interested"     -> "Interested"
+            "Not Interested" -> "Not Interested"
+            "Pending"        -> "Pending"
+            "HotLead"        -> "Hot Leads"
+            "SalesDone"      -> "Sales Done"
+            "Connected"      -> "Connected"
+            "Total Leads"    -> "Total Leads"
             else             -> filterStatus
         }
         (requireActivity() as? MainActivity)?.supportActionBar?.title = title
@@ -151,18 +151,18 @@ class FilteredLeadsFragment : Fragment() {
         if (!isAdded) return
 
         val statuses = arrayOf(
-            "🔢  Wrong Number",
-            "❌  Not Connected",
-            "📵  Busy",
-            "⭐  Interested",
-            "👎  Not Interested"
+            "Wrong Number",
+            "Not Connected",
+            "Busy",
+            "Interested",
+            "Not Interested"
         )
         val statusValues = arrayOf(
             "Wrong Number", "Not Connected", "Busy", "Interested", "Not Interested"
         )
 
         AlertDialog.Builder(requireContext())
-            .setTitle("📞 Call Status — ${lead.name}")
+            .setTitle("Call Status — ${lead.name}")
             .setItems(statuses) { _, which ->
                 viewModel.updateStatus(lead, statusValues[which])
                 Toast.makeText(

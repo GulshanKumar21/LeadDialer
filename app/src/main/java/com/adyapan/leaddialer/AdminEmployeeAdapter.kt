@@ -72,7 +72,7 @@ class AdminEmployeeAdapter(
             holder.tlBadge.visibility       = View.GONE
             card.setCardBackgroundColor(0xFFF0FDF4.toInt()) // very light green
         } else {
-            holder.tlBadge.text             = "⚠️ No TL assigned"
+            holder.tlBadge.text             = "No TL assigned"
             holder.tlBadge.setBackgroundColor(0xFFFF6A00.toInt()) // orange
             holder.tlBadge.visibility       = View.VISIBLE
             card.setCardBackgroundColor(0xFFFFFFFF.toInt()) // white
@@ -113,10 +113,10 @@ class AdminEmployeeAdapter(
 
         // Admin target — shown separately (set by admin)
         if (emp.adminTarget > 0) {
-            holder.adminTarget.text       = "🎯 Admin Target: ${emp.adminTarget}"
+            holder.adminTarget.text       = "Admin Target: ${emp.adminTarget}"
             holder.adminTarget.visibility = View.VISIBLE
         } else {
-            holder.adminTarget.text       = "🎯 Set Target"
+            holder.adminTarget.text       = "Set Target"
             holder.adminTarget.visibility = View.VISIBLE
         }
 
@@ -136,7 +136,7 @@ class AdminEmployeeAdapter(
             holder.btnEdit.visibility = View.GONE
         }
 
-        // 💬 Message button
+        //  Message button
         holder.btnMessage.setOnClickListener { onMessageClick(emp) }
     }
 

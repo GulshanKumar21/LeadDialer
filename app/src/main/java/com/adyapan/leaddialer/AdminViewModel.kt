@@ -807,7 +807,7 @@ class AdminLeadAdapter(
         holder.phone.text  = lead.phone
 
         holder.status.text = buildString {
-            if (lead.salesDone) append("💰 SOLD • ")
+            if (lead.salesDone) append("SOLD •")
             append(lead.status)
             if (lead.calledAt > 0) {
                 append(" • ")

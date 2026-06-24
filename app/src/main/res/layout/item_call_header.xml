@@ -7,7 +7,7 @@
     android:paddingStart="18dp"
     android:paddingTop="18dp"
     android:paddingBottom="10dp"
-    android:text="📞 Today"
+    android:text="Today"
     android:textColor="#FF6A00"
     android:textSize="16sp"
     android:textStyle="bold"

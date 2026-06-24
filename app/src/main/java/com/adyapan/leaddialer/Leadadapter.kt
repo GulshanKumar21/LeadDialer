@@ -115,7 +115,7 @@ class LeadAdapter(
 
         // College name — show only if available
         if (lead.collegeName.isNotBlank()) {
-            holder.tvCollegeName.text = "🎓 ${lead.collegeName}"
+            holder.tvCollegeName.text = "${lead.collegeName}"
             holder.tvCollegeName.isVisible = true
         } else {
             holder.tvCollegeName.isVisible = false
@@ -123,7 +123,7 @@ class LeadAdapter(
 
         // College city — show only if available
         if (lead.collegeCity.isNotBlank()) {
-            holder.tvCollegeCity.text = "📍 ${lead.collegeCity}"
+            holder.tvCollegeCity.text = "${lead.collegeCity}"
             holder.tvCollegeCity.isVisible = true
         } else {
             holder.tvCollegeCity.isVisible = false
@@ -162,7 +162,7 @@ class LeadAdapter(
         if (showSales) {
             if (lead.salesDone) {
                 // Sale already recorded — Mark Sale dimmed, Not Done (Revert) bright
-                holder.btnMarkSale.text  = "✅  Sale Recorded"
+                holder.btnMarkSale.text  = "Sale Recorded"
                 holder.btnMarkSale.setTextColor(Color.parseColor("#16A34A"))
                 holder.btnMarkSale.setBackgroundResource(R.drawable.bg_btn_sale)
                 holder.btnMarkSale.alpha = 0.55f
@@ -173,7 +173,7 @@ class LeadAdapter(
                 holder.btnMarkNotDone.alpha = 1f
             } else {
                 // Sale not yet done — Mark Sale bright, Not Done dimmed
-                holder.btnMarkSale.text  = "💰  Mark as Sale"
+                holder.btnMarkSale.text  = "Mark as Sale"
                 holder.btnMarkSale.setTextColor(Color.WHITE)
                 holder.btnMarkSale.setBackgroundResource(R.drawable.bg_btn_sale)
                 holder.btnMarkSale.alpha = 1f

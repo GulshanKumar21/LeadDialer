@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⚠️ Late Attendance"
+        android:text="Late Attendance"
         android:fontFamily="@font/nunito_extrabold"
         android:textColor="#C62828"
         android:textSize="18sp"
@@ -71,7 +71,7 @@
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:background="@drawable/bg_button_login"
-        android:text="✅ Submit"
+        android:text="Submit"
         android:textColor="#FFFFFF"
         android:fontFamily="@font/poppins_semibold"
         android:textSize="14sp"/>

@@ -52,7 +52,7 @@ class LeaveRequestAdapter(
         // Employee name (admin-only)
         if (isAdminMode) {
             holder.tvEmployeeName.visibility = View.VISIBLE
-            holder.tvEmployeeName.text = "👤 ${req.employeeName}"
+            holder.tvEmployeeName.text = "${req.employeeName}"
         } else {
             holder.tvEmployeeName.visibility = View.GONE
         }
@@ -64,7 +64,7 @@ class LeaveRequestAdapter(
         if (!req.documentUrl.isNullOrBlank()) {
             holder.layoutAttachment.visibility = View.VISIBLE
             val dispName = if (!req.documentName.isNullOrBlank()) req.documentName else "View Attachment"
-            holder.tvAttachmentLink.text = "📎 $dispName"
+            holder.tvAttachmentLink.text = "$dispName"
             holder.layoutAttachment.setOnClickListener {
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(req.documentUrl))
@@ -80,17 +80,17 @@ class LeaveRequestAdapter(
         // Status badge colour
         when (req.status) {
             "Approved" -> {
-                holder.tvStatus.text = "✅ Approved"
+                holder.tvStatus.text = "Approved"
                 holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_approved)
                 holder.statusBar.setBackgroundColor(Color.parseColor("#27AE60"))
             }
             "Rejected" -> {
-                holder.tvStatus.text = "❌ Rejected"
+                holder.tvStatus.text = "Rejected"
                 holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_rejected)
                 holder.statusBar.setBackgroundColor(Color.parseColor("#E74C3C"))
             }
             else -> {
-                holder.tvStatus.text = "⏳ Pending"
+                holder.tvStatus.text = "Pending"
                 holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_pending)
                 holder.statusBar.setBackgroundColor(Color.parseColor("#FFA500"))
             }

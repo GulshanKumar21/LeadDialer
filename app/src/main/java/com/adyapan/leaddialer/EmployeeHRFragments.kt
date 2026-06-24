@@ -141,7 +141,7 @@ class EmployeeDocumentsFragment : Fragment() {
                 }
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Uploaded Successfully ✅", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Uploaded Successfully", Toast.LENGTH_SHORT).show()
                     onUploadSuccess?.invoke()
                 }
             } catch (e: Exception) {
@@ -162,7 +162,7 @@ class EmployeeDocumentsFragment : Fragment() {
                     .update(data)
                     .await()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Profile Saved Successfully ✅", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Profile Saved Successfully", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 try {
@@ -174,7 +174,7 @@ class EmployeeDocumentsFragment : Fragment() {
                         .set(fullData)
                         .await()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Profile Saved Successfully ✅", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Profile Saved Successfully", Toast.LENGTH_SHORT).show()
                     }
                 } catch (ex: Exception) {
                     withContext(Dispatchers.Main) {
@@ -742,7 +742,7 @@ fun EmployeeDocumentsScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(docName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2C3E50))
                                         Text(
-                                            text = if (isUploaded) "Uploaded successfully ✅" else "Pending upload ⏳",
+                                            text = if (isUploaded) "Uploaded successfully" else "Pending upload",
                                             fontSize = 11.sp,
                                             color = if (isUploaded) Color(0xFF22C55E) else Color.Gray
                                         )

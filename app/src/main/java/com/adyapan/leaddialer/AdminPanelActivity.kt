@@ -36,7 +36,7 @@ class AdminPanelActivity : AppCompatActivity() {
 
     internal val viewModel: AdminViewModel by viewModels()
 
-    private val filePickerLauncher = registerForActivityResult(
+    internal val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) handleAdminUpload(uri)
@@ -76,9 +76,9 @@ class AdminPanelActivity : AppCompatActivity() {
 
         // Initial fragment
         if (savedInstanceState == null) {
-            loadFragment(AdminEmployeesFragment(), "Employees")
-            fab.show()
-            navView.setCheckedItem(R.id.navAdminEmployees)
+            loadFragment(AdminComposeFragment.newInstance("dashboard"), "Dashboard")
+            fab.hide()
+            navView.setCheckedItem(R.id.navAdminDashboard)
         }
 
         // Real-time unread badge on Messages item in side drawer
@@ -93,6 +93,10 @@ class AdminPanelActivity : AppCompatActivity() {
 
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
+                R.id.navAdminDashboard -> {
+                    loadFragment(AdminComposeFragment.newInstance("dashboard"), "Dashboard")
+                    fab.hide()
+                }
                 R.id.navAdminEmployees -> {
                     loadFragment(AdminEmployeesFragment(), "Employees")
                     fab.show()
@@ -136,7 +140,7 @@ class AdminPanelActivity : AppCompatActivity() {
                         .setPositiveButton("Logout") { _, _ ->
                             viewModel.clearAllListeners()
                             val progressDialog = AlertDialog.Builder(this)
-                                .setTitle("⏳ Syncing Data")
+                                .setTitle("Syncing Data")
                                 .setMessage("Uploading pending records to cloud before logout...")
                                 .setCancelable(false)
                                 .create()
@@ -259,21 +263,21 @@ class AdminPanelActivity : AppCompatActivity() {
                 progressDialog.dismiss()
 
                 if (success) {
-                    Toast.makeText(this@AdminPanelActivity, "✅ ${leads.size} leads assigned to $empName", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AdminPanelActivity, "${leads.size} leads assigned to $empName", Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(this@AdminPanelActivity, "❌ Upload failed. Check internet connection.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AdminPanelActivity, "Upload failed. Check internet connection.", Toast.LENGTH_LONG).show()
                 }
                 viewModel.loadAllEmployeeData()
 
             } catch (e: Exception) {
                 progressDialog.dismiss()
-                Toast.makeText(this@AdminPanelActivity, "❌ Error: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AdminPanelActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     // ── Thought of the Day Editor ─────────────────────────────────────────────
-    private fun showThoughtOfDayDialog() {
+    internal fun showThoughtOfDayDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_thought_of_day, null)
         val etThought  = dialogView.findViewById<EditText>(R.id.etThought)
         val etAuthor   = dialogView.findViewById<EditText>(R.id.etThoughtAuthor)
@@ -315,11 +319,11 @@ class AdminPanelActivity : AppCompatActivity() {
                         .document("thoughtOfTheDay")
                         .set(mapOf("text" to text, "author" to author))
                         .addOnSuccessListener {
-                            Toast.makeText(this, "✅ Thought published to all employees!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Thought published to all employees!", Toast.LENGTH_SHORT).show()
                             dialog.dismiss()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(this, "❌ Failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Failed: ${it.message}", Toast.LENGTH_SHORT).show()
                         }
                 }
                 dialogView.findViewById<Button>(R.id.btnCancelThought).setOnClickListener {
@@ -337,10 +341,12 @@ class AdminPanelActivity : AppCompatActivity() {
             supportFragmentManager.popBackStack()
         } else {
             val currentFragment = supportFragmentManager.findFragmentById(R.id.adminFragmentContainer)
-            if (currentFragment != null && currentFragment !is AdminEmployeesFragment) {
-                loadFragment(AdminEmployeesFragment(), "Employees")
-                findViewById<FloatingActionButton>(R.id.fabAdminUpload)?.show()
-                findViewById<NavigationView>(R.id.adminNavView)?.setCheckedItem(R.id.navAdminEmployees)
+            val isDashboard = currentFragment is AdminComposeFragment && 
+                    currentFragment.arguments?.getString("screen_type") == "dashboard"
+            if (currentFragment != null && !isDashboard) {
+                loadFragment(AdminComposeFragment.newInstance("dashboard"), "Dashboard")
+                findViewById<FloatingActionButton>(R.id.fabAdminUpload)?.hide()
+                findViewById<NavigationView>(R.id.adminNavView)?.setCheckedItem(R.id.navAdminDashboard)
             } else {
                 super.onBackPressed()
             }
@@ -371,6 +377,11 @@ class AdminComposeFragment : Fragment() {
             setContent {
                 HRPortalTheme {
                     when (screenType) {
+                        "dashboard" -> AdminDashboardScreen(
+                            viewModel = viewModel,
+                            onUploadLeadsClick = { activityInstance.filePickerLauncher.launch("*/*") },
+                            onPublishThoughtClick = { activityInstance.showThoughtOfDayDialog() }
+                        )
                         "documents" -> DocumentsScreen()
                         "performance" -> PerformanceScreen(viewModel)
                         "recruitment" -> AdminRecruitmentScreen()

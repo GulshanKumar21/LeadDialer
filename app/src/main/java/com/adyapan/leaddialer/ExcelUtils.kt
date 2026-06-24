@@ -59,7 +59,7 @@ object ExcelUtils {
         try {
             val stream = context.contentResolver.openInputStream(uri)
                 ?: run {
-                    Log.e(TAG, "❌ Cannot open CSV stream")
+                    Log.e(TAG, "Cannot open CSV stream")
                     return emptyList()
                 }
 
@@ -67,11 +67,11 @@ object ExcelUtils {
             stream.close()
 
             if (lines.isEmpty()) {
-                Log.w(TAG, "❌ CSV is empty")
+                Log.w(TAG, "CSV is empty")
                 return emptyList()
             }
 
-            Log.d(TAG, "✅ CSV loaded: ${lines.size} lines")
+            Log.d(TAG, "CSV loaded: ${lines.size} lines")
 
             val delimiter = detectDelimiter(lines[0])
             val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumnsSmartCsv(lines, delimiter)
@@ -132,10 +132,10 @@ object ExcelUtils {
                 }
             }
 
-            Log.d(TAG, "✅ CSV done: parsed=$rowsParsed skipped=$rowsSkipped total=${leads.size}")
+            Log.d(TAG, "CSV done: parsed=$rowsParsed skipped=$rowsSkipped total=${leads.size}")
 
         } catch (e: Throwable) {
-            Log.e(TAG, "❌ parseCsv FATAL: ${e.javaClass.simpleName} — ${e.message}")
+            Log.e(TAG, "parseCsv FATAL: ${e.javaClass.simpleName} — ${e.message}")
             e.printStackTrace()
         }
         return leads
@@ -148,21 +148,21 @@ object ExcelUtils {
             Log.d(TAG, "Opening Excel workbook...")
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: run {
-                    Log.e(TAG, "❌ Cannot open Excel stream for uri=$uri")
+                    Log.e(TAG, "Cannot open Excel stream for uri=$uri")
                     return emptyList()
                 }
 
             val workbook = try {
                 WorkbookFactory.create(inputStream)
             } catch (e: Throwable) {
-                Log.e(TAG, "❌ WorkbookFactory.create failed: ${e.javaClass.simpleName} — ${e.message}")
+                Log.e(TAG, "WorkbookFactory.create failed: ${e.javaClass.simpleName} — ${e.message}")
                 e.printStackTrace()
                 inputStream.close()
                 return emptyList()
             }
 
             val sheet = workbook.getSheetAt(0)
-            Log.d(TAG, "✅ Workbook opened, sheet: ${sheet.sheetName}, rows: ${sheet.lastRowNum}")
+            Log.d(TAG, "Workbook opened, sheet: ${sheet.sheetName}, rows: ${sheet.lastRowNum}")
 
             // ── Step 1: Detect column positions using smart scoring ───────────
             val (nameCol, phoneCol, collegeNameCol, collegeCityCol) = detectColumnsSmartExcel(sheet)
@@ -231,7 +231,7 @@ object ExcelUtils {
                         collegeCity = collegeCity
                     ))
                     rowsParsed++
-                    Log.d(TAG, "Row $i ✅ added: name='$name' phone='$cleanPhone'")
+                    Log.d(TAG, "Row $i added: name='$name' phone='$cleanPhone'")
 
                 } catch (e: Throwable) {
                     Log.e(TAG, "Row $i parse error: ${e.javaClass.simpleName} — ${e.message}")
@@ -242,13 +242,13 @@ object ExcelUtils {
             workbook.close()
             inputStream.close()
 
-            Log.d(TAG, "✅ Excel parsing complete:")
+            Log.d(TAG, "Excel parsing complete:")
             Log.d(TAG, "   Rows parsed: $rowsParsed")
             Log.d(TAG, "   Rows skipped: $rowsSkipped")
             Log.d(TAG, "   Total leads: ${leads.size}")
 
         } catch (e: Throwable) {
-            Log.e(TAG, "❌ parseExcel FATAL: ${e.javaClass.simpleName} — ${e.message}")
+            Log.e(TAG, "parseExcel FATAL: ${e.javaClass.simpleName} — ${e.message}")
             e.printStackTrace()
         }
         return leads

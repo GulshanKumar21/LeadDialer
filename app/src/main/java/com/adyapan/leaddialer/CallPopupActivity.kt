@@ -80,10 +80,10 @@ class CallPopupActivity : AppCompatActivity() {
 
         var isNavigatingToNextDialog = false
 
-        view.findViewById<TextView>(R.id.tvTitle).text = "📞 Call Summary"
+        view.findViewById<TextView>(R.id.tvTitle).text = "Call Summary"
         view.findViewById<TextView>(R.id.tvDetails).text =
             "${record.name.ifBlank { record.phone }} • ${CallManager.formatDuration(record.duration)}"
-        view.findViewById<TextView>(R.id.tvCallTime).text = "🕐 Called at: $calledAtStr"
+        view.findViewById<TextView>(R.id.tvCallTime).text = "Called at: $calledAtStr"
 
         val lead = CallManager.currentLead
         val isManual = lead == null || lead.name == "Manual Dial"
@@ -126,7 +126,7 @@ class CallPopupActivity : AppCompatActivity() {
             }
             dialog.dismiss()
 
-            Toast.makeText(this, "✅ $selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "$selected", Toast.LENGTH_SHORT).show()
 
             if (selected in brochureStatuses) {
                 showWhatsAppDialog(record, status = selected, showBrochure = true)
@@ -180,7 +180,7 @@ class CallPopupActivity : AppCompatActivity() {
         val etCity    = dialogView.findViewById<EditText>(R.id.etLeadCity)
         val tvPhone   = dialogView.findViewById<TextView>(R.id.tvLeadPhone)
 
-        tvPhone.text = "📱 ${record.phone}"
+        tvPhone.text = "${record.phone}"
 
         val saveDialog = AlertDialog.Builder(this)
             .setView(dialogView)
@@ -213,7 +213,7 @@ class CallPopupActivity : AppCompatActivity() {
             callViewModel.saveRecord(record.copy(name = name, status = "Connected"))
 
             saveDialog.dismiss()
-            Toast.makeText(this, "✅ Lead saved: $name", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Lead saved: $name", Toast.LENGTH_SHORT).show()
             finish()
         }
 
@@ -257,7 +257,7 @@ class CallPopupActivity : AppCompatActivity() {
             val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             val clip = android.content.ClipData.newPlainText("WhatsApp Message", msg)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Copied to clipboard! 📋", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Copied to clipboard!", Toast.LENGTH_SHORT).show()
         }
 
         data class Brochure(val title: String, val link: String)
@@ -324,7 +324,7 @@ class CallPopupActivity : AppCompatActivity() {
                 etMessage.setText(aiMsg)
                 tvGenerating.visibility = android.view.View.GONE
                 btnGenerate.isEnabled = true
-                btnGenerate.text      = "✨ Regenerate"
+                btnGenerate.text      = "Regenerate"
             }
         }
 
@@ -350,7 +350,7 @@ class CallPopupActivity : AppCompatActivity() {
             btnSend.isEnabled     = false
             btnBrochure.isEnabled = false
             tvDownloadStatus.visibility = android.view.View.VISIBLE
-            tvDownloadStatus.text = "⬇️ Downloading PDF brochure..."
+            tvDownloadStatus.text = "Downloading PDF brochure..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -361,7 +361,7 @@ class CallPopupActivity : AppCompatActivity() {
                     message     = msg
                 )
                 if (error != null) {
-                    tvDownloadStatus.text = "❌ $error"
+                    tvDownloadStatus.text = "$error"
                     btnSend.isEnabled     = true
                     btnBrochure.isEnabled = true
                 } else {
@@ -400,12 +400,12 @@ class CallPopupActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please select a course first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val simpleMsg = "Namaste ${record.name} ji! 🙏\n\n" +
+            val simpleMsg = "Namaste ${record.name} ji! \n\n" +
                 "*${course.title}* ka brochure dekhen.\n— Adyapan Team"
             btnSend.isEnabled     = false
             btnBrochure.isEnabled = false
             tvDownloadStatus.visibility = android.view.View.VISIBLE
-            tvDownloadStatus.text = "⬇️ Downloading PDF brochure..."
+            tvDownloadStatus.text = "Downloading PDF brochure..."
 
             lifecycleScope.launch {
                 val error = BrochureSharer.downloadAndShare(
@@ -416,7 +416,7 @@ class CallPopupActivity : AppCompatActivity() {
                     message     = simpleMsg
                 )
                 if (error != null) {
-                    tvDownloadStatus.text = "❌ $error"
+                    tvDownloadStatus.text = "$error"
                     btnSend.isEnabled     = true
                     btnBrochure.isEnabled = true
                 } else {
@@ -496,7 +496,7 @@ class CallPopupActivity : AppCompatActivity() {
             CalledNumbersCache.clear(this)
 
             niDialog.dismiss()
-            Toast.makeText(this, "✅ Not Interested saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Not Interested saved", Toast.LENGTH_SHORT).show()
             finish()
         }
 
@@ -554,7 +554,7 @@ class CallPopupActivity : AppCompatActivity() {
             CalledNumbersCache.clear(this)
 
             customDialog.dismiss()
-            Toast.makeText(this, "✅ Status saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Status saved", Toast.LENGTH_SHORT).show()
 
             finish()
         }
@@ -581,8 +581,7 @@ class CallPopupActivity : AppCompatActivity() {
         val tvPhone   = dialogView.findViewById<TextView>(R.id.tvLeadPhone)
 
         etName.setText("")
-        etName.hint = "Student Name"
-        tvPhone.text = "📱 ${lead.phone}"
+        tvPhone.text = "${lead.phone}"
 
         val saveDialog = AlertDialog.Builder(this)
             .setView(dialogView)
@@ -631,7 +630,7 @@ class CallPopupActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     saveDialog.dismiss()
-                    Toast.makeText(this@CallPopupActivity, "✅ Lead saved: $name", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@CallPopupActivity, "Lead saved: $name", Toast.LENGTH_SHORT).show()
                     CallManager.currentLead = null
                     super@CallPopupActivity.finish()
                 }

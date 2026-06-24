@@ -56,7 +56,7 @@
             android:clipChildren="false"
             tools:layout="@layout/fragment_dashboard" />
 
-        <!-- 🌟 Island Nav Bar — floats over the bottom of the screen -->
+        <!--  Island Nav Bar — floats over the bottom of the screen -->
         <com.adyapan.leaddialer.IslandNavBar
             android:id="@+id/islandNavBar"
             android:layout_width="match_parent"

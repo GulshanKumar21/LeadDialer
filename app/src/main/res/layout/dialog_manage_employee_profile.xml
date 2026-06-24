@@ -118,7 +118,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="👥 Assign Team Leader"
+        android:text="Assign Team Leader"
         android:textColor="#2A2A35"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -158,7 +158,7 @@
         android:id="@+id/btnDeleteProfile"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="🗑️ Delete Account"
+        android:text="Delete Account"
         android:textColor="#EF4444"
         android:textStyle="bold"
         android:backgroundTint="#FFEBEB"/>
