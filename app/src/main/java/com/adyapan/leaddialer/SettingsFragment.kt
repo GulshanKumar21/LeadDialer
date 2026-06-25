@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -16,9 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class SettingsFragment : Fragment() {
 
@@ -49,6 +55,12 @@ class SettingsFragment : Fragment() {
         switchDark.setOnCheckedChangeListener { _, isChecked ->
             ThemeManager.setDarkMode(requireContext(), isChecked)
             // Activity recreates automatically when theme changes
+        }
+
+        // ── Change Password ────────────────────────────────────────────────────
+        val btnChangePassword = view.findViewById<Button>(R.id.btnChangePassword)
+        btnChangePassword.setOnClickListener {
+            showChangePasswordDialog()
         }
 
         viewModel.totalLeads.observe(viewLifecycleOwner) { count ->
@@ -220,6 +232,110 @@ class SettingsFragment : Fragment() {
 
         // ── SIM Selection (dual-SIM only) ──────────────────────────────────────
         setupSimSelection(view)
+    }
+
+    // ── Change Password Dialog ─────────────────────────────────────────────────
+
+    private fun showChangePasswordDialog() {
+        val dialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.dialog_change_password, null)
+        dialog.setContentView(view)
+
+        val etCurrent = view.findViewById<EditText>(R.id.etCurrentPassword)
+        val etNew     = view.findViewById<EditText>(R.id.etNewPassword)
+        val etConfirm = view.findViewById<EditText>(R.id.etConfirmPassword)
+        val btnSubmit = view.findViewById<Button>(R.id.btnConfirmChangePassword)
+
+        btnSubmit.setOnClickListener {
+            val currentPass = etCurrent.text.toString().trim()
+            val newPass     = etNew.text.toString().trim()
+            val confirmPass = etConfirm.text.toString().trim()
+
+            when {
+                currentPass.isEmpty() -> {
+                    etCurrent.error = "Enter current password"
+                    etCurrent.requestFocus()
+                    return@setOnClickListener
+                }
+                newPass.length < 8 -> {
+                    etNew.error = "Minimum 8 characters"
+                    etNew.requestFocus()
+                    return@setOnClickListener
+                }
+                newPass != confirmPass -> {
+                    etConfirm.error = "Passwords don't match"
+                    etConfirm.requestFocus()
+                    return@setOnClickListener
+                }
+            }
+
+            btnSubmit.isEnabled = false
+            btnSubmit.text = "Updating..."
+
+            val user = FirebaseAuth.getInstance().currentUser
+            val email = user?.email
+
+            if (user == null || email == null) {
+                Toast.makeText(requireContext(), "Not logged in", Toast.LENGTH_SHORT).show()
+                btnSubmit.isEnabled = true
+                btnSubmit.text = "Update Password"
+                return@setOnClickListener
+            }
+
+            lifecycleScope.launch {
+                try {
+                    // Step 1: Re-authenticate with current password
+                    val credential = EmailAuthProvider.getCredential(email, currentPass)
+                    withContext(Dispatchers.IO) {
+                        user.reauthenticate(credential).await()
+                    }
+
+                    // Step 2: Update password in Firebase
+                    withContext(Dispatchers.IO) {
+                        user.updatePassword(newPass).await()
+                    }
+
+                    // Step 3: Sync new password to CRM (Supabase) backend
+                    val synced = withContext(Dispatchers.IO) {
+                        CrmApi.syncPasswordToCrm(newPass)
+                    }
+
+                    if (synced) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Password updated for both app and CRM website!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "App password updated. CRM sync failed — will retry on next login.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        // Save for retry on next app start
+                        val prefs = LoginPage.getEncryptedPrefs(requireContext())
+                        prefs.edit().putString("pending_password_sync", newPass).apply()
+                    }
+
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    val msg = when {
+                        e.message?.contains("INVALID_LOGIN_CREDENTIALS") == true ||
+                        e.message?.contains("wrong-password") == true ||
+                        e.message?.contains("invalid-credential") == true ->
+                            "Current password is incorrect"
+                        e.message?.contains("requires-recent-login") == true ->
+                            "Session expired. Please logout and login again."
+                        else -> "Failed: ${e.message}"
+                    }
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
+                    btnSubmit.isEnabled = true
+                    btnSubmit.text = "Update Password"
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     // ── SIM picker UI ──────────────────────────────────────────────────────────

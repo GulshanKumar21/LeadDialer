@@ -496,6 +496,39 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- ── SECURITY SECTION ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="SECURITY"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:fontFamily="@font/nunito_extrabold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="24dp">
+
+            <Button
+                android:id="@+id/btnChangePassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_button_premium"
+                android:text="Change Password"
+                android:textColor="#FFFFFF"
+                android:fontFamily="@font/nunito_extrabold"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:backgroundTint="@null"/>
+        </LinearLayout>
+
         <!-- ── ACCOUNT ACTIONS SECTION ── -->
         <TextView
             android:layout_width="wrap_content"

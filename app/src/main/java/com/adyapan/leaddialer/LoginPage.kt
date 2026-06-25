@@ -643,6 +643,27 @@ class LoginPage : AppCompatActivity() {
             return
         }
 
+        // ── Retry any pending password sync to CRM ─────────────────
+        try {
+            val prefs = getEncryptedPrefs(this)
+            val pendingSync = prefs.getString("pending_password_sync", null)
+            if (!pendingSync.isNullOrEmpty()) {
+                kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val synced = CrmApi.syncPasswordToCrm(pendingSync)
+                        if (synced) {
+                            prefs.edit().remove("pending_password_sync").apply()
+                            android.util.Log.d("LoginPage", "Pending password sync to CRM succeeded")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("LoginPage", "Pending password sync retry failed: ${e.message}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("LoginPage", "Error checking pending password sync: ${e.message}")
+        }
+
         val isAdmin = try {
             withContext(Dispatchers.IO) {
                 FirebaseFirestore.getInstance()

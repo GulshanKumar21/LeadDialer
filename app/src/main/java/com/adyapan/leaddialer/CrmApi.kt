@@ -181,6 +181,54 @@ object CrmApi {
         }
     }
 
+    /**
+     * Sync the new password to the CRM (Supabase) after it has been changed in Firebase.
+     * Ensures the user can log in to both the mobile app and CRM website with the same password.
+     */
+    suspend fun syncPasswordToCrm(newPassword: String): Boolean {
+        return try {
+            val body = JSONObject().put("newPassword", newPassword)
+            val result = postJson("/mobile/sync-password", body)
+            result.optBoolean("success", false)
+        } catch (e: Exception) {
+            android.util.Log.e("CrmApi", "Password sync to CRM failed: ${e.message}")
+            false
+        }
+    }
+
+    private suspend fun postJson(path: String, body: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        val token = FirebaseAuth.getInstance().currentUser
+            ?.getIdToken(false)
+            ?.await()
+            ?.token
+            ?: throw IllegalStateException("Firebase session missing")
+
+        val url = URL("$baseUrl${if (path.startsWith("/")) path else "/$path"}")
+        val connection = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 15_000
+            readTimeout = 20_000
+            doOutput = true
+            setRequestProperty("Accept", "application/json")
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("Authorization", "Bearer $token")
+        }
+
+        try {
+            connection.outputStream.bufferedWriter().use { it.write(body.toString()) }
+            val code = connection.responseCode
+            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+            val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            val payload = if (text.isBlank()) JSONObject() else JSONObject(text)
+            if (code !in 200..299) {
+                throw IllegalStateException(payload.optString("message").ifBlank { "CRM request failed: HTTP $code" })
+            }
+            payload
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     private suspend fun getJson(path: String): JSONObject = withContext(Dispatchers.IO) {
         val token = FirebaseAuth.getInstance().currentUser
             ?.getIdToken(false)
