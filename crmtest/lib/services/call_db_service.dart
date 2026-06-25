@@ -19,38 +19,61 @@ class AppDbService {
   }
 
   Future<Database> _openDb() async {
-    final path = join(await getDatabasesPath(), 'lead_dialer.db');
+    final path = join(await getDatabasesPath(), 'crm_database');
     return openDatabase(
       path,
-      version: 1,
+      version: 12,
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE leads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+          CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             name TEXT NOT NULL,
             phone TEXT NOT NULL,
-            status TEXT DEFAULT 'Pending',
-            isHotLead INTEGER DEFAULT 0,
-            salesDone INTEGER DEFAULT 0,
-            collegeName TEXT,
-            collegeCity TEXT,
-            notes TEXT,
-            calledBy TEXT,
-            calledAt INTEGER,
-            firestoreId TEXT
+            status TEXT NOT NULL DEFAULT 'Pending',
+            notes TEXT NOT NULL DEFAULT '',
+            calledAt INTEGER NOT NULL DEFAULT 0,
+            duration INTEGER NOT NULL DEFAULT 0,
+            firestoreId TEXT,
+            collegeName TEXT NOT NULL DEFAULT '',
+            collegeCity TEXT NOT NULL DEFAULT '',
+            isHotLead INTEGER NOT NULL DEFAULT 0,
+            calledBy TEXT NOT NULL DEFAULT '',
+            salesDone INTEGER NOT NULL DEFAULT 0
           )
         ''');
+        await db.execute(
+          'CREATE UNIQUE INDEX IF NOT EXISTS index_leads_phone ON leads (phone)'
+        );
         await db.execute('''
-          CREATE TABLE call_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
+          CREATE TABLE IF NOT EXISTS call_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             phone TEXT NOT NULL,
-            status TEXT DEFAULT 'Pending',
-            duration INTEGER DEFAULT 0,
-            calledAt INTEGER,
-            calledBy TEXT
+            name TEXT NOT NULL,
+            duration INTEGER NOT NULL,
+            calledAt INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Pending',
+            note TEXT NOT NULL DEFAULT '',
+            calledBy TEXT NOT NULL DEFAULT ''
           )
         ''');
+        await db.execute(
+          'CREATE UNIQUE INDEX IF NOT EXISTS index_call_records_phone_calledAt ON call_records (phone, calledAt)'
+        );
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            date TEXT NOT NULL,
+            punchInTime TEXT NOT NULL,
+            punchInMs INTEGER NOT NULL DEFAULT 0,
+            isLate INTEGER NOT NULL DEFAULT 0,
+            lateReason TEXT NOT NULL DEFAULT '',
+            totalCalls INTEGER NOT NULL DEFAULT 0,
+            employeeName TEXT NOT NULL DEFAULT ''
+          )
+        ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // Room fallback to destructive migration logic if needed
       },
     );
   }
@@ -76,6 +99,43 @@ class AppDbService {
   Future<void> deleteLead(int id) async {
     final d = await db;
     await d.delete('leads', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ── Stats Counts Queries (Parity with Room Dao) ──────────────────────────
+  Future<int> getTotalLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery('SELECT COUNT(*) as count FROM leads');
+    return Sqflite.firstIntValue(res) ?? 0;
+  }
+
+  Future<int> getCalledLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery('SELECT COUNT(*) as count FROM leads WHERE calledAt > 0');
+    return Sqflite.firstIntValue(res) ?? 0;
+  }
+
+  Future<int> getBusyLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery("SELECT COUNT(*) as count FROM leads WHERE status = 'Busy'");
+    return Sqflite.firstIntValue(res) ?? 0;
+  }
+
+  Future<int> getSalesLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery('SELECT COUNT(*) as count FROM leads WHERE salesDone = 1');
+    return Sqflite.firstIntValue(res) ?? 0;
+  }
+
+  Future<int> getConnectedLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery("SELECT COUNT(*) as count FROM leads WHERE status = 'Interested' OR status = 'Connected'");
+    return Sqflite.firstIntValue(res) ?? 0;
+  }
+
+  Future<int> getPendingLeadsCount() async {
+    final d = await db;
+    final res = await d.rawQuery("SELECT COUNT(*) as count FROM leads WHERE status = 'Pending'");
+    return Sqflite.firstIntValue(res) ?? 0;
   }
 
   // ── Call Record CRUD ─────────────────────────────────────────────────────
@@ -119,4 +179,6 @@ class AppDbService {
 }
 
 // Alias for cleaner imports in call history screen
-class CallDbService extends AppDbService {}
+class CallDbService extends AppDbService {
+  CallDbService() : super._();
+}

@@ -61,6 +61,14 @@ class EmployeeDocumentsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                SupabaseSync.syncSupabaseDocumentsToFirestore(FirebaseFirestore.getInstance())
+            } catch (e: Exception) {
+                android.util.Log.e("EmployeeDocumentsFragment", "Supabase doc sync failed: ${e.message}")
+            }
+        }
+
         return ComposeView(requireContext()).apply {
             setContent {
                 HRPortalTheme {
@@ -128,7 +136,13 @@ class EmployeeDocumentsFragment : Fragment() {
                             "documents" to mapOf(docType to downloadUrl)
                         ))
                     } else {
-                        val docs = (snapshot.get("documents") as? Map<String, Any>)?.toMutableMap() ?: mutableMapOf()
+                        val docs = mutableMapOf<String, String>()
+                        val rawDocs = snapshot.get("documents") as? Map<*, *>
+                        rawDocs?.forEach { (k, v) ->
+                            if (k is String && v is String) {
+                                docs[k] = v
+                            }
+                        }
                         docs[docType] = downloadUrl
                         transaction.update(userRef, "documents", docs)
                     }
@@ -279,9 +293,11 @@ fun EmployeeDocumentsScreen(
                         previousDesignation = doc.getString("previousDesignation") ?: ""
 
                         uploadedDocs.clear()
-                        val docsMap = doc.get("documents") as? Map<String, String>
-                        if (docsMap != null) {
-                            uploadedDocs.putAll(docsMap)
+                        val rawDocs = doc.get("documents") as? Map<*, *>
+                        rawDocs?.forEach { (k, v) ->
+                            if (k is String && v is String) {
+                                uploadedDocs[k] = v
+                            }
                         }
                     }
                 }

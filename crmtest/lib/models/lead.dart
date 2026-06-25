@@ -12,6 +12,7 @@ class Lead {
   final String? calledBy;
   final int? calledAt;
   final String? firestoreId;
+  final int duration;
 
   const Lead({
     this.id = 0,
@@ -26,6 +27,7 @@ class Lead {
     this.calledBy,
     this.calledAt,
     this.firestoreId,
+    this.duration = 0,
   });
 
   Map<String, dynamic> toMap() => {
@@ -41,6 +43,7 @@ class Lead {
     'calledBy': calledBy,
     'calledAt': calledAt,
     'firestoreId': firestoreId,
+    'duration': duration,
   };
 
   factory Lead.fromMap(Map<String, dynamic> m) => Lead(
@@ -56,17 +59,20 @@ class Lead {
     calledBy: m['calledBy'] as String?,
     calledAt: m['calledAt'] as int?,
     firestoreId: m['firestoreId'] as String?,
+    duration: m['duration'] as int? ?? 0,
   );
 
   Lead copyWith({
+    int? id,
     String? status,
     bool? isHotLead,
     bool? salesDone,
     String? notes,
     int? calledAt,
     String? firestoreId,
+    int? duration,
   }) => Lead(
-    id: id,
+    id: id ?? this.id,
     name: name,
     phone: phone,
     status: status ?? this.status,
@@ -78,5 +84,6 @@ class Lead {
     calledBy: calledBy,
     calledAt: calledAt ?? this.calledAt,
     firestoreId: firestoreId ?? this.firestoreId,
+    duration: duration ?? this.duration,
   );
 }

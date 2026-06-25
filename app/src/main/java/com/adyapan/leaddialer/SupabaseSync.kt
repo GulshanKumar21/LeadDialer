@@ -258,9 +258,15 @@ object SupabaseSync {
                     for (i in 0 until usersArray.length()) {
                         val u = usersArray.getJSONObject(i)
                         val id = u.optString("id", "").trim()
+                        val firebaseUid = u.optString("firebaseUid", "").trim()
                         val email = u.optString("email", "").trim().lowercase()
-                        if (id.isNotEmpty() && email.isNotEmpty()) {
-                            supabaseIdToEmailMap[id] = email
+                        if (email.isNotEmpty()) {
+                            if (id.isNotEmpty()) {
+                                supabaseIdToEmailMap[id] = email
+                            }
+                            if (firebaseUid.isNotEmpty() && firebaseUid != "null") {
+                                supabaseIdToEmailMap[firebaseUid] = email
+                            }
                         }
                     }
                 }
@@ -317,16 +323,17 @@ object SupabaseSync {
                         val userRef = db.collection("users").document(firebaseUid)
                         db.runTransaction { transaction ->
                             val snapshot = transaction.get(userRef)
+                            val docs = mutableMapOf<String, String>()
                             if (snapshot.exists()) {
-                                val docs = (snapshot.get("documents") as? Map<String, Any>)?.toMutableMap() ?: mutableMapOf()
-                                docs[mappedDocType] = fileUrl
-                                transaction.update(userRef, "documents", docs)
-                            } else {
-                                transaction.set(userRef, mapOf(
-                                    "uid" to firebaseUid,
-                                    "documents" to mapOf(mappedDocType to fileUrl)
-                                ), SetOptions.merge())
+                                val rawDocs = snapshot.get("documents") as? Map<*, *>
+                                rawDocs?.forEach { (k, v) ->
+                                    if (k is String && v is String) {
+                                        docs[k] = v
+                                    }
+                                }
                             }
+                            docs[mappedDocType] = fileUrl
+                            transaction.update(userRef, "documents", docs)
                         }.await()
 
                         Log.d(TAG, "Synced document: $mappedDocType for user: $firebaseUid (email: $email)")

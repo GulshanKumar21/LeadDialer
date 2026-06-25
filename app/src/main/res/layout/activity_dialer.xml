@@ -82,8 +82,8 @@
         <!-- btn1 -->
         <LinearLayout
             android:id="@+id/btn1"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -104,8 +104,8 @@
         <!-- btn2 -->
         <LinearLayout
             android:id="@+id/btn2"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -121,24 +121,13 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ABC"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- btn3 -->
         <LinearLayout
             android:id="@+id/btn3"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -154,25 +143,14 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DEF"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- ROW 2 -->
         <!-- btn4 -->
         <LinearLayout
             android:id="@+id/btn4"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -188,24 +166,13 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="GHI"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- btn5 -->
         <LinearLayout
             android:id="@+id/btn5"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -221,24 +188,13 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="JKL"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- btn6 -->
         <LinearLayout
             android:id="@+id/btn6"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -254,25 +210,14 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MNO"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- ROW 3 -->
         <!-- btn7 -->
         <LinearLayout
             android:id="@+id/btn7"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -288,24 +233,13 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PQRS"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- btn8 -->
         <LinearLayout
             android:id="@+id/btn8"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -321,24 +255,13 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TUV"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- btn9 -->
         <LinearLayout
             android:id="@+id/btn9"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -354,25 +277,14 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WXYZ"
-                android:textColor="#8B95A7"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:fontFamily="sans-serif"
-                android:includeFontPadding="false"
-                android:layout_marginTop="-2dp" />
         </LinearLayout>
 
         <!-- ROW 4 -->
         <!-- btnStar -->
         <LinearLayout
             android:id="@+id/btnStar"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -394,8 +306,8 @@
         <!-- btn0 -->
         <LinearLayout
             android:id="@+id/btn0"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"
@@ -426,8 +338,8 @@
         <!-- btnHash -->
         <LinearLayout
             android:id="@+id/btnHash"
-            android:layout_width="82dp"
-            android:layout_height="82dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_margin="8dp"
             android:orientation="vertical"
             android:gravity="center"

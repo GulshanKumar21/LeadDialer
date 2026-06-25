@@ -1,14 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'call_db_service.dart';
+import '../models/lead.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FirebaseSyncService — Flutter equivalent of batchSyncNow() in CallViewModel
 //
-//  Syncs all local SQLite data (leads + call records) to Firebase RTDB.
-//  Called:
-//    • Every 50 calls (batch threshold)     — same as Native Android
-//    • Before logout                         — data-loss prevention fix
+//  Syncs data to/from Firebase RTDB & Firestore.
+//  Features:
+//    • batchSyncIfNeeded(): Every 50 calls (batch threshold) -> push to RTDB
+//    • syncAllPendingData(): Push before logout
+//    • syncFromFirebase(): Pull leads from Firestore & RTDB and merge into local SQLite (crm_database)
 // ─────────────────────────────────────────────────────────────────────────────
 class FirebaseSyncService {
   static const int batchThreshold = 50;
@@ -43,6 +47,91 @@ class FirebaseSyncService {
 
       if (leads.isNotEmpty)   await _pushLeads(uid, leads);
       if (records.isNotEmpty) await _pushCallRecords(uid, records);
+    }
+  }
+
+  // ── Pull and sync from Firebase (Firestore + RTDB) ─────────────────────────
+  static Future<void> syncFromFirebase() async {
+    final uid = _uid;
+    if (uid == null) return;
+
+    final db = AppDbService();
+
+    try {
+      // 1. Fetch from Firestore (Hot/Interested leads / SalesDone)
+      final firestoreSnap = await FirebaseFirestore.instance
+          .collection('leads')
+          .where('userId', isEqualTo: uid)
+          .get();
+
+      final List<Lead> firestoreLeads = [];
+      for (final doc in firestoreSnap.docs) {
+        final data = doc.data();
+        firestoreLeads.add(Lead(
+          name: data['name']?.toString() ?? '',
+          phone: data['phone']?.toString() ?? '',
+          status: data['status']?.toString() ?? 'Pending',
+          notes: data['notes']?.toString() ?? '',
+          calledAt: data['calledAt'] as int? ?? 0,
+          duration: data['duration'] as int? ?? 0,
+          firestoreId: doc.id,
+          collegeName: data['collegeName']?.toString() ?? '',
+          collegeCity: data['collegeCity']?.toString() ?? '',
+          isHotLead: (data['isHotLead'] as int? ?? 0) == 1,
+          calledBy: data['calledBy']?.toString() ?? '',
+          salesDone: data['salesDone'] == true,
+        ));
+      }
+
+      // 2. Fetch from RTDB (Pending/Raw leads)
+      final rtdbRef = FirebaseDatabase.instance.ref('rtdb_leads/$uid');
+      final rtdbSnap = await rtdbRef.get();
+
+      final List<Lead> rtdbLeads = [];
+      if (rtdbSnap.exists && rtdbSnap.value != null) {
+        final data = rtdbSnap.value;
+        if (data is Map) {
+          data.forEach((docId, value) {
+            if (value is Map) {
+              rtdbLeads.add(Lead(
+                name: value['name']?.toString() ?? '',
+                phone: value['phone']?.toString() ?? '',
+                status: value['status']?.toString() ?? 'Pending',
+                notes: value['notes']?.toString() ?? '',
+                calledAt: value['calledAt'] as int? ?? 0,
+                duration: value['duration'] as int? ?? 0,
+                firestoreId: docId.toString(),
+                collegeName: value['collegeName']?.toString() ?? '',
+                collegeCity: value['collegeCity']?.toString() ?? '',
+                isHotLead: (value['isHotLead'] as int? ?? 0) == 1,
+                calledBy: value['calledBy']?.toString() ?? '',
+                salesDone: value['salesDone'] == true,
+              ));
+            }
+          });
+        }
+      }
+
+      final allRemote = [...firestoreLeads, ...rtdbLeads];
+
+      // Get all local leads
+      final localLeads = await db.getAllLeads();
+      final Map<String, Lead> localMap = {
+        for (final l in localLeads) l.phone: l
+      };
+
+      for (final remoteLead in allRemote) {
+        final local = localMap[remoteLead.phone];
+        if (local == null) {
+          // Insert new lead
+          await db.insertLead(remoteLead);
+        } else if ((remoteLead.calledAt ?? 0) > (local.calledAt ?? 0)) {
+          // Update existing lead keeping its local DB ID
+          await db.updateLead(remoteLead.copyWith(id: local.id));
+        }
+      }
+    } catch (e) {
+      debugPrint('syncFromFirebase error: $e');
     }
   }
 
