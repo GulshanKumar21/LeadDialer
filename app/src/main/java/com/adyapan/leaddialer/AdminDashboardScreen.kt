@@ -210,7 +210,8 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -223,7 +224,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     text = "Today's Sales Achievements",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color(0xFF1E293B)
                 )
             }
 
@@ -237,7 +238,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
-                Text(text = "Expected vs Target", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                Text(text = "Expected vs Target", color = Color(0xFF64748B), fontSize = 11.sp)
             }
 
             // Target
@@ -246,7 +247,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Admin Target Progress ($sales/$target)", color = Color.White, fontSize = 11.sp)
+                    Text(text = "Admin Target Progress ($sales/$target)", color = Color(0xFF64748B), fontSize = 11.sp)
                     Text(text = "${(targetProgress * 100).toInt()}%", color = Color(0xFF10B981), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(6.dp))
@@ -254,7 +255,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     progress = targetProgress,
                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                     color = Color(0xFF10B981),
-                    trackColor = Color(0x33FFFFFF)
+                    trackColor = Color(0xFFE2E8F0)
                 )
             }
 
@@ -264,7 +265,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Employee Expected Goal ($sales/$expected)", color = Color.White, fontSize = 11.sp)
+                    Text(text = "Employee Expected Goal ($sales/$expected)", color = Color(0xFF64748B), fontSize = 11.sp)
                     Text(text = "${(expectedProgress * 100).toInt()}%", color = Color(0xFF3B82F6), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(6.dp))
@@ -272,7 +273,7 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
                     progress = expectedProgress,
                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                     color = Color(0xFF3B82F6),
-                    trackColor = Color(0x33FFFFFF)
+                    trackColor = Color(0xFFE2E8F0)
                 )
             }
         }
