@@ -154,6 +154,11 @@ class CallHistoryFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        callViewModel.syncCallRecordsFromFirebase()
+    }
+
     // ── Build display list: headers + calls + gap separators ─────────────
 
     /**
