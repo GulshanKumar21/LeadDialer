@@ -471,7 +471,10 @@ fun DialerScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (matchedLead != null) {
-                    LeadMatchCard(matchedLead = matchedLead)
+                    LeadMatchCard(
+                        matchedLead = matchedLead,
+                        onCallClick = onCallClick
+                    )
                 }
             }
 
@@ -669,8 +672,15 @@ fun DialKeyButton(
     }
 }
 
+fun formatDuration(seconds: Int): String {
+    if (seconds <= 0) return "0s"
+    val min = seconds / 60
+    val sec = seconds % 60
+    return if (min > 0) "${min}m ${sec}s" else "${sec}s"
+}
+
 @Composable
-fun LeadMatchCard(matchedLead: Lead) {
+fun LeadMatchCard(matchedLead: Lead, onCallClick: (String) -> Unit) {
     val isCalled = matchedLead.calledAt > 0L || matchedLead.status != "Pending"
     val statusText = if (isCalled) matchedLead.status else "Not Called Yet"
     
@@ -776,7 +786,7 @@ fun LeadMatchCard(matchedLead: Lead) {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "⏳ Last call: ${SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(matchedLead.calledAt))}",
+                        text = "⏳ Last call: ${SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(matchedLead.calledAt))} (${formatDuration(matchedLead.duration)})",
                         fontSize = 11.sp,
                         color = Color(0xFF94A3B8),
                         fontWeight = FontWeight.Medium
@@ -790,6 +800,21 @@ fun LeadMatchCard(matchedLead: Lead) {
                         )
                     }
                 }
+            }
+
+            // Call button on the right
+            IconButton(
+                onClick = { onCallClick(matchedLead.phone) },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .align(Alignment.CenterVertically)
+                    .background(Color(0xFFE8F5E9), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Call,
+                    contentDescription = "Call",
+                    tint = Color(0xFF16A34A)
+                )
             }
         }
     }
