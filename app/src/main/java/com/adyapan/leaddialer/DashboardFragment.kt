@@ -222,17 +222,12 @@ fun DashboardScreen(
 
     // Scroll state
     val scrollState = rememberScrollState()
-
-    val bgGradient = remember {
-        Brush.verticalGradient(
-            colors = listOf(Color(0xFFF8FAFC), Color(0xFFEDF2F7))
-        )
-    }
+    val bgGradientColor = Color(0xFFF2F2F7)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradient)
+            .background(bgGradientColor)
     ) {
         Column(
             modifier = Modifier
@@ -240,211 +235,233 @@ fun DashboardScreen(
                 .verticalScroll(scrollState)
         ) {
 
-            // ── 1. HEADER SECTION (Hamburger + Avatar + Greeting + Bell) ──
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp, bottom = 12.dp)
+            // ── HERO HEADER ─────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 24.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    // Hamburger — opens drawer
-                    Card(
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        modifier = Modifier.size(42.dp)
+                    // Top row: Hamburger + Avatar + Bell
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable {
-                                    (context as? MainActivity)?.findViewById<androidx.drawerlayout.widget.DrawerLayout>(R.id.drawerLayout)
-                                        ?.openDrawer(androidx.core.view.GravityCompat.START)
-                                },
-                            contentAlignment = Alignment.Center
+                        Card(
+                            shape = CircleShape,
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            modifier = Modifier.size(42.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = Color(0xFF475569),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // Avatar circle — click to open Profile
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color(0xFFFF6A00).copy(alpha = 0.55f), CircleShape)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(Color(0xFFFF6A00), Color(0xFFFF8C00))
-                                )
-                            )
-                            .clickable {
-                                (context as? MainActivity)?.loadFragment(ProfileFragment(), "Profile")
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = initials,
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = PoppinsFamily
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // Greeting + Name
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = greeting,
-                            color = Color(0xFF64748B),
-                            fontSize = 12.sp,
-                            fontFamily = PoppinsFamily,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = displayName,
-                            color = Color(0xFF0F172A),
-                            fontSize = 20.sp,
-                            fontFamily = PoppinsFamily,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // Bell notification button
-                    Card(
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        modifier = Modifier.size(42.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable {
-                                    showAnnouncementsDialog = true
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Notifications",
-                                tint = Color(0xFF475569),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            if (announcementsList.isNotEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = (-4).dp, y = 4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFFF6A00))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable {
+                                        (context as? MainActivity)?.findViewById<androidx.drawerlayout.widget.DrawerLayout>(R.id.drawerLayout)
+                                            ?.openDrawer(androidx.core.view.GravityCompat.START)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu",
+                                    tint = Color(0xFF475569),
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .border(1.5.dp, Color(0xFFFF6A00).copy(alpha = 0.55f), CircleShape)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color(0xFFFF6A00), Color(0xFFFF8C00))
+                                    )
+                                )
+                                .clickable {
+                                    (context as? MainActivity)?.loadFragment(ProfileFragment(), "Profile")
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = initials,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontFamily = PoppinsFamily,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Card(
+                            shape = CircleShape,
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            modifier = Modifier.size(42.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable {
+                                        showAnnouncementsDialog = true
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = Color(0xFF475569),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                if (announcementsList.isNotEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = (-4).dp, y = 4.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFFF6A00))
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Greeting
+                    Text(
+                        text = greeting,
+                        color = Color(0xFFFF7A00),
+                        fontSize = 13.sp,
+                        fontFamily = PoppinsFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.2.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    // Name
+                    Text(
+                        text = "$displayName 👋",
+                        color = Color.Black,
+                        fontSize = 26.sp,
+                        fontFamily = PoppinsFamily,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.5).sp
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 4 mini stats row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        MiniStat(value = totalLeads.toString(), label = "Total", modifier = Modifier.weight(1f))
+                        MiniStat(value = totalCalled.toString(), label = "Called", modifier = Modifier.weight(1f))
+                        MiniStat(value = busyCount.toString(), label = "Busy", modifier = Modifier.weight(1f))
+                        MiniStat(value = salesCount.toString(), label = "Sales", modifier = Modifier.weight(1f))
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Banner
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color(0xFFEFEFEF), Color(0xFFDFDFDF))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "INDIA'S LARGEST\nSTUDENT COMMUNITY",
+                            textAlign = TextAlign.Center,
+                            style = androidx.compose.ui.text.TextStyle(
+                                color = Color.Black.copy(alpha = 0.5f),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = PoppinsFamily,
+                                letterSpacing = 1.2.sp,
+                                lineHeight = 28.sp
+                            )
+                        )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Stats row: 4 Mini Stats side by side
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    MiniGlassStat(title = "Total",  value = totalLeads.toString(),     modifier = Modifier.weight(1f))
-                    MiniGlassStat(title = "Called", value = totalCalled.toString(),    modifier = Modifier.weight(1f))
-                    MiniGlassStat(title = "Busy",   value = busyCount.toString(),      modifier = Modifier.weight(1f))
-                    MiniGlassStat(title = "Sales",  value = salesCount.toString(),     modifier = Modifier.weight(1f))
-                }
             }
 
-            // ── 2. STUDENT COMMUNITY BANNER (Brought below greeting & stats) ──
+            // ── TODAY'S PROGRESS ────────────────────────────────────────
+            Spacer(modifier = Modifier.height(20.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(140.dp)
-                    .shadow(6.dp, RoundedCornerShape(20.dp))
-                    .clip(RoundedCornerShape(20.dp))
-            ) {
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = R.drawable.studentbanner),
-                    contentDescription = "India's Largest Student Community Banner",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            // ── 3. Today's Progress Card (iOS Clean Widget style) ──
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 16.dp)
                     .cleanCardEffect(isClickable = false)
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
-                    // Title + Percentage row
                     val progressPercent = if (totalLeads > 0) (totalCalled * 100 / totalLeads) else 0
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.TrendingUp,
+                                    contentDescription = "Progress",
+                                    tint = Color(0xFFD32F2F),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Today's Progress",
+                                    color = Color(0xFFFF7A00),
+                                    fontSize = 12.sp,
+                                    fontFamily = PoppinsFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.3.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "Today's Progress",
-                                color = Color(0xFF64748B),
-                                fontSize = 12.sp,
+                                text = "$totalCalled / $totalLeads leads called",
+                                color = Color.Black,
+                                fontSize = 15.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "$totalCalled of $totalLeads leads called",
-                                color = Color(0xFF0F172A),
-                                fontSize = 16.sp,
-                                fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFFFF4EE))
-                                .padding(horizontal = 14.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "$progressPercent%",
-                                color = Color(0xFFFF6A00),
-                                fontSize = 22.sp,
-                                fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.ExtraBold
+                                fontWeight = FontWeight.Bold
                             )
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "$progressPercent%",
+                            color = Color(0xFFFF5100),
+                            fontSize = 28.sp,
+                            fontFamily = PoppinsFamily,
+                            fontWeight = FontWeight.Black
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Progress Bar
                     val progressVal = if (totalLeads > 0) (totalCalled.toFloat() / totalLeads.toFloat()) else 0f
                     val animatedProgress by animateFloatAsState(
                         targetValue = progressVal,
@@ -453,38 +470,35 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(Color(0xFFF1F5F9))
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFFF2F2F7))
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(animatedProgress)
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(Color(0xFFFF6A00), Color(0xFFFFAA55))
-                                    )
-                                )
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFFF5100))
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Expected Sales + Admin Target side by side
+                    var showEditExpectedSalesDialog by remember { mutableStateOf(false) }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Expected Sales chip
+                        // Expected Sales
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(Color(0xFFECFDF5))
                                 .border(1.dp, Color(0xFFD1FAE5), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                                .padding(12.dp)
                         ) {
                             Column {
                                 Text(
@@ -506,29 +520,16 @@ fun DashboardScreen(
                                     )
                                     Box(
                                         modifier = Modifier
-                                            .size(28.dp)
+                                            .size(24.dp)
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(Color(0xFFA7F3D0))
                                             .clickable {
-                                                val input = EditText(context).apply {
-                                                    inputType = InputType.TYPE_CLASS_NUMBER
-                                                    if (expectedSales > 0) setText(expectedSales.toString())
-                                                }
-                                                AlertDialog.Builder(context)
-                                                    .setTitle("Expected Sales")
-                                                    .setMessage("Enter your expected sales for today:")
-                                                    .setView(input)
-                                                    .setPositiveButton("Save") { _, _ ->
-                                                        val newVal = input.text.toString().toIntOrNull() ?: 0
-                                                        viewModel.updateExpectedSales(newVal)
-                                                    }
-                                                    .setNegativeButton("Cancel", null)
-                                                    .show()
+                                                showEditExpectedSalesDialog = true
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.ic_edit),
+                                            imageVector = Icons.Default.Edit,
                                             contentDescription = "Edit",
                                             tint = Color(0xFF065F46),
                                             modifier = Modifier.size(12.dp)
@@ -538,14 +539,14 @@ fun DashboardScreen(
                             }
                         }
 
-                        // Admin Target chip
+                        // Admin Target
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(Color(0xFFEFF6FF))
                                 .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                                .padding(12.dp)
                         ) {
                             Column {
                                 Text(
@@ -566,10 +567,60 @@ fun DashboardScreen(
                             }
                         }
                     }
+
+                    if (showEditExpectedSalesDialog) {
+                        var tempExpectedSales by remember { mutableStateOf(expectedSales.toString()) }
+                        AlertDialog(
+                            onDismissRequest = { showEditExpectedSalesDialog = false },
+                            title = {
+                                Text(
+                                    text = "Expected Sales",
+                                    fontFamily = PoppinsFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF2C3E50)
+                                )
+                            },
+                            text = {
+                                OutlinedTextField(
+                                    value = tempExpectedSales,
+                                    onValueChange = { tempExpectedSales = it },
+                                    label = { Text("Enter Expected Sales", fontFamily = PoppinsFamily) },
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color(0xFFFF6A00),
+                                        focusedLabelColor = Color(0xFFFF6A00),
+                                        cursorColor = Color(0xFFFF6A00)
+                                    )
+                                )
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        val newVal = tempExpectedSales.toIntOrNull() ?: 0
+                                        viewModel.updateExpectedSales(newVal)
+                                        showEditExpectedSalesDialog = false
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6A00))
+                                ) {
+                                    Text("Save", fontFamily = PoppinsFamily, color = Color.White)
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = { showEditExpectedSalesDialog = false }
+                                ) {
+                                    Text("Cancel", fontFamily = PoppinsFamily, color = Color.Gray)
+                                }
+                            },
+                            containerColor = Color.White,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                    }
                 }
             }
 
-            // ── 4. Overview Header ──
+            // ── OVERVIEW SECTION ─────────────────────────────────────
+            Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -587,29 +638,30 @@ fun DashboardScreen(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFFFF6A00).copy(alpha = 0.10f))
+                        .background(Color(0xFF34C759).copy(alpha = 0.1f))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(7.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFFF6A00))
+                                .background(Color(0xFF34C759))
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "LIVE STATS",
-                            color = Color(0xFFFF6A00),
+                            text = "LIVE",
+                            color = Color(0xFF34C759),
                             fontSize = 10.sp,
                             fontFamily = PoppinsFamily,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
                         )
                     }
                 }
             }
 
-            // ── 5. Overview Cards Grid ──
+            // ── OVERVIEW CARDS GRID ──────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -623,6 +675,7 @@ fun DashboardScreen(
                     OverviewCard(
                         title = "Total Leads",
                         value = totalLeads,
+                        color = Color(0xFFFF5100),
                         iconRes = R.drawable.ic_group,
                         modifier = Modifier.weight(1f),
                         onClick = { onCardClick("Total Leads", "Total Leads") }
@@ -630,6 +683,7 @@ fun DashboardScreen(
                     OverviewCard(
                         title = "Connected",
                         value = totalConnected,
+                        color = Color(0xFF5856D6),
                         iconRes = R.drawable.ic_phone,
                         modifier = Modifier.weight(1f),
                         onClick = { onCardClick("Connected", "Connected") }
@@ -643,6 +697,7 @@ fun DashboardScreen(
                     OverviewCard(
                         title = "Busy Leads",
                         value = busyCount,
+                        color = Color(0xFFFF9500),
                         emoji = "📵",
                         modifier = Modifier.weight(1f),
                         onClick = { onCardClick("Busy", "Busy") }
@@ -650,157 +705,129 @@ fun DashboardScreen(
                     OverviewCard(
                         title = "Pending Leads",
                         value = totalPending,
+                        color = Color(0xFF5856D6),
                         iconRes = R.drawable.ic_clock,
                         modifier = Modifier.weight(1f),
                         onClick = { onCardClick("Pending", "Pending") }
                     )
                 }
 
-                // Full Width Sales Done Card (Premium Emerald Box)
+                // Full Width Sales Done Card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .cleanCardEffect(isClickable = true, onClick = { onCardClick("SalesDone", "Sales Done") })
-                        .border(1.dp, Color(0xFFD1FAE5), RoundedCornerShape(16.dp))
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFEDEEF5).copy(alpha = 0.5f))
+                        .clickable { onCardClick("SalesDone", "Sales Done") }
+                        .padding(horizontal = 18.dp, vertical = 14.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        modifier = Modifier.fillMaxSize(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFD1FAE5)),
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Sales Done",
-                                tint = Color(0xFF059669),
-                                modifier = Modifier.size(22.dp)
-                            )
+                            Text(text = "✅", fontSize = 26.sp)
                         }
 
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text(
-                                text = "Sales Done (Total Converted)",
-                                color = Color(0xFF475569),
-                                fontSize = 11.sp,
+                                text = "Sales Done",
+                                color = Color(0xFF6C6C70),
+                                fontSize = 12.sp,
                                 fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.SemiBold
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             AnimatedCounter(
                                 targetValue = salesCount,
-                                color = Color(0xFF065F46),
-                                fontSize = 22.sp
+                                color = Color(0xFF1C1C1E),
+                                fontSize = 34.sp
                             )
                         }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "Converted",
-                                color = Color(0xFF059669),
-                                fontSize = 10.sp,
-                                fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "View List →",
-                                color = Color(0xFF059669),
-                                fontSize = 11.sp,
-                                fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Text(
+                            text = "Leads Converted",
+                            color = Color(0xFF6C6C70),
+                            fontSize = 12.sp,
+                            fontFamily = PoppinsFamily,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
 
-            // ── 6. Thought of the Day ──
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Thought of the Day",
-                    color = Color(0xFF0F172A),
-                    fontSize = 18.sp,
-                    fontFamily = PoppinsFamily,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "💡",
-                    fontSize = 18.sp
-                )
-            }
-
-            // ── 7. Thought of the Day Card ──
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
-                    .cleanCardEffect(isClickable = false)
-                    .border(1.dp, Color(0xFFFFEDD5), RoundedCornerShape(16.dp))
-                    .background(Color(0xFFFFF7ED))
-            ) {
-                // Orange left accent strip
-                Box(
-                    modifier = Modifier
-                        .width(5.dp)
-                        .fillMaxHeight()
-                        .background(Color(0xFFFF6A00))
-                        .align(Alignment.CenterStart)
-                )
-                Column(
+            // ── THOUGHT OF THE DAY ──────────────────────────────────
+            if (thoughtText.isNotEmpty()) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, end = 18.dp, top = 20.dp, bottom = 20.dp)
+                        .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "\u201C",
-                        color = Color(0xFFFF6A00).copy(alpha = 0.20f),
-                        fontSize = 56.sp,
-                        fontFamily = PoppinsFamily,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 32.sp,
-                        modifier = Modifier.offset(y = 8.dp)
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color(0xFFFF5100))
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = thoughtText,
-                        color = Color(0xFF334155),
-                        fontSize = 15.sp,
+                        text = "Thought of the Day",
+                        color = Color.Black,
+                        fontSize = 18.sp,
                         fontFamily = PoppinsFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        lineHeight = 24.sp
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.3).sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFF6A00))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
+                        .cleanCardEffect(isClickable = false)
+                        .border(1.dp, Color(0xFFFF7A00).copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp)
+                    ) {
+                        Text(text = "💡", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = thoughtAuthor,
-                            color = Color(0xFFFF6A00),
-                            fontSize = 13.sp,
+                            text = "\"$thoughtText\"",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsFamily,
+                            fontWeight = FontWeight.Medium,
+                            lineHeight = 21.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "— $thoughtAuthor",
+                            color = Color(0xFFFF7A00),
+                            fontSize = 12.sp,
                             fontFamily = PoppinsFamily,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
+            } else {
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -905,33 +932,34 @@ fun DashboardScreen(
 }
 
 @Composable
-fun MiniGlassStat(
-    title: String,
+fun MiniStat(
     value: String,
+    label: String,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
-            .padding(vertical = 10.dp),
+            .background(Color(0xFFF4F2FC))
+            .padding(vertical = 12.dp, horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = value,
-                color = Color(0xFFFF6A00),
-                fontSize = 18.sp,
+                color = Color(0xFF332D6A),
+                fontSize = 22.sp,
                 fontFamily = PoppinsFamily,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.ExtraBold
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = title,
-                color = Color(0xFF64748B),
-                fontSize = 10.sp,
+                text = label,
+                color = Color(0xFF6C6C70),
+                fontSize = 11.sp,
                 fontFamily = PoppinsFamily,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -941,6 +969,7 @@ fun MiniGlassStat(
 fun OverviewCard(
     title: String,
     value: Int,
+    color: Color,
     modifier: Modifier = Modifier,
     iconRes: Int? = null,
     emoji: String? = null,
@@ -949,51 +978,41 @@ fun OverviewCard(
     Box(
         modifier = modifier
             .cleanCardEffect(isClickable = true, onClick = onClick)
+            .height(130.dp)
             .padding(16.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Icon box — top left
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFFFF4EE)),
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (iconRes != null) {
                     Icon(
                         painter = painterResource(id = iconRes),
                         contentDescription = title,
-                        tint = Color(0xFFFF6A00),
+                        tint = color,
                         modifier = Modifier.size(22.dp)
                     )
                 } else if (emoji != null) {
-                    Text(text = emoji, fontSize = 20.sp)
+                    Text(text = emoji, fontSize = 22.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Number — large
             AnimatedCounter(
                 targetValue = value,
-                color = Color(0xFF111827),
-                fontSize = 30.sp
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = title,
-                color = Color(0xFF6B7280),
-                fontSize = 12.sp,
-                fontFamily = PoppinsFamily,
-                fontWeight = FontWeight.Medium
+                color = Color(0xFF1C1C1E),
+                fontSize = 34.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Tap indicator
             Text(
-                text = "View →",
-                color = Color(0xFFFF6A00),
-                fontSize = 11.sp,
+                text = title,
+                color = Color(0xFF6C6C70),
+                fontSize = 13.sp,
                 fontFamily = PoppinsFamily,
                 fontWeight = FontWeight.SemiBold
             )
