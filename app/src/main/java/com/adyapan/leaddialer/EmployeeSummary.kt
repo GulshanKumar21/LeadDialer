@@ -13,4 +13,7 @@ data class EmployeeSummary(
     val adminTarget   : Int = 0,   // ← Target set by admin for this employee
     val tlName        : String = "",// ← TL name this employee belongs to
     val leads         : List<Lead>
-)
+) {
+    val successRate: Int
+        get() = if (totalLeads > 0) (interested * 100 / totalLeads) else 0
+}

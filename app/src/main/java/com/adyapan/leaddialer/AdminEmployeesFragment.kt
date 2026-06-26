@@ -1,5 +1,6 @@
 package com.adyapan.leaddialer
 
+import android.content.Intent
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
@@ -87,6 +88,13 @@ class AdminEmployeesFragment : Fragment() {
             },
             onSetTargetClick = { emp ->
                 showSetTargetDialog(emp)
+            },
+            onAttendanceClick = { emp ->
+                val intent = Intent(requireContext(), AdminEmployeeAttendanceActivity::class.java).apply {
+                    putExtra("uid", emp.userId)
+                    putExtra("name", emp.employeeName)
+                }
+                startActivity(intent)
             },
             onTlAssign = { emp, tl ->
                 if (tl == null) {
@@ -295,20 +303,23 @@ class AdminEmployeesFragment : Fragment() {
 
                 // Save TL assignment
                 val spinPos = spinnerTl.selectedItemPosition
-                val tlOk = if (spinPos == 0) {
-                    // "No TL" selected
-                    TeamLeaderManager.unassignTlFromUser(emp.userId)
+                if (spinPos == 0) {
+                    viewModel.removeTlAssignment(emp.userId)
                 } else {
                     val chosenTl = tlList.getOrNull(spinPos - 1)
-                    if (chosenTl != null) TeamLeaderManager.assignTlToUser(emp.userId, chosenTl.id)
-                    else true
+                    if (chosenTl != null) {
+                        viewModel.saveTlAssignment(emp.userId, chosenTl)
+                        lifecycleScope.launch {
+                            SheetsSync.adminSyncEmployeeToTl(requireContext(), emp.userId, emp.employeeName, chosenTl.id)
+                        }
+                    }
                 }
 
-                if (profileOk && tlOk) {
-                    Toast.makeText(requireContext(), "Profile + TL saved", Toast.LENGTH_SHORT).show()
+                if (profileOk) {
+                    Toast.makeText(requireContext(), "Profile & TL assignment saved", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 } else {
-                    Toast.makeText(requireContext(), "Save failed, try again", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Profile save failed, try again", Toast.LENGTH_SHORT).show()
                 }
             }
         }
