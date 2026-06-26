@@ -14,7 +14,10 @@ class AppDbService {
   Database? _db;
 
   Future<Database> get db async {
-    _db ??= await _openDb();
+    if (_db == null) {
+      _db = await _openDb();
+      await cleanDuplicateLeads(_db!);
+    }
     return _db!;
   }
 
@@ -175,6 +178,81 @@ class AppDbService {
       orderBy: 'calledAt ASC',
     );
     return maps.map(CallRecord.fromMap).toList();
+  }
+
+  /// One-time database cleanup to merge existing duplicate leads in SQLite.
+  Future<void> cleanDuplicateLeads(Database db) async {
+    try {
+      final List<Map<String, dynamic>> maps = await db.query('leads');
+      if (maps.isEmpty) return;
+
+      // Group leads by their sanitized phone number
+      final Map<String, List<Map<String, dynamic>>> groups = {};
+      for (final m in maps) {
+        final rawPhone = m['phone'] as String? ?? '';
+        final clean = Lead.sanitizePhone(rawPhone);
+        groups.putIfAbsent(clean, () => []).add(m);
+      }
+
+      await db.transaction((txn) async {
+        for (final entry in groups.entries) {
+          final cleanPhone = entry.key;
+          final group = entry.value;
+
+          if (group.length > 1) {
+            // Sort by salesDone, calledAt, then id descending to keep the most important
+            group.sort((a, b) {
+              final aSales = a['salesDone'] as int? ?? 0;
+              final bSales = b['salesDone'] as int? ?? 0;
+              if (aSales != bSales) {
+                return bSales.compareTo(aSales);
+              }
+              final aCalled = a['calledAt'] as int? ?? 0;
+              final bCalled = b['calledAt'] as int? ?? 0;
+              if (aCalled != bCalled) {
+                return bCalled.compareTo(aCalled);
+              }
+              final aId = a['id'] as int? ?? 0;
+              final bId = b['id'] as int? ?? 0;
+              return bId.compareTo(aId);
+            });
+
+            final kept = group.first;
+            final keptId = kept['id'] as int;
+
+            // Delete duplicates
+            for (int i = 1; i < group.length; i++) {
+              final dupId = group[i]['id'] as int;
+              await txn.delete('leads', where: 'id = ?', whereArgs: [dupId]);
+            }
+
+            // Update the kept lead's phone to the sanitized version
+            await txn.update(
+              'leads',
+              {'phone': cleanPhone},
+              where: 'id = ?',
+              whereArgs: [keptId],
+            );
+          } else {
+            // Single lead in group: just make sure its phone is sanitized
+            final lead = group.first;
+            final rawPhone = lead['phone'] as String? ?? '';
+            if (rawPhone != cleanPhone) {
+              final id = lead['id'] as int;
+              await txn.update(
+                'leads',
+                {'phone': cleanPhone},
+                where: 'id = ?',
+                whereArgs: [id],
+              );
+            }
+          }
+        }
+      });
+      debugPrint('cleanDuplicateLeads completed successfully.');
+    } catch (e) {
+      debugPrint('Error cleaning duplicate leads: $e');
+    }
   }
 }
 

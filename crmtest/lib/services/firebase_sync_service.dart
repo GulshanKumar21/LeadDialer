@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'call_db_service.dart';
 import '../models/lead.dart';
+import '../models/call_record.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FirebaseSyncService — Flutter equivalent of batchSyncNow() in CallViewModel
@@ -120,14 +121,38 @@ class FirebaseSyncService {
         for (final l in localLeads) l.phone: l
       };
 
+      // Deduplicate remote leads before merging
+      final Map<String, Lead> remoteMap = {};
       for (final remoteLead in allRemote) {
+        final existing = remoteMap[remoteLead.phone];
+        if (existing == null) {
+          remoteMap[remoteLead.phone] = remoteLead;
+        } else {
+          // Keep the one with latest calledAt or salesDone = true
+          final keepRemote = (remoteLead.salesDone && !existing.salesDone) ||
+              (remoteLead.calledAt ?? 0) > (existing.calledAt ?? 0);
+          if (keepRemote) {
+            remoteMap[remoteLead.phone] = remoteLead;
+          }
+        }
+      }
+      final deduplicatedRemote = remoteMap.values.toList();
+
+      for (final remoteLead in deduplicatedRemote) {
         final local = localMap[remoteLead.phone];
         if (local == null) {
           // Insert new lead
           await db.insertLead(remoteLead);
         } else if ((remoteLead.calledAt ?? 0) > (local.calledAt ?? 0)) {
           // Update existing lead keeping its local DB ID
-          await db.updateLead(remoteLead.copyWith(id: local.id));
+          await db.updateLead(remoteLead.copyWith(
+            id: local.id,
+            collegeName: (remoteLead.collegeName ?? '').isEmpty ? local.collegeName : remoteLead.collegeName,
+            collegeCity: (remoteLead.collegeCity ?? '').isEmpty ? local.collegeCity : remoteLead.collegeCity,
+          ));
+        } else if ((local.firestoreId ?? '').isEmpty && (remoteLead.firestoreId ?? '').isNotEmpty) {
+          // Patch missing firestoreId
+          await db.updateLead(local.copyWith(firestoreId: remoteLead.firestoreId));
         }
       }
     } catch (e) {
@@ -136,40 +161,46 @@ class FirebaseSyncService {
   }
 
   // ── Push leads to RTDB ────────────────────────────────────────────────────
-  static Future<void> _pushLeads(String uid, List leads) async {
-    final ref = FirebaseDatabase.instance.ref('employees/$uid/leads');
+  static Future<void> _pushLeads(String uid, List<Lead> leads) async {
+    final ref = FirebaseDatabase.instance.ref('rtdb_leads/$uid');
     final Map<String, dynamic> updates = {};
     for (final lead in leads) {
       final key = '${uid}_${lead.phone}';
       updates[key] = {
+        'userId':       uid,
+        'employeeName': FirebaseAuth.instance.currentUser?.displayName ?? '',
+        'email':        FirebaseAuth.instance.currentUser?.email ?? '',
         'name':         lead.name,
         'phone':        lead.phone,
         'status':       lead.status,
         'isHotLead':    lead.isHotLead ? 1 : 0,
-        'salesDone':    lead.salesDone ? 1 : 0,
+        'salesDone':    lead.salesDone,
         'collegeName':  lead.collegeName ?? '',
         'collegeCity':  lead.collegeCity ?? '',
         'notes':        lead.notes ?? '',
         'calledBy':     lead.calledBy ?? uid,
         'calledAt':     lead.calledAt ?? 0,
+        'duration':     lead.duration,
       };
     }
     await ref.update(updates);
   }
 
   // ── Push call records to RTDB ─────────────────────────────────────────────
-  static Future<void> _pushCallRecords(String uid, List records) async {
-    final ref = FirebaseDatabase.instance.ref('employees/$uid/callRecords');
+  static Future<void> _pushCallRecords(String uid, List<CallRecord> records) async {
+    final ref = FirebaseDatabase.instance.ref('callRecords/$uid');
     final Map<String, dynamic> updates = {};
     for (final r in records) {
       final key = '${uid}_${r.phone}_${r.calledAt}';
       updates[key] = {
+        'userId':   uid,
         'name':     r.name,
         'phone':    r.phone,
         'status':   r.status,
         'duration': r.duration,
         'calledAt': r.calledAt,
-        'calledBy': r.calledBy ?? uid,
+        'calledBy': r.calledBy.isEmpty ? uid : r.calledBy,
+        'note':     r.note,
       };
     }
     await ref.update(updates);

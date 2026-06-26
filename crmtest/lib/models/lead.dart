@@ -14,10 +14,10 @@ class Lead {
   final String? firestoreId;
   final int duration;
 
-  const Lead({
+  Lead({
     this.id = 0,
     required this.name,
-    required this.phone,
+    required String phone,
     this.status = 'Pending',
     this.isHotLead = false,
     this.salesDone = false,
@@ -28,7 +28,16 @@ class Lead {
     this.calledAt,
     this.firestoreId,
     this.duration = 0,
-  });
+  }) : phone = sanitizePhone(phone);
+
+  static String sanitizePhone(String phone) {
+    var clean = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.startsWith('91') && clean.length > 10) {
+      clean = clean.substring(2);
+    }
+    return clean;
+  }
+
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -71,6 +80,8 @@ class Lead {
     int? calledAt,
     String? firestoreId,
     int? duration,
+    String? collegeName,
+    String? collegeCity,
   }) => Lead(
     id: id ?? this.id,
     name: name,
@@ -78,8 +89,8 @@ class Lead {
     status: status ?? this.status,
     isHotLead: isHotLead ?? this.isHotLead,
     salesDone: salesDone ?? this.salesDone,
-    collegeName: collegeName,
-    collegeCity: collegeCity,
+    collegeName: collegeName ?? this.collegeName,
+    collegeCity: collegeCity ?? this.collegeCity,
     notes: notes ?? this.notes,
     calledBy: calledBy,
     calledAt: calledAt ?? this.calledAt,
