@@ -70,6 +70,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.BorderStroke
 
 class DialerActivity : AppCompatActivity() {
 
@@ -265,6 +273,14 @@ private val NunitoFamily = FontFamily(
     Font(R.font.nunito_extrabold, FontWeight.ExtraBold)
 )
 
+fun formatNumber(n: String): String {
+    if (n.length <= 5) return n
+    if (n.length <= 10) {
+        return "${n.substring(0, 5)} ${n.substring(5)}"
+    }
+    return n
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DialerScreen(
@@ -319,29 +335,28 @@ fun DialerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0))
-                )
-            )
+            .background(Color(0xFFF2F2F7))
             .padding(16.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Row (Back Button)
-            Row(
+            // Header Row (Centered Title like Flutter AppBar)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .height(56.dp)
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
+                // Back Button (Left aligned)
                 Card(
                     shape = CircleShape,
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
+                        .align(Alignment.CenterStart)
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable { onBackClick() }
@@ -351,79 +366,93 @@ fun DialerScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF475569),
+                            tint = Color(0xFF0F172A),
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
+
+                // Centered Title "Dialer"
+                Text(
+                    text = "Dialer",
+                    fontSize = 18.sp,
+                    fontFamily = NunitoFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF0F172A),
+                    textAlign = TextAlign.Center
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Dialed Number Display Card
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            // Dialed Number Display Row (Matches Flutter: Clear | Number | Paste)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
-                    .padding(horizontal = 12.dp)
+                    .height(80.dp)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    BasicTextField(
-                        value = numberText,
-                        onValueChange = {
-                            val filteredText = it.text.filter { char ->
-                                char.isDigit() || char == '*' || char == '#' || char == '+' || char == ' ' || char == '-'
-                            }
-                            if (filteredText.length <= 15) {
-                                numberText = it.copy(text = filteredText)
-                            }
-                        },
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            textAlign = TextAlign.Center,
-                            fontSize = 34.sp,
-                            fontFamily = NunitoFamily,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF0F172A)
-                        ),
-                        cursorBrush = SolidColor(Color(0xFFFF6A00)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .onFocusChanged { focusState ->
-                                if (focusState.isFocused) {
-                                    keyboardController?.hide()
-                                }
-                            },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                            }
-                        )
-                    )
-
-                    if (numberText.text.isEmpty()) {
-                        Text(
-                            text = "Enter number",
-                            fontSize = 28.sp,
-                            fontFamily = NunitoFamily,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF94A3B8),
-                            textAlign = TextAlign.Center
+                // Left Clear (X) button
+                if (numberText.text.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            vibrateFeedback()
+                            numberText = TextFieldValue("")
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear",
+                            tint = Color(0xFF94A3B8),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
+                } else {
+                    Spacer(modifier = Modifier.size(48.dp))
+                }
+
+                // Center Number text
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val scale by animateFloatAsState(
+                        targetValue = if (numberText.text.isEmpty()) 1f else 1.06f,
+                        animationSpec = tween(100)
+                    )
+                    Text(
+                        text = if (numberText.text.isEmpty()) "Enter number" else formatNumber(numberText.text),
+                        fontSize = if (numberText.text.isEmpty()) 18.sp else if (numberText.text.length > 10) 24.sp else 30.sp,
+                        fontFamily = NunitoFamily,
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = 2.sp,
+                        color = if (numberText.text.isEmpty()) Color(0xFF94A3B8) else Color(0xFF0F172A),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.scale(scale)
+                    )
+                }
+
+                // Right Paste button
+                IconButton(
+                    onClick = {
+                        vibrateFeedback()
+                        val clipText = clipboardManager.getText()?.text ?: ""
+                        val clean = clipText.filter { it.isDigit() || it == '*' || it == '#' || it == '+' }
+                        if (clean.isNotEmpty()) {
+                            numberText = TextFieldValue(clean, selection = TextRange(clean.length))
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentPaste,
+                        contentDescription = "Paste",
+                        tint = Color(0xFFFF7A00),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
 
@@ -486,21 +515,30 @@ fun DialerScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     // Save Button
-                    DialActionButton(
-                        iconRes = R.drawable.ic_edit,
-                        bgColor = Color(0xFFE2E8F0),
-                        iconTint = Color(0xFF475569),
-                        onClick = {
-                            vibrateFeedback()
-                            if (numberText.text.isNotEmpty()) {
-                                onSaveClick(numberText.text)
-                            } else {
-                                Toast.makeText(context, "Enter number first", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFF7A00).copy(alpha = 0.1f))
+                            .clickable {
+                                vibrateFeedback()
+                                if (numberText.text.isNotEmpty()) {
+                                    onSaveClick(numberText.text)
+                                } else {
+                                    Toast.makeText(context, "Enter number first", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PersonAdd,
+                            contentDescription = "Save Contact",
+                            tint = Color(0xFFFF7A00),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
 
-                    // Call Button (Vibrant Orange Gradient)
+                    // Call Button (Vibrant Green Gradient)
                     val callInteractionSource = remember { MutableInteractionSource() }
                     val callPressed by callInteractionSource.collectIsPressedAsState()
                     val callScale by animateFloatAsState(
@@ -510,12 +548,12 @@ fun DialerScreen(
 
                     Box(
                         modifier = Modifier
-                            .size(76.dp)
+                            .size(70.dp)
                             .scale(callScale)
                             .clip(CircleShape)
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color(0xFFFF6A00), Color(0xFFFF8F3C))
+                                    colors = listOf(Color(0xFF34C759), Color(0xFF059669))
                                 )
                             )
                             .clickable(interactionSource = callInteractionSource, indication = null) {
@@ -529,10 +567,10 @@ fun DialerScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_phone),
+                            imageVector = Icons.Default.Call,
                             contentDescription = "Call",
                             tint = Color.White,
-                            modifier = Modifier.size(34.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
 
@@ -543,20 +581,13 @@ fun DialerScreen(
                         targetValue = if (backspacePressed) 0.90f else 1f,
                         animationSpec = tween(100)
                     )
-                    val backspaceElevation by animateFloatAsState(
-                        targetValue = if (backspacePressed) 1f else 3f,
-                        animationSpec = tween(100)
-                    )
 
-                    Card(
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (backspacePressed) Color(0xFFCBD5E1) else Color(0xFFE2E8F0)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = backspaceElevation.dp),
+                    Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(52.dp)
                             .scale(backspaceScale)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEF4444).copy(alpha = 0.1f))
                             .combinedClickable(
                                 interactionSource = backspaceInteractionSource,
                                 indication = null,
@@ -569,19 +600,15 @@ fun DialerScreen(
                                     numberText = TextFieldValue("")
                                     Toast.makeText(context, "Cleared", Toast.LENGTH_SHORT).show()
                                 }
-                            )
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "⌫",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF475569)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Backspace,
+                            contentDescription = "Delete",
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(22.dp)
+                        )
                     }
                 }
             }
@@ -601,19 +628,16 @@ fun DialKeyButton(
         targetValue = if (isPressed) 0.92f else 1f,
         animationSpec = tween(100)
     )
-    val elevation by animateFloatAsState(
-        targetValue = if (isPressed) 1f else 4f,
-        animationSpec = tween(100)
-    )
 
     Card(
         shape = CircleShape,
         colors = CardDefaults.cardColors(
-            containerColor = if (isPressed) Color(0xFFF1F5F9) else Color.White
+            containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation.dp),
+        border = BorderStroke(0.5.dp, Color(0xFFC6C6C8)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier
-            .size(76.dp)
+            .size(74.dp)
             .scale(scale)
             .clickable(interactionSource = interactionSource, indication = null) {
                 onClick()
@@ -626,65 +650,21 @@ fun DialKeyButton(
         ) {
             Text(
                 text = digit,
-                fontSize = 28.sp,
+                fontSize = 26.sp,
                 fontFamily = NunitoFamily,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Light,
                 color = Color(0xFF0F172A)
             )
             if (letters.isNotEmpty()) {
                 Text(
                     text = letters,
                     fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     color = Color(0xFF94A3B8),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    letterSpacing = 1.5.sp
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun DialActionButton(
-    iconRes: Int,
-    bgColor: Color,
-    iconTint: Color,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.90f else 1f,
-        animationSpec = tween(100)
-    )
-    val elevation by animateFloatAsState(
-        targetValue = if (isPressed) 1f else 3f,
-        animationSpec = tween(100)
-    )
-
-    Card(
-        shape = CircleShape,
-        colors = CardDefaults.cardColors(
-            containerColor = if (isPressed) Color(0xFFE2E8F0) else bgColor
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation.dp),
-        modifier = Modifier
-            .size(56.dp)
-            .scale(scale)
-            .clickable(interactionSource = interactionSource, indication = null) {
-                onClick()
-            }
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = iconRes),
-                contentDescription = "Action",
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
-            )
         }
     }
 }
