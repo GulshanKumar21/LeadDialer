@@ -632,7 +632,14 @@ fun DialerScreen(
         val recordsForNumber = remember(phoneToFilter, callRecords) {
             val cleanFilter = phoneToFilter.filter { it.isDigit() }
             callRecords.filter { record ->
-                record.phone.filter { it.isDigit() } == cleanFilter
+                val cleanRecordPhone = record.phone.filter { it.isDigit() }
+                if (cleanRecordPhone.isEmpty() || cleanFilter.isEmpty()) {
+                    false
+                } else if (cleanRecordPhone.length >= 10 && cleanFilter.length >= 10) {
+                    cleanRecordPhone.takeLast(10) == cleanFilter.takeLast(10)
+                } else {
+                    cleanRecordPhone == cleanFilter || cleanRecordPhone.endsWith(cleanFilter) || cleanFilter.endsWith(cleanRecordPhone)
+                }
             }.sortedByDescending { it.calledAt }
         }
 
