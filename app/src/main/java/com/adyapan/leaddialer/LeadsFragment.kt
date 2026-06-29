@@ -151,6 +151,17 @@ class LeadsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter       = adapter
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                // dy > 0 check ensures it only triggers when scrolling down.
+                // canScrollVertically(1) returns false when it reaches the bottom of the list.
+                if (dy > 0 && !recyclerView.canScrollVertically(1)) {
+                    leadViewModel.loadMoreLeads()
+                }
+            }
+        })
+
         leadViewModel.allLeads.observe(viewLifecycleOwner) { leads ->
             adapter.submitList(leads)
             refreshCacheIfNeeded(leads)

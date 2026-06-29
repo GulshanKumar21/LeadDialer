@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LeadDao {
 
-    @Query("SELECT * FROM leads ORDER BY id DESC")
-    fun getAllLeads(): Flow<List<Lead>>
+    @Query("SELECT * FROM leads ORDER BY id DESC LIMIT :limit")
+    fun getAllLeads(limit: Int): Flow<List<Lead>>
 
     @Query("SELECT * FROM leads WHERE status = :status ORDER BY id DESC")
     fun getLeadsByStatus(status: String): Flow<List<Lead>>

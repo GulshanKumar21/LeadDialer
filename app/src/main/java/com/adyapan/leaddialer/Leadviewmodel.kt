@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -29,7 +30,7 @@ class LeadRepository(
     private val dao     : LeadDao,
     private val context : Context
 ) {
-    val allLeads: Flow<List<Lead>> = dao.getAllLeads()
+    fun getAllLeads(limit: Int): Flow<List<Lead>> = dao.getAllLeads(limit)
 
     suspend fun insertAll(leads: List<Lead>)     = dao.insertAll(leads)
     suspend fun update(lead: Lead)               = dao.update(lead)
@@ -115,9 +116,16 @@ class LeadRepository(
 
 class LeadViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo: LeadRepository
+    private val repo: LeadRepository = LeadRepository(
+        AppDatabase.getInstance(application).leadDao(),
+        application.applicationContext
+    )
 
-    val allLeads: LiveData<List<Lead>>
+    val leadsLimit = MutableLiveData(50)
+
+    val allLeads: LiveData<List<Lead>> = leadsLimit.switchMap { limit ->
+        repo.getAllLeads(limit).asLiveData()
+    }
 
     val totalLeads      = MutableLiveData(0)
     val totalInterested = MutableLiveData(0)
@@ -135,19 +143,22 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
     @Volatile private var isBatchInserting = false
 
     init {
-        val dao = AppDatabase.getInstance(application).leadDao()
-        repo    = LeadRepository(dao, application.applicationContext)
-        allLeads = repo.allLeads.asLiveData()
-
         // ── Auto-refresh stats whenever Room DB changes ───────────────────────
         // Room DB = primary source of truth for employee.
         // No Firebase read on every startup — employee data is already in Room.
-        repo.allLeads
+        // We listen to a 1-limit query for minimal database overhead while keeping live updates.
+        repo.getAllLeads(1)
             .onEach { refreshStats() }
             .launchIn(viewModelScope)
 
         // Stats load from Room immediately (zero network cost)
         refreshStats()
+    }
+
+    fun loadMoreLeads() {
+        val currentLimit = leadsLimit.value ?: 50
+        leadsLimit.postValue(currentLimit + 50)
+        Log.d("LeadViewModel", "loadMoreLeads: Limit increased to ${currentLimit + 50}")
     }
 
     /**
