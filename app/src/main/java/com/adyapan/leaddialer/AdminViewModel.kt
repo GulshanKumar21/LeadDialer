@@ -577,11 +577,16 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    var currentEmployeeLeadsLimit = 50
+        private set
+
     // ─────────────────────────────────────────────────────────────────────────
-    // On-demand: Load leads for ONE employee when admin clicks
-    // Cost: Only that employee's docs (~500 RTDB nodes + their Firestore sales)
+    // On-demand: Load leads for ONE employee when admin clicks (Paginated)
     // ─────────────────────────────────────────────────────────────────────────
-    fun loadEmployeeLeads(userId: String) {
+    fun loadEmployeeLeads(userId: String, resetLimit: Boolean = true) {
+        if (resetLimit) {
+            currentEmployeeLeadsLimit = 50
+        }
         _leadsLoading.postValue(true)
         _employeeLeads.postValue(emptyList())
 
@@ -589,7 +594,7 @@ class AdminViewModel : ViewModel() {
             val leads = mutableListOf<Lead>()
 
             try {
-                val crmLeads = CrmApi.getAdminLeads(userId = userId, limit = 1000)
+                val crmLeads = CrmApi.getAdminLeads(userId = userId, limit = currentEmployeeLeadsLimit)
                 if (crmLeads.isNotEmpty() || crmPrimary) {
                     _employeeLeads.postValue(crmLeads.sortedByDescending { it.calledAt })
                     _leadsLoading.postValue(false)
@@ -599,10 +604,12 @@ class AdminViewModel : ViewModel() {
                 android.util.Log.w("AdminVM", "CRM employee leads load failed: ${e.message}")
             }
 
-            // 1. RTDB leads for this employee (free)
+            // 1. RTDB leads for this employee (free, paginated)
             try {
                 val rtdbSnap = FirebaseDatabase.getInstance()
-                    .getReference("rtdb_leads").child(userId).get().await()
+                    .getReference("rtdb_leads").child(userId)
+                    .limitToFirst(currentEmployeeLeadsLimit)
+                    .get().await()
                 rtdbSnap.children.forEach { leadNode ->
                     val m = leadNode.value as? Map<*, *> ?: return@forEach
                     runCatching {
@@ -627,10 +634,11 @@ class AdminViewModel : ViewModel() {
                 // non-critical
             }
 
-            // 2. Firestore leads for this employee (hot/interested/sales — small subset)
+            // 2. Firestore leads for this employee (hot/interested/sales — paginated)
             try {
                 val fsSnap = db.collection("leads")
                     .whereEqualTo("userId", userId)
+                    .limit(currentEmployeeLeadsLimit.toLong())
                     .get().await()
                 fsSnap.documents.forEach { doc ->
                     runCatching {
@@ -670,6 +678,11 @@ class AdminViewModel : ViewModel() {
             _employeeLeads.postValue(deduplicated)
             _leadsLoading.postValue(false)
         }
+    }
+
+    fun loadMoreEmployeeLeads(userId: String) {
+        currentEmployeeLeadsLimit += 50
+        loadEmployeeLeads(userId, resetLimit = false)
     }
 
     /**

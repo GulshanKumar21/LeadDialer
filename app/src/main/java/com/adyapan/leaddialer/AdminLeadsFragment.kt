@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -91,6 +92,7 @@ class AdminLeadsFragment : Fragment() {
                 MaterialTheme {
                     AdminLeadsScreen(
                         name = name,
+                        userId = userId,
                         total = total,
                         connected = connected,
                         interested = interested,
@@ -142,6 +144,7 @@ private val NunitoFamily = FontFamily(
 @Composable
 fun AdminLeadsScreen(
     name: String,
+    userId: String,
     total: Int,
     connected: Int,
     interested: Int,
@@ -154,6 +157,25 @@ fun AdminLeadsScreen(
 ) {
     val leads by viewModel.employeeLeads.observeAsState(emptyList())
     val isLoading by viewModel.leadsLoading.observeAsState(false)
+
+    val listState = rememberLazyListState()
+
+    // Detect if we scrolled near the bottom of the list
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val totalItemsNumber = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+            // Trigger when user is within 5 items of the end
+            lastVisibleItemIndex > 0 && lastVisibleItemIndex >= totalItemsNumber - 5
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore.value) {
+        if (shouldLoadMore.value && !isLoading && leads.size >= viewModel.currentEmployeeLeadsLimit) {
+            viewModel.loadMoreEmployeeLeads(userId)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -281,6 +303,7 @@ fun AdminLeadsScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
