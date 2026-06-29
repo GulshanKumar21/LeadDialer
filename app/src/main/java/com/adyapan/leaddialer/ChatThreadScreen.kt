@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.window.Dialog
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
@@ -131,6 +132,14 @@ fun ChatThreadScreen(
         }
     }
 
+    // Auto-scroll to bottom on new messages
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LaunchedEffect(combinedList.size) {
+        if (combinedList.isNotEmpty()) {
+            lazyListState.animateScrollToItem(combinedList.size - 1)
+        }
+    }
+
     // Pickers
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -171,48 +180,91 @@ fun ChatThreadScreen(
     var showAttachmentMenu by remember { mutableStateOf(false) }
     var selectedZoomImageUrl by remember { mutableStateOf<String?>(null) }
 
+    // ── WhatsApp colours ────────────────────────────────────────────────────
+    val waGreen      = Color(0xFF075E54)
+    val waGreenLight = Color(0xFF25D366)
+    val waBg         = Color(0xFFECE5DD)
+    val waBubbleMe   = Color(0xFFDCF8C6)
+    val waBubbleOther= Color.White
+
     Scaffold(
+        containerColor = waBg,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(text = if (isAdminView) employeeName else "Admin Support", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Conversation thread", fontSize = 11.sp, color = Color.Gray)
-                    }
-                },
-                navigationIcon = {
+            Surface(
+                color = waGreen,
+                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color(0xFF1E293B)
-                )
-            )
-        },
-        containerColor = Color(0xFFFAF9F6)
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                waGreenLight.copy(alpha = 0.35f),
+                                androidx.compose.foundation.shape.CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (if (isAdminView) employeeName else "A").take(1).uppercase(),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = if (isAdminView) employeeName else "Admin Support",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                        Text(
+                            text = if (isAdminView) "Employee" else "Online",
+                            color = Color(0xFFB2DFDB),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Message List
+            // ── Message list ───────────────────────────────────────────────
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(combinedList) { entry ->
                     val isMyMsg = if (isAdminView) !entry.isReply else entry.isReply
-                    ChatBubble(entry = entry, isMyMsg = isMyMsg, onImageClick = { selectedZoomImageUrl = it })
+                    WaChatBubble(
+                        entry = entry,
+                        isMyMsg = isMyMsg,
+                        bubbleColorMe = waBubbleMe,
+                        bubbleColorOther = waBubbleOther,
+                        onImageClick = { selectedZoomImageUrl = it }
+                    )
                 }
             }
 
-            // Uploading progress
+            // ── Upload progress bar ────────────────────────────────────────
             if (uploading) {
                 Row(
                     modifier = Modifier
@@ -222,90 +274,85 @@ fun ChatThreadScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color(0xFFFF6A00))
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = waGreen)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = uploadProgressText, fontSize = 12.sp, color = Color(0xFF856404), fontWeight = FontWeight.SemiBold)
                 }
             }
 
-            // Input Bar
+            // ── WhatsApp-style input bar ───────────────────────────────────
             Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
-                tonalElevation = 2.dp
+                color = Color(0xFFF0F0F0),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .navigationBarsPadding()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    IconButton(onClick = { showAttachmentMenu = !showAttachmentMenu }) {
-                        Icon(Icons.Default.AddCircle, contentDescription = "Attachments", tint = Color(0xFFFF6A00))
-                    }
-
-                    if (showAttachmentMenu) {
-                        DropdownMenu(
-                            expanded = showAttachmentMenu,
-                            onDismissRequest = { showAttachmentMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("📷 Take Camera Picture") },
-                                onClick = {
-                                    showAttachmentMenu = false
-                                    cameraLauncher.launch(null)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("🖼️ Select Image from Gallery") },
-                                onClick = {
-                                    showAttachmentMenu = false
-                                    galleryLauncher.launch("image/*")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("📄 Select PDF Document") },
-                                onClick = {
-                                    showAttachmentMenu = false
-                                    docLauncher.launch("application/pdf")
-                                }
-                            )
+                    Box {
+                        IconButton(onClick = { showAttachmentMenu = !showAttachmentMenu }) {
+                            Icon(Icons.Default.AddCircle, contentDescription = "Attach", tint = Color(0xFF9E9E9E), modifier = Modifier.size(26.dp))
+                        }
+                        if (showAttachmentMenu) {
+                            DropdownMenu(
+                                expanded = showAttachmentMenu,
+                                onDismissRequest = { showAttachmentMenu = false }
+                            ) {
+                                DropdownMenuItem(text = { Text("📷 Camera") }, onClick = { showAttachmentMenu = false; cameraLauncher.launch(null) })
+                                DropdownMenuItem(text = { Text("🖼️ Gallery") }, onClick = { showAttachmentMenu = false; galleryLauncher.launch("image/*") })
+                                DropdownMenuItem(text = { Text("📄 PDF Document") }, onClick = { showAttachmentMenu = false; docLauncher.launch("application/pdf") })
+                            }
                         }
                     }
 
-                    OutlinedTextField(
-                        value = textInput,
-                        onValueChange = { textInput = it },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp),
-                        placeholder = { Text("Type message...", fontSize = 14.sp) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFF6A00),
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            cursorColor = Color(0xFFFF6A00)
-                        ),
-                        maxLines = 4
-                    )
-
-                    IconButton(
-                        onClick = {
-                            val text = textInput.trim()
-                            if (text.isNotEmpty()) {
-                                textInput = ""
-                                scope.launch {
-                                    sendMessage(context, employeeUid, msgId, text, "", "", "", senderName, isAdminView)
-                                }
-                            }
-                        },
-                        enabled = textInput.trim().isNotEmpty() || uploading
+                    // Pill text field
+                    Surface(
+                        color = Color.White,
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Icon(
-                            Icons.Default.Send,
-                            contentDescription = "Send",
-                            tint = if (textInput.trim().isNotEmpty()) Color(0xFFFF6A00) else Color.Gray
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = textInput,
+                            onValueChange = { textInput = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                color = Color(0xFF1A1A1A),
+                                fontSize = 15.sp
+                            ),
+                            decorationBox = { inner ->
+                                if (textInput.isEmpty()) {
+                                    Text("Message", color = Color(0xFF9E9E9E), fontSize = 15.sp)
+                                }
+                                inner()
+                            },
+                            maxLines = 5
                         )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Green send circle
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(waGreenLight, androidx.compose.foundation.shape.CircleShape)
+                            .clickable {
+                                val text = textInput.trim()
+                                if (text.isNotEmpty()) {
+                                    textInput = ""
+                                    scope.launch {
+                                        sendMessage(context, employeeUid, msgId, text, "", "", "", senderName, isAdminView)
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Send, contentDescription = "Send", tint = Color.White, modifier = Modifier.size(22.dp))
                     }
                 }
             }
@@ -341,43 +388,66 @@ fun ChatThreadScreen(
     }
 }
 
+// ── WhatsApp-style Chat Bubble ────────────────────────────────────────────────
 @Composable
-fun ChatBubble(
+fun WaChatBubble(
     entry: ChatEntry,
     isMyMsg: Boolean,
+    bubbleColorMe: Color,
+    bubbleColorOther: Color,
     onImageClick: (String) -> Unit
 ) {
     val context = LocalContext.current
-    
-    val bubbleColor = if (isMyMsg) Color(0xFFFFE6D5) else Color(0xFFF1F5F9)
-    val align = if (isMyMsg) Alignment.End else Alignment.Start
+    val bubbleColor = if (isMyMsg) bubbleColorMe else bubbleColorOther
+    val sdf = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+    val timeStr = if (entry.timestamp > 0) sdf.format(Date(entry.timestamp)) else ""
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalAlignment = align
+            .padding(vertical = 2.dp),
+        horizontalArrangement = if (isMyMsg) Arrangement.End else Arrangement.Start
     ) {
+        // Left avatar for other person
         if (!isMyMsg) {
-            Text(
-                text = entry.from,
-                fontSize = 11.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(start = 4.dp, bottom = 2.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .padding(end = 4.dp, top = 4.dp)
+                    .size(28.dp)
+                    .background(Color(0xFF5C6BC0).copy(alpha = 0.2f), androidx.compose.foundation.shape.CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = entry.from.take(1).uppercase(),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF5C6BC0)
+                )
+            }
         }
 
         Surface(
             color = bubbleColor,
             shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
-                bottomStart = if (isMyMsg) 16.dp else 4.dp,
-                bottomEnd = if (isMyMsg) 4.dp else 16.dp
+                topStart = 18.dp,
+                topEnd = 18.dp,
+                bottomStart = if (isMyMsg) 18.dp else 4.dp,
+                bottomEnd = if (isMyMsg) 4.dp else 18.dp
             ),
-            modifier = Modifier.widthIn(max = 260.dp)
+            shadowElevation = 1.dp,
+            modifier = Modifier.widthIn(max = 280.dp)
         ) {
-            Column(modifier = Modifier.padding(10.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                if (!isMyMsg) {
+                    Text(
+                        text = entry.from,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF075E54),
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                }
+
                 if (entry.fileUrl.isNotEmpty()) {
                     if (entry.fileType == "image") {
                         GlideImage(
@@ -398,25 +468,11 @@ fun ChatBubble(
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.Description,
-                                contentDescription = "PDF File",
-                                tint = Color(0xFFEF4444),
-                                modifier = Modifier.size(28.dp)
-                            )
+                            Icon(Icons.Default.Description, contentDescription = "PDF", tint = Color(0xFFEF4444), modifier = Modifier.size(28.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = entry.fileName,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1
-                                )
-                                Text(
-                                    text = "Tap to open PDF",
-                                    fontSize = 10.sp,
-                                    color = Color.Gray
-                                )
+                                Text(text = entry.fileName, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Text(text = "Tap to open PDF", fontSize = 10.sp, color = Color.Gray)
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -424,26 +480,34 @@ fun ChatBubble(
                 }
 
                 if (entry.text.isNotEmpty()) {
-                    Text(
-                        text = entry.text,
-                        fontSize = 14.sp,
-                        color = Color(0xFF1E293B)
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = entry.text, fontSize = 14.sp, color = Color(0xFF1A1A1A))
                 }
 
-                val sdf = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
-                val timeStr = if (entry.timestamp > 0) sdf.format(Date(entry.timestamp)) else ""
-                Text(
-                    text = timeStr,
-                    fontSize = 9.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                // Time + double tick
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = timeStr, fontSize = 9.sp, color = Color.Gray)
+                    if (isMyMsg) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Icon(
+                            Icons.Default.DoneAll,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
             }
         }
+
+        if (isMyMsg) Spacer(modifier = Modifier.width(4.dp))
     }
 }
+
 
 @Composable
 fun GlideImage(
