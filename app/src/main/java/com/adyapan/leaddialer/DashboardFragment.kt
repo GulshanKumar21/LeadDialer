@@ -383,10 +383,10 @@ fun DashboardScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(Color(0xFFEFEFEF), Color(0xFFDFDFDF))
+                                Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -395,7 +395,7 @@ fun DashboardScreen(
                             text = "INDIA'S LARGEST\nSTUDENT COMMUNITY",
                             textAlign = TextAlign.Center,
                             style = androidx.compose.ui.text.TextStyle(
-                                color = Color.Black.copy(alpha = 0.5f),
+                                color = Color.White,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Black,
                                 fontFamily = PoppinsFamily,
@@ -716,11 +716,9 @@ fun DashboardScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFFEDEEF5).copy(alpha = 0.5f))
-                        .clickable { onCardClick("SalesDone", "Sales Done") }
-                        .padding(horizontal = 18.dp, vertical = 14.dp)
+                        .height(90.dp)
+                        .cleanCardEffect(isClickable = true, onClick = { onCardClick("SalesDone", "Sales Done") })
+                        .padding(horizontal = 18.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
@@ -728,12 +726,12 @@ fun DashboardScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape)
-                                .background(Color.White),
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFFD1FAE5)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "✅", fontSize = 26.sp)
+                            Text(text = "✅", fontSize = 22.sp)
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
@@ -744,7 +742,7 @@ fun DashboardScreen(
                         ) {
                             Text(
                                 text = "Sales Done",
-                                color = Color(0xFF6C6C70),
+                                color = Color(0xFF64748B),
                                 fontSize = 12.sp,
                                 fontFamily = PoppinsFamily,
                                 fontWeight = FontWeight.SemiBold
@@ -752,17 +750,17 @@ fun DashboardScreen(
                             Spacer(modifier = Modifier.height(2.dp))
                             AnimatedCounter(
                                 targetValue = salesCount,
-                                color = Color(0xFF1C1C1E),
-                                fontSize = 34.sp
+                                color = Color(0xFF065F46),
+                                fontSize = 28.sp
                             )
                         }
 
                         Text(
                             text = "Leads Converted",
-                            color = Color(0xFF6C6C70),
+                            color = Color(0xFF047857),
                             fontSize = 12.sp,
                             fontFamily = PoppinsFamily,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -978,14 +976,14 @@ fun OverviewCard(
     Box(
         modifier = modifier
             .cleanCardEffect(isClickable = true, onClick = onClick)
-            .height(130.dp)
-            .padding(16.dp)
+            .height(115.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -1005,14 +1003,14 @@ fun OverviewCard(
 
             AnimatedCounter(
                 targetValue = value,
-                color = Color(0xFF1C1C1E),
-                fontSize = 34.sp
+                color = Color(0xFF0F172A),
+                fontSize = 28.sp
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = title,
-                color = Color(0xFF6C6C70),
-                fontSize = 13.sp,
+                color = Color(0xFF64748B),
+                fontSize = 12.sp,
                 fontFamily = PoppinsFamily,
                 fontWeight = FontWeight.SemiBold
             )
@@ -1130,19 +1128,20 @@ private fun Modifier.cleanCardEffect(
         )
     )
     val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else 6.dp,
+        targetValue = if (isPressed) 2.dp else 4.dp,
         animationSpec = tween(150)
     )
     this
         .graphicsLayer { scaleX = scale; scaleY = scale }
         .shadow(
             elevation = elevation,
-            shape = RoundedCornerShape(16.dp),
-            ambientColor = Color(0x1A000000),
-            spotColor = Color(0x1A000000)
+            shape = RoundedCornerShape(20.dp),
+            ambientColor = Color(0x0D000000),
+            spotColor = Color(0x0D000000)
         )
-        .clip(RoundedCornerShape(16.dp))
+        .clip(RoundedCornerShape(20.dp))
         .background(Color.White)
+        .border(1.dp, Color(0x0F000000), RoundedCornerShape(20.dp))
         .then(
             if (isClickable && onClick != null) {
                 Modifier.clickable(
