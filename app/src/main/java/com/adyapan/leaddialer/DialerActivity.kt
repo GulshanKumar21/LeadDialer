@@ -440,6 +440,8 @@ fun DialerScreen(
                         letterSpacing = 2.sp,
                         color = if (numberText.text.isEmpty()) Color(0xFF94A3B8) else Color(0xFF0F172A),
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.scale(scale)
                     )
                 }
@@ -572,6 +574,7 @@ fun DialerScreen(
                                 vibrateFeedback()
                                 if (numberText.text.isNotEmpty()) {
                                     onCallClick(numberText.text)
+                                    numberText = TextFieldValue("")
                                 } else {
                                     Toast.makeText(context, "Enter number", Toast.LENGTH_SHORT).show()
                                 }
