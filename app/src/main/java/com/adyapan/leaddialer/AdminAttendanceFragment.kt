@@ -83,9 +83,25 @@ fun AdminAttendanceScreen(
     val isLoading by viewModel.isLoading.observeAsState(false)
 
     var searchQuery by remember { mutableStateOf("") }
-    val filteredEmployees = remember(employees, searchQuery) {
-        if (searchQuery.isBlank()) employees
+    var selectedFilter by remember { mutableStateOf("All") }
+    
+    val filteredEmployees = remember(employees, searchQuery, selectedFilter, todayAttendance) {
+        var list = if (searchQuery.isBlank()) employees
         else employees.filter { it.employeeName.contains(searchQuery.trim(), ignoreCase = true) }
+
+        if (selectedFilter != "All") {
+            list = list.filter { emp ->
+                val status = todayAttendance[emp.userId]
+                when (selectedFilter) {
+                    "Present" -> status == "Present"
+                    "Late" -> status == "Late"
+                    "Half Day" -> status == "Half Day"
+                    "Absent" -> status == "Absent" || status == null || status.isBlank()
+                    else -> true
+                }
+            }
+        }
+        list
     }
 
     var selectedDate by remember { mutableStateOf(viewModel.selectedDateStr) }
@@ -220,7 +236,9 @@ fun AdminAttendanceScreen(
                         textColor = Color(0xFF10B981),
                         gradientColors = listOf(Color(0x1A10B981), Color(0x0A10B981)),
                         borderColor = Color(0x4010B981),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        selected = selectedFilter == "Present",
+                        onClick = { selectedFilter = if (selectedFilter == "Present") "All" else "Present" }
                     )
 
                     // Late Card (Orange)
@@ -230,7 +248,9 @@ fun AdminAttendanceScreen(
                         textColor = Color(0xFFEA580C),
                         gradientColors = listOf(Color(0x1AEA580C), Color(0x0AEA580C)),
                         borderColor = Color(0x40EA580C),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        selected = selectedFilter == "Late",
+                        onClick = { selectedFilter = if (selectedFilter == "Late") "All" else "Late" }
                     )
                 }
                 Row(
@@ -244,7 +264,9 @@ fun AdminAttendanceScreen(
                         textColor = Color(0xFF0284C7),
                         gradientColors = listOf(Color(0x1A0284C7), Color(0x0A0284C7)),
                         borderColor = Color(0x400284C7),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        selected = selectedFilter == "Half Day",
+                        onClick = { selectedFilter = if (selectedFilter == "Half Day") "All" else "Half Day" }
                     )
 
                     // Absent Card (Red)
@@ -254,7 +276,9 @@ fun AdminAttendanceScreen(
                         textColor = Color(0xFFEF4444),
                         gradientColors = listOf(Color(0x1AEF4444), Color(0x0AEF4444)),
                         borderColor = Color(0x40EF4444),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        selected = selectedFilter == "Absent",
+                        onClick = { selectedFilter = if (selectedFilter == "Absent") "All" else "Absent" }
                     )
                 }
             }
@@ -322,16 +346,23 @@ fun AttendanceStatCard(
     textColor: Color,
     gradientColors: List<Color>,
     borderColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
+    val borderWidth = if (selected) 2.5.dp else 1.dp
+    val finalBorderColor = if (selected) textColor else borderColor
+    val shadowElevation = if (selected) 6.dp else 4.dp
+
     Box(
         modifier = modifier
-            .shadow(4.dp, shape = RoundedCornerShape(12.dp))
+            .shadow(shadowElevation, shape = RoundedCornerShape(12.dp))
             .background(
                 brush = Brush.verticalGradient(gradientColors),
                 shape = RoundedCornerShape(12.dp)
             )
-            .border(1.dp, borderColor, shape = RoundedCornerShape(12.dp))
+            .border(borderWidth, finalBorderColor, shape = RoundedCornerShape(12.dp))
+            .clickable { onClick() }
             .padding(vertical = 12.dp, horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {

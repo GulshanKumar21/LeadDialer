@@ -187,9 +187,23 @@ fun AdminLeavesScreen(
     val leaveRequests by FirestoreSource.leaveRequestsFlow().collectAsState(initial = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
-    val filteredEmployees = remember(employees, searchQuery) {
-        if (searchQuery.isBlank()) employees
+    var selectedFilter by remember { mutableStateOf("All") }
+
+    val filteredEmployees = remember(employees, searchQuery, selectedFilter, leaveRequests) {
+        var list = if (searchQuery.isBlank()) employees
         else employees.filter { it.employeeName.contains(searchQuery.trim(), ignoreCase = true) }
+
+        if (selectedFilter != "All") {
+            list = list.filter { emp ->
+                when (selectedFilter) {
+                    "Total" -> leaveRequests.any { it.uid == emp.userId }
+                    "Approved" -> leaveRequests.any { it.uid == emp.userId && it.status == "Approved" }
+                    "Pending" -> leaveRequests.any { it.uid == emp.userId && it.status == "Pending" }
+                    else -> true
+                }
+            }
+        }
+        list
     }
 
     var selectedDate by remember {
@@ -348,7 +362,9 @@ fun AdminLeavesScreen(
                     textColor = Color(0xFF8B5CF6),
                     gradientColors = listOf(Color(0x1A8B5CF6), Color(0x0A8B5CF6)),
                     borderColor = Color(0x408B5CF6),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    selected = selectedFilter == "Total",
+                    onClick = { selectedFilter = if (selectedFilter == "Total") "All" else "Total" }
                 )
 
                 // Approved Leaves Card (Green)
@@ -358,7 +374,9 @@ fun AdminLeavesScreen(
                     textColor = Color(0xFF10B981),
                     gradientColors = listOf(Color(0x1A10B981), Color(0x0A10B981)),
                     borderColor = Color(0x4010B981),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    selected = selectedFilter == "Approved",
+                    onClick = { selectedFilter = if (selectedFilter == "Approved") "All" else "Approved" }
                 )
 
                 // Pending Leaves Card (Orange)
@@ -368,7 +386,9 @@ fun AdminLeavesScreen(
                     textColor = Color(0xFFEA580C),
                     gradientColors = listOf(Color(0x1AEA580C), Color(0x0AEA580C)),
                     borderColor = Color(0x40EA580C),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    selected = selectedFilter == "Pending",
+                    onClick = { selectedFilter = if (selectedFilter == "Pending") "All" else "Pending" }
                 )
             }
 
