@@ -53,9 +53,9 @@ object GasNotificationSender {
             Volley.newRequestQueue(context)
                 .add(request)
 
-        } catch(e: Exception) {
+        } catch(t: Throwable) {
 
-            e.printStackTrace()
+            t.printStackTrace()
         }
     }
 }

@@ -537,22 +537,29 @@ suspend fun sendMessage(
                 ))
                 .await()
         } else {
-            // Admin replying: Send FCM Notification via GAS
-            db.collection("users")
-                .document(employeeUid)
-                .get()
-                .addOnSuccessListener { document ->
-                    val token = document.getString("fcmToken")
-                    if (!token.isNullOrEmpty()) {
-                        val body = if (fileUrl.isNotEmpty()) "[${fileType.uppercase()} Attachment] $text".trim() else text
+            // Admin replying: Send FCM Notification via GAS (coroutine-safe)
+            try {
+                val document = db.collection("users")
+                    .document(employeeUid)
+                    .get()
+                    .await()
+                val token = document.getString("fcmToken")
+                if (!token.isNullOrEmpty()) {
+                    val body = if (fileUrl.isNotEmpty()) "[${fileType.uppercase()} Attachment] $text".trim() else text
+                    try {
                         GasNotificationSender.sendNotification(
-                            context,
+                            context.applicationContext ?: context,
                             token,
                             "New Message from Admin",
                             body
                         )
+                    } catch (t: Throwable) {
+                        android.util.Log.e("ChatThreadScreen", "GAS notification error: ${t.message}")
                     }
                 }
+            } catch (t: Throwable) {
+                android.util.Log.e("ChatThreadScreen", "FCM token fetch error: ${t.message}")
+            }
         }
     } catch (e: Exception) {
         withContext(Dispatchers.Main) {
