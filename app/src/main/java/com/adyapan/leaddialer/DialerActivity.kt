@@ -78,23 +78,29 @@ import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 class DialerActivity : AppCompatActivity() {
 
     private lateinit var attendanceViewModel: AttendanceViewModel
     private lateinit var leadViewModel: LeadViewModel
+    private lateinit var callViewModel: CallViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         attendanceViewModel = ViewModelProvider(this, AttendanceViewModelFactory(application))[AttendanceViewModel::class.java]
         leadViewModel = ViewModelProvider(this, LeadViewModelFactory(application))[LeadViewModel::class.java]
+        callViewModel = ViewModelProvider(this)[CallViewModel::class.java]
 
         setContent {
             MaterialTheme {
                 val leads by leadViewModel.allLeads.observeAsState(initial = emptyList())
+                val callRecords by callViewModel.allRecords.observeAsState(initial = emptyList())
                 DialerScreen(
                     leads = leads,
+                    callRecords = callRecords,
                     onBackClick = { finish() },
                     onCallClick = { number -> makeCall(number) },
                     onSaveClick = { number -> saveContact(number) },
@@ -285,6 +291,7 @@ fun formatNumber(n: String): String {
 @Composable
 fun DialerScreen(
     leads: List<Lead>,
+    callRecords: List<CallRecord>,
     onBackClick: () -> Unit,
     onCallClick: (String) -> Unit,
     onSaveClick: (String) -> Unit,
@@ -292,6 +299,7 @@ fun DialerScreen(
 ) {
     val context = LocalContext.current
     var numberText by remember { mutableStateOf(TextFieldValue("")) }
+    var showHistoryDialogForNumber by remember { mutableStateOf<String?>(null) }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalClipboardManager.current
@@ -473,7 +481,8 @@ fun DialerScreen(
                 if (matchedLead != null) {
                     LeadMatchCard(
                         matchedLead = matchedLead,
-                        onCallClick = onCallClick
+                        onCallClick = onCallClick,
+                        onClick = { showHistoryDialogForNumber = matchedLead.phone }
                     )
                 }
             }
@@ -617,6 +626,153 @@ fun DialerScreen(
             }
         }
     }
+
+    if (showHistoryDialogForNumber != null) {
+        val phoneToFilter = showHistoryDialogForNumber!!
+        val recordsForNumber = remember(phoneToFilter, callRecords) {
+            val cleanFilter = phoneToFilter.filter { it.isDigit() }
+            callRecords.filter { record ->
+                record.phone.filter { it.isDigit() } == cleanFilter
+            }.sortedByDescending { it.calledAt }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showHistoryDialogForNumber = null },
+            title = {
+                Column {
+                    Text(
+                        text = "Call History",
+                        fontFamily = NunitoFamily,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0F172A)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    val nameText = leads.find { it.phone == phoneToFilter }?.name ?: "Manual Dial"
+                    Text(
+                        text = "$nameText • $phoneToFilter",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF64748B)
+                    )
+                }
+            },
+            text = {
+                if (recordsForNumber.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No call history found.",
+                            fontSize = 14.sp,
+                            color = Color(0xFF94A3B8),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 280.dp)
+                    ) {
+                        items(recordsForNumber) { record ->
+                            val rBadgeBg = when (record.status) {
+                                "Interested" -> Color(0xFFDCFCE7)
+                                "Not Connected", "Wrong Number" -> Color(0xFFFEE2E2)
+                                "Busy" -> Color(0xFFFEF3C7)
+                                "Pending" -> Color(0xFFF1F5F9)
+                                else -> Color(0xFFF1F5F9)
+                            }
+                            val rBadgeText = when (record.status) {
+                                "Interested" -> Color(0xFF16A34A)
+                                "Not Connected", "Wrong Number" -> Color(0xFFDC2626)
+                                "Busy" -> Color(0xFFD97706)
+                                "Pending" -> Color(0xFF475569)
+                                else -> Color(0xFF475569)
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(rBadgeBg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = when(record.status) {
+                                            "Interested" -> "✅"
+                                            "Busy" -> "📵"
+                                            "Wrong Number" -> "❌"
+                                            else -> "📞"
+                                        },
+                                        fontSize = 16.sp
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.width(12.dp))
+                                
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(Date(record.calledAt)),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = Color(0xFF1E293B)
+                                        )
+                                        Text(
+                                            text = formatDuration(record.duration.toInt()),
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF64748B)
+                                        )
+                                    }
+                                    Text(
+                                        text = record.status,
+                                        fontSize = 11.sp,
+                                        color = rBadgeText,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                    if (record.note.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "\"${record.note}\"",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF64748B),
+                                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showHistoryDialogForNumber = null }
+                ) {
+                    Text(
+                        text = "Close",
+                        fontFamily = NunitoFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF7A00)
+                    )
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @Composable
@@ -680,7 +836,7 @@ fun formatDuration(seconds: Int): String {
 }
 
 @Composable
-fun LeadMatchCard(matchedLead: Lead, onCallClick: (String) -> Unit) {
+fun LeadMatchCard(matchedLead: Lead, onCallClick: (String) -> Unit, onClick: () -> Unit) {
     val isCalled = matchedLead.calledAt > 0L || matchedLead.status != "Pending"
     val statusText = if (isCalled) matchedLead.status else "Not Called Yet"
     
@@ -709,6 +865,7 @@ fun LeadMatchCard(matchedLead: Lead, onCallClick: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp)
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier
