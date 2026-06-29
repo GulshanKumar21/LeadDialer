@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.app.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F2F2F7"
+    android:paddingBottom="24dp">
+
+    <!-- iOS style drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="#C7C7CC" />
+
+    <!-- Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp">
+
+        <!-- Avatar Circle -->
+        <TextView
+            android:id="@+id/tvDialogAvatar"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/bg_avatar_circle"
+            android:gravity="center"
+            android:text="U"
+            android:textColor="#5856D6"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp">
+
+            <TextView
+                android:id="@+id/tvDialogLeadName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#1C1C1E"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Lead Name" />
+
+            <TextView
+                android:id="@+id/tvDialogLeadPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#8E8E93"
+                android:textSize="14sp"
+                android:textStyle="normal"
+                android:layout_marginTop="4dp"
+                android:text="9876543210" />
+        </LinearLayout>
+
+        <!-- Close Button -->
+        <ImageView
+            android:id="@+id/btnDialogClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_circle_close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#8E8E93"
+            android:scaleType="centerInside"
+            android:contentDescription="Close dialog" />
+    </LinearLayout>
+
+    <!-- Subtitle Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CALL HISTORY"
+        android:textColor="#8E8E93"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:letterSpacing="0.08" />
+
+    <!-- Container for List or Empty State -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp">
+
+        <!-- RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDialogCallHistory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="40dp" />
+
+        <!-- Empty State Layout -->
+        <LinearLayout
+            android:id="@+id/layoutDialogEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/stat_notify_missed_call"
+                app:tint="#C7C7CC" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No call history for this number"
+                android:textColor="#8E8E93"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Calls logged from the app will show here."
+                android:textColor="#8E8E93"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

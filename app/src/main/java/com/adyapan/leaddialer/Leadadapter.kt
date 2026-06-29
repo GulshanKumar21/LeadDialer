@@ -12,7 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 class LeadAdapter(
     private val onCallClick      : (Lead) -> Unit,
-    private val onSalesToggle    : (Lead, Boolean) -> Unit = { _, _ -> }
+    private val onSalesToggle    : (Lead, Boolean) -> Unit = { _, _ -> },
+    private val onItemClick      : (Lead) -> Unit = {}
 ) : ListAdapter<Lead, LeadAdapter.LeadViewHolder>(DIFF) {
 
     private var fullList = listOf<Lead>()
@@ -189,6 +190,7 @@ class LeadAdapter(
         }
 
         holder.btnCall.setOnClickListener { onCallClick(lead) }
+        holder.itemView.setOnClickListener { onItemClick(lead) }
     }
 
     companion object {

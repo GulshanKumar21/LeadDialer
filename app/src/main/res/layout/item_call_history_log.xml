@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.app.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_card_history_log"
+    android:layout_marginBottom="12dp"
+    android:minHeight="80dp">
+
+    <!-- Status Strip Indicator -->
+    <View
+        android:id="@+id/viewLogStatusStrip"
+        android:layout_width="5dp"
+        android:layout_height="match_parent"
+        android:background="#FF6A00" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Status Badge -->
+            <TextView
+                android:id="@+id/tvLogStatusBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:background="@drawable/bg_status_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="Pending"
+                android:textColor="#FF6A00"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Duration -->
+            <TextView
+                android:id="@+id/tvLogDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="45s"
+                android:textColor="#1C1C1E"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <!-- Date Time of call -->
+        <TextView
+            android:id="@+id/tvLogDateTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="29 Jun 2026, 11:30 AM"
+            android:textColor="#8E8E93"
+            android:textSize="12sp"
+            android:textStyle="normal" />
+
+        <!-- Call Notes/Feedback -->
+        <TextView
+            android:id="@+id/tvLogNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Note: Called but busy."
+            android:textColor="#3A3A3C"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</LinearLayout>

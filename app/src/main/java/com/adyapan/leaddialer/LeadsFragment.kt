@@ -146,6 +146,9 @@ class LeadsFragment : Fragment() {
                         Toast.makeText(requireContext(), "Saved locally, but cloud sync failed (check internet)", Toast.LENGTH_LONG).show()
                     }
                 }
+            },
+            onItemClick = { lead ->
+                showCallHistoryDialog(lead)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -805,6 +808,130 @@ class LeadsFragment : Fragment() {
                         Toast.makeText(appCtx, "Failed to read file: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
+        }
+    }
+
+    private fun showCallHistoryDialog(lead: Lead) {
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogView = layoutInflater.inflate(R.layout.dialog_lead_call_history, null)
+        dialog.setContentView(dialogView)
+
+        val tvAvatar = dialogView.findViewById<TextView>(R.id.tvDialogAvatar)
+        val tvName = dialogView.findViewById<TextView>(R.id.tvDialogLeadName)
+        val tvPhone = dialogView.findViewById<TextView>(R.id.tvDialogLeadPhone)
+        val btnClose = dialogView.findViewById<View>(R.id.btnDialogClose)
+        val rvHistory = dialogView.findViewById<RecyclerView>(R.id.rvDialogCallHistory)
+        val layoutEmpty = dialogView.findViewById<View>(R.id.layoutDialogEmptyState)
+
+        tvName.text = lead.name
+        tvPhone.text = lead.phone
+        tvAvatar.text = lead.name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        
+        // Avatar bg color matching LeadAdapter name hash
+        val colors = listOf(
+            0xFF3B82F6.toInt(), 0xFF10B981.toInt(), 0xFF8B5CF6.toInt(),
+            0xFFF59E0B.toInt(), 0xFFEC4899.toInt(), 0xFFEF4444.toInt(), 0xFF06B6D4.toInt()
+        )
+        val hash = lead.name.hashCode()
+        val avatarBgColor = colors[kotlin.math.abs(hash) % colors.size]
+        tvAvatar.background?.setTint(avatarBgColor)
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+
+        // Filter call history for this lead
+        val cleanLeadPhone = lead.phone.filter { it.isDigit() }
+        val allRecords = callViewModel.allRecords.value ?: emptyList()
+        val filtered = allRecords.filter { rec ->
+            val cleanRecPhone = rec.phone.filter { it.isDigit() }
+            cleanRecPhone == cleanLeadPhone || (cleanRecPhone.endsWith(cleanLeadPhone) && cleanLeadPhone.length >= 10)
+        }.sortedByDescending { it.calledAt }
+
+        if (filtered.isEmpty()) {
+            rvHistory.visibility = View.GONE
+            layoutEmpty.visibility = View.VISIBLE
+        } else {
+            rvHistory.visibility = View.VISIBLE
+            layoutEmpty.visibility = View.GONE
+
+            rvHistory.layoutManager = LinearLayoutManager(requireContext())
+            rvHistory.adapter = CallHistoryDialogAdapter(filtered)
+        }
+
+        dialog.show()
+    }
+
+    private class CallHistoryDialogAdapter(private val list: List<CallRecord>) :
+        RecyclerView.Adapter<CallHistoryDialogAdapter.ViewHolder>() {
+
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val statusStrip: View = view.findViewById(R.id.viewLogStatusStrip)
+            val statusBadge: TextView = view.findViewById(R.id.tvLogStatusBadge)
+            val duration: TextView = view.findViewById(R.id.tvLogDuration)
+            val dateTime: TextView = view.findViewById(R.id.tvLogDateTime)
+            val notes: TextView = view.findViewById(R.id.tvLogNotes)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_call_history_log, parent, false)
+            return ViewHolder(v)
+        }
+
+        override fun getItemCount(): Int = list.size
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val rec = list[position]
+            holder.statusBadge.text = rec.status
+            
+            // Format Duration
+            val sec = rec.duration
+            val durationStr = when {
+                sec <= 0 -> "0s"
+                sec >= 60 -> "${sec / 60}m ${sec % 60}s"
+                else -> "${sec}s"
+            }
+            holder.duration.text = durationStr
+
+            // Format Date Time
+            val dateStr = if (rec.calledAt > 0L) {
+                java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+                    .format(java.util.Date(rec.calledAt))
+            } else {
+                "Unknown"
+            }
+            holder.dateTime.text = dateStr
+
+            // Notes
+            if (rec.note.isNotBlank()) {
+                holder.notes.text = "Note: ${rec.note}"
+                holder.notes.visibility = View.VISIBLE
+            } else {
+                holder.notes.visibility = View.GONE
+            }
+
+            // Colors
+            val statusColor = when {
+                rec.status == "Wrong Number"                    -> 0xFFDC2626.toInt() // red
+                rec.status == "Interested"                      -> 0xFF16A34A.toInt() // green
+                rec.status == "Busy"                            -> 0xFFD97706.toInt() // amber
+                rec.status == "Not Connected"                   -> 0xFF4B5563.toInt() // grey
+                rec.status == "Not Interested"                  -> 0xFFB91C1C.toInt() // dark red
+                rec.status.startsWith("Not Interested:")        -> 0xFFB91C1C.toInt()
+                else                                             -> 0xFFFF6A00.toInt() // orange
+            }
+
+            val statusBgColor = when {
+                rec.status == "Wrong Number"                    -> 0xFFFEE2E2.toInt()
+                rec.status == "Interested"                      -> 0xFFDCFCE7.toInt()
+                rec.status == "Busy"                            -> 0xFFFEF3C7.toInt()
+                rec.status == "Not Connected"                   -> 0xFFF3F4F6.toInt()
+                rec.status == "Not Interested"                  -> 0xFFFEE2E2.toInt()
+                rec.status.startsWith("Not Interested:")        -> 0xFFFEE2E2.toInt()
+                else                                             -> 0xFFFFE6D5.toInt()
+            }
+
+            holder.statusStrip.setBackgroundColor(statusColor)
+            holder.statusBadge.setTextColor(statusColor)
+            holder.statusBadge.background?.setTint(statusBgColor)
         }
     }
 }
