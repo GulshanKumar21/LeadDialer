@@ -186,11 +186,14 @@ fun AdminAttendanceScreen(
             ) {
                 Text(
                     text = "Attendance Inspection",
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = NunitoFamily,
-                    color = Color(0xFF1E293B)
+                    color = Color(0xFF1E293B),
+                    modifier = Modifier.weight(1f)
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 // Date Selector Button
                 val sdfDisplay = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
@@ -204,19 +207,31 @@ fun AdminAttendanceScreen(
 
                 Box(
                     modifier = Modifier
-                        .background(Color.White, shape = RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFFFF6A00), shape = RoundedCornerShape(8.dp))
+                        .background(Color(0xFFFF6A00).copy(alpha = 0.08f), shape = RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFFFF6A00).copy(alpha = 0.3f), shape = RoundedCornerShape(8.dp))
                         .clickable { datePickerDialog.show() }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "$displayDate",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = NunitoFamily,
-                        color = Color(0xFFFF6A00)
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Select Date",
+                            tint = Color(0xFFFF6A00),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "$displayDate",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = NunitoFamily,
+                            color = Color(0xFFFF6A00),
+                            maxLines = 1
+                        )
+                    }
                 }
             }
 
