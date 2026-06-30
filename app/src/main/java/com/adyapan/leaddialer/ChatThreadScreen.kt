@@ -126,7 +126,15 @@ fun ChatThreadScreen(
     val combinedList = remember(parentMessage, repliesList) {
         val parent = parentMessage
         if (parent != null) {
-            (listOf(parent) + repliesList).sortedBy { it.timestamp }
+            // Deduplicate: if parent text and timestamp are very close to one of the replies, don't show parent
+            val hasDuplicate = repliesList.any { 
+                it.text == parent.text && Math.abs(it.timestamp - parent.timestamp) < 5000 
+            }
+            if (hasDuplicate) {
+                repliesList
+            } else {
+                (listOf(parent) + repliesList).sortedBy { it.timestamp }
+            }
         } else {
             repliesList
         }
