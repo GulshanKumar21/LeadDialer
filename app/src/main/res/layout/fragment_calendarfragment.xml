@@ -140,18 +140,20 @@
 
         <!-- Calendar Card -->
         <androidx.cardview.widget.CardView
-    style="@style/IPhoneCardView"
+            style="@style/IPhoneCardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="18dp"
-
-
+            app:cardPreventCornerOverlap="true"
+            app:cardUseCompatPadding="true"
             app:cardBackgroundColor="#FFFFFF">
 
             <CalendarView
                 android:id="@+id/calendarView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:theme="@style/CalendarTheme"/>
 
         </androidx.cardview.widget.CardView>
