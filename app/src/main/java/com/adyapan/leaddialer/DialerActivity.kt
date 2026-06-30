@@ -258,18 +258,29 @@ class DialerActivity : AppCompatActivity() {
     }
 
     private fun proceedWithCall(number: String) {
-        // Register with CallManager
-        val manualLead = Lead(
-            id = 0,
-            name = "Manual Dial",
-            phone = number,
-            status = "Pending"
-        )
-        CallManager.currentLead = manualLead
-        CallManager.callActive = true
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@DialerActivity)
+            val cleanNumber = number.filter { it.isDigit() }
+            val existingLead = db.leadDao().getAllOnce().firstOrNull { l ->
+                val stored = l.phone.filter { it.isDigit() }
+                stored.takeLast(10) == cleanNumber.takeLast(10)
+            }
+            val name = existingLead?.name ?: "Manual Dial"
 
-        CallManager.placeCall(this, manualLead) { intent ->
-            startActivity(intent)
+            withContext(Dispatchers.Main) {
+                val manualLead = Lead(
+                    id = existingLead?.id ?: 0,
+                    name = name,
+                    phone = number,
+                    status = existingLead?.status ?: "Pending"
+                )
+                CallManager.currentLead = manualLead
+                CallManager.callActive = true
+
+                CallManager.placeCall(this@DialerActivity, manualLead) { intent ->
+                    startActivity(intent)
+                }
+            }
         }
     }
 }
@@ -428,21 +439,24 @@ fun DialerScreen(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    val scale by animateFloatAsState(
-                        targetValue = if (numberText.text.isEmpty()) 1f else 1.06f,
-                        animationSpec = tween(100)
-                    )
+                    val textLen = numberText.text.length
+                    val fontSize = when {
+                        numberText.text.isEmpty() -> 18.sp
+                        textLen > 13 -> 15.sp
+                        textLen > 10 -> 18.sp
+                        else -> 24.sp
+                    }
+                    val letterSpacing = if (textLen > 10) 0.5.sp else 1.5.sp
+
                     Text(
                         text = if (numberText.text.isEmpty()) "Enter number" else formatNumber(numberText.text),
-                        fontSize = if (numberText.text.isEmpty()) 18.sp else if (numberText.text.length > 10) 24.sp else 30.sp,
+                        fontSize = fontSize,
                         fontFamily = NunitoFamily,
                         fontWeight = FontWeight.Light,
-                        letterSpacing = 2.sp,
+                        letterSpacing = letterSpacing,
                         color = if (numberText.text.isEmpty()) Color(0xFF94A3B8) else Color(0xFF0F172A),
                         textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        modifier = Modifier.scale(scale)
+                        maxLines = 1
                     )
                 }
 
@@ -491,9 +505,9 @@ fun DialerScreen(
 
             // Dial Pad Layout
             val keys = listOf(
-                listOf("1" to "", "2" to "A B C", "3" to "D E F"),
-                listOf("4" to "G H I", "5" to "J K L", "6" to "M N O"),
-                listOf("7" to "P Q R S", "8" to "T U V", "9" to "W X Y Z"),
+                listOf("1" to "", "2" to "", "3" to ""),
+                listOf("4" to "", "5" to "", "6" to ""),
+                listOf("7" to "", "8" to "", "9" to ""),
                 listOf("*" to "", "0" to "+", "#" to "")
             )
 

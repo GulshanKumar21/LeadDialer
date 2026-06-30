@@ -39,6 +39,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.Date
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 
 class AdminAttendanceFragment : Fragment() {
 
@@ -350,38 +352,67 @@ fun AttendanceStatCard(
     selected: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    val borderWidth = if (selected) 2.5.dp else 1.dp
-    val finalBorderColor = if (selected) textColor else borderColor
-    val shadowElevation = if (selected) 6.dp else 4.dp
+    val finalBorderColor = if (selected) textColor else textColor.copy(alpha = 0.15f)
+    val borderWidth = if (selected) 2.dp else 1.dp
+    val cardBg = if (selected) textColor.copy(alpha = 0.08f) else Color.White
+    
+    val icon = when (title) {
+        "Present" -> Icons.Default.CheckCircle
+        "Late" -> Icons.Default.Schedule
+        "Half Day" -> Icons.Default.DateRange
+        else -> Icons.Default.Cancel
+    }
 
     Box(
         modifier = modifier
-            .shadow(shadowElevation, shape = RoundedCornerShape(12.dp))
-            .background(
-                brush = Brush.verticalGradient(gradientColors),
-                shape = RoundedCornerShape(12.dp)
+            .shadow(
+                elevation = if (selected) 8.dp else 2.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false
             )
-            .border(borderWidth, finalBorderColor, shape = RoundedCornerShape(12.dp))
+            .background(cardBg, shape = RoundedCornerShape(16.dp))
+            .border(borderWidth, finalBorderColor, shape = RoundedCornerShape(16.dp))
             .clickable { onClick() }
-            .padding(vertical = 12.dp, horizontal = 8.dp),
-        contentAlignment = Alignment.Center
+            .padding(12.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = count.toString(),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = NunitoFamily,
-                color = textColor
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = title,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontFamily = NunitoFamily,
-                color = Color(0xFF64748B)
-            )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(textColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = textColor,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(10.dp))
+            
+            Column {
+                Text(
+                    text = count.toString(),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = NunitoFamily,
+                    color = Color(0xFF1E293B)
+                )
+                Text(
+                    text = title,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFamily,
+                    color = Color(0xFF64748B)
+                )
+            }
         }
     }
 }

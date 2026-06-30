@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADYAPAN CRM - Executive Work & Engineering Status Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            border-bottom: 3px solid #FF6A00;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 22pt;
+            color: #1A365D;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+        .header .subtitle {
+            font-size: 12pt;
+            color: #718096;
+            margin: 0;
+            font-weight: bold;
+        }
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .metadata-table td {
+            padding: 6px 0;
+            font-size: 10.5pt;
+        }
+        .metadata-table td.label {
+            font-weight: bold;
+            color: #4A5568;
+            width: 15%;
+        }
+        .metadata-table td.value {
+            color: #1A365D;
+            font-weight: bold;
+            width: 35%;
+        }
+        h2 {
+            font-size: 14pt;
+            color: #1A365D;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        h3 {
+            font-size: 11.5pt;
+            color: #2C5282;
+            margin-top: 15px;
+            margin-bottom: 6px;
+        }
+        p {
+            margin: 0 0 10px 0;
+            text-align: justify;
+        }
+        ul {
+            margin: 0 0 15px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .highlight-box {
+            background-color: #F7FAFC;
+            border-left: 4px solid #FF6A00;
+            padding: 12px 15px;
+            margin: 20px 0;
+        }
+        .highlight-box p {
+            margin: 0;
+            font-size: 10pt;
+            color: #4A5568;
+            font-style: italic;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #DEF7EC;
+            color: #03543F;
+            font-size: 9pt;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ADYAPAN CRM</h1>
+        <div class="subtitle">Executive Engineering Status & Deliverables Report</div>
+    </div>
+
+    <table class="metadata-table">
+        <tr>
+            <td class="label">Prepared For:</td>
+            <td class="value">Founder, ADYAPAN</td>
+            <td class="label">Date:</td>
+            <td class="value">June 26, 2026</td>
+        </tr>
+        <tr>
+            <td class="label">Prepared By:</td>
+            <td class="value">Gulshan Kumar (Lead CRM Engineer)</td>
+            <td class="label">Status:</td>
+            <td class="value">Production-Ready & Deployed</td>
+        </tr>
+    </table>
+
+    <div class="status-badge">🟢 100% OPERATIONAL & FIELD TESTED</div>
+
+    <p>
+        This executive report outlines the engineering deliverables, features, and platform upgrades successfully implemented for the <strong>ADYAPAN CRM</strong> system. All modules are fully operational, compile without errors, and have been successfully pushed to the central code repository.
+    </p>
+
+    <h2>1. Geotagged Attendance & Automated Payroll</h2>
+    <ul>
+        <li><strong>Strict Geotagged Clock-In/Clock-Out</strong>: Implemented fine-grained GPS coordinate tracking during attendance submissions. Lateness triggers mandatory reason inputs for administrative reviews.</li>
+        <li><strong>Grace Period Rules</strong>: Configured automated logic where clocking in between 11:05 AM and 11:10 AM is excused up to 3 times a month. Subsequent late entries automatically categorize as a <em>Half Day</em>.</li>
+        <li><strong>Early Departure Guard</strong>: Programmed system verification requiring a minimum of 2.5 hours worked per session. Failing to meet this threshold automatically marks the attendance record as <em>Absent</em>.</li>
+        <li><strong>Native PDF Payslip Generator</strong>: Built a native <code>PdfDocument</code> layout drawing engine directly on the device. Generates clean, download-ready payslips calculating worked days and deducting absent records. Integrates system sharing to send slips via mail/chat in one tap.</li>
+        <li><strong>Tuesday Off Integration</strong>: Updated payroll calculation rules to exclude Tuesdays from mandatory working days, matching organizational policies.</li>
+    </ul>
+
+    <h2>2. Background Call Logs & Automated Dialer</h2>
+    <ul>
+        <li><strong>Foreground Telephony Monitoring Service</strong>: Developed a persistent <code>CallMonitorService</code> utilizing a <code>CallLog.Calls</code> observer. Intercepts outgoing call statuses and computes the exact duration in seconds to prevent manual logging errors.</li>
+        <li><strong>In-App Dialog Overlay</strong>: Designed a transparent dialog overlay rendering instantly upon call completion. Prompts counselors to choose feedback codes (Connected, Busy, Callback, etc.) with a fixed safety handler preventing crashes during late-night call feedback inputs.</li>
+    </ul>
+
+    <h2>3. Document Verification & Verification Portals</h2>
+    <ul>
+        <li><strong>4-Tab Onboarding Profile Form</strong>: Created a multi-page employee form categorizing fields under Personal, Job, Bank, and Documents (Aadhar, PAN, Marksheets) for profile submissions.</li>
+        <li><strong>Secure Firebase Storage Uploads</strong>: Form documents upload to specific folders (<code>employee_docs/{uid}/</code>) and sync metadata into Firestore.</li>
+        <li><strong>HR Documents Audit Panel</strong>: Built a 3-tab HR dashboard allowing executives to:
+            <ul>
+                <li>Distribute corporate guideline documents.</li>
+                <li>Monitor employee onboarding progress (e.g. 26/26 fields filled, 10/10 documents uploaded).</li>
+                <li>Inspect detail views of employee profiles and download submitted onboarding documents.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>4. Cross-Platform Parity & SQLite Integration</h2>
+    <ul>
+        <li><strong>Unified SQLite Storage (crm_database)</strong>: Migrated the Flutter database to read/write directly from Room's <code>crm_database</code> file, ensuring data parity between native and Flutter interfaces on the same device.</li>
+        <li><strong>Schema Upgrade</strong>: Aligned local schemas to match Room's Version 12, adding missing columns (<code>duration</code> in leads, <code>note</code> in call records).</li>
+        <li><strong>Expected Sales & Admin Target</strong>: Integrated Firebase Realtime Database listeners. Employees can view targets and log daily Expected Sales directly from the dashboard, syncing instantly to management consoles.</li>
+        <li><strong>Thought of the Day</strong>: Set up real-time listeners fetching daily motivation directly from Firestore settings, rendering it in a styled orange-accent box on the dashboard.</li>
+    </ul>
+
+    <h2>5. Security Controls & Access Roles</h2>
+    <ul>
+        <li><strong>Supabase Integration</strong>: Integrated background synchronization (<code>SupabaseSync</code>) to fetch designations and roles from Supabase, updating Firestore profiles in real-time.</li>
+        <li><strong>Role-Based Navigation</strong>: Automated menu styling to show or hide administrative actions (leaves approval, performance audits) depending on whether the user is logged in as Admin, HR, or Counselor.</li>
+    </ul>
+
+    <div class="highlight-box">
+        <p>
+            <strong>Git Status Update</strong>: All changes have been committed cleanly and pushed to the remote master branch at <code>https://github.com/GulshanKumar21/LeadDialer.git</code>. The Android package (<code>com.adyapan.leaddialer</code>) is active on the Play Store Closed Alpha track with registered testers.
+        </p>
+    </div>
+
+</body>
+</html>

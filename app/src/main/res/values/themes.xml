@@ -39,6 +39,14 @@
 
     <style name="GlassCardView" parent="IPhoneCardView"/>
 
+    <style name="CalendarTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/text_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorPrimaryInverse">@color/text_primary</item>
+        <item name="android:textColorSecondaryInverse">@color/text_secondary</item>
+    </style>
+
     <style name="Theme.LeadDialer" parent="Base.Theme.LeadDialer"/>
 
     <style name="Theme.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">

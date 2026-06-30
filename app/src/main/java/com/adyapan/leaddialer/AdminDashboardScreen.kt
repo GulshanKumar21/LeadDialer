@@ -31,6 +31,24 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.launch
 
+data class TodayPerformer(
+    val employee: EmployeeSummary,
+    val salesCount: Int,
+    val callDuration: Int,
+    val callCount: Int
+)
+
+private fun formatPerformerDuration(seconds: Int): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return when {
+        h > 0 -> "${h}h ${m}m"
+        m > 0 -> "${m}m"
+        else -> "${s}s"
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
@@ -45,6 +63,7 @@ fun AdminDashboardScreen(
     val todayAttendance by viewModel.todayAttendance.observeAsState(emptyMap())
     val leaveRequests by FirestoreSource.leaveRequestsFlow().collectAsState(initial = emptyList())
     val tlList by viewModel.tlList.observeAsState(emptyList())
+    val todayStats by viewModel.todayStats.observeAsState(emptyMap())
 
     val totalEmployees = employees.size
     val presentCount = employees.count {
@@ -52,10 +71,10 @@ fun AdminDashboardScreen(
         status == "Present" || status == "Late"
     }
     val attendanceRate = if (totalEmployees > 0) (presentCount * 100 / totalEmployees) else 0
-    val totalConnected = employees.sumOf { it.connected }
+    val totalConnected = todayStats.values.sumOf { it.callCount }
     val pendingLeavesCount = remember(leaveRequests) { leaveRequests.count { it.status == "Pending" } }
 
-    val totalSalesToday = employees.sumOf { it.salesDone }
+    val totalSalesToday = todayStats.values.sumOf { it.salesCount }
     val totalTargetToday = employees.sumOf { it.adminTarget }
     val totalExpectedToday = employees.sumOf { it.expectedSales }
 
@@ -63,9 +82,21 @@ fun AdminDashboardScreen(
         leaveRequests.filter { it.status == "Pending" }.sortedByDescending { it.appliedAt }.take(3)
     }
 
-    val topPerformers = remember(employees) {
-        employees.filter { it.salesDone > 0 || it.connected > 0 }
-            .sortedWith(compareByDescending<EmployeeSummary> { it.salesDone }.thenByDescending { it.connected })
+    val topPerformers = remember(employees, todayStats) {
+        employees.map { emp ->
+            val stats = todayStats[emp.userId] ?: TodayStats(0, 0, 0)
+            TodayPerformer(
+                employee = emp,
+                salesCount = stats.salesCount,
+                callDuration = stats.callDuration,
+                callCount = stats.callCount
+            )
+        }.filter { it.salesCount > 0 || it.callCount > 0 }
+            .sortedWith(
+                compareByDescending<TodayPerformer> { it.salesCount }
+                    .thenByDescending { it.callDuration }
+                    .thenByDescending { it.callCount }
+            )
             .take(3)
     }
 
@@ -80,10 +111,10 @@ fun AdminDashboardScreen(
 
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when {
-        hour < 12 -> "Good Morning, Admin \uD83D\uDC51"
-        hour < 17 -> "Good Afternoon, Admin \uD83C\uDF24"
-        hour < 21 -> "Good Evening, Admin \uD83C\uDF07"
-        else -> "Good Night, Admin \uD83C\uDF0C"
+        hour < 12 -> "Good Morning, Admin"
+        hour < 17 -> "Good Afternoon, Admin"
+        hour < 21 -> "Good Evening, Admin"
+        else -> "Good Night, Admin"
     }
 
     Box(
@@ -218,7 +249,12 @@ fun TargetProgressCard(sales: Int, target: Int, expected: Int) {
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "\uD83C\uDFAF", fontSize = 18.sp)
+                Icon(
+                    imageVector = Icons.Default.TrendingUp,
+                    contentDescription = null,
+                    tint = Color(0xFFFF6A00),
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Today's Sales Achievements",
@@ -285,18 +321,18 @@ fun StatsGrid(totalEmployees: Int, attendanceRate: Int, totalConnected: Int, pen
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(modifier = Modifier.weight(1f)) {
-                StatCard(title = "Workforce", value = totalEmployees.toString(), subtitle = "Active employees \uD83D\uDC65", color = Color(0xFF3B82F6), icon = Icons.Default.People)
+                StatCard(title = "Workforce", value = totalEmployees.toString(), subtitle = "Active employees", color = Color(0xFF3B82F6), icon = Icons.Default.People)
             }
             Box(modifier = Modifier.weight(1f)) {
-                StatCard(title = "Attendance", value = "$attendanceRate%", subtitle = "Present today \uD83D\uDCCA", color = Color(0xFF10B981), icon = Icons.Default.CheckCircle)
+                StatCard(title = "Attendance", value = "$attendanceRate%", subtitle = "Present today", color = Color(0xFF10B981), icon = Icons.Default.CheckCircle)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(modifier = Modifier.weight(1f)) {
-                StatCard(title = "Total Connected", value = totalConnected.toString(), subtitle = "Connected leads \uD83D\uDCDE", color = Color(0xFFFF6A00), icon = Icons.Default.PhoneInTalk)
+                StatCard(title = "Total Connected", value = totalConnected.toString(), subtitle = "Connected leads", color = Color(0xFFFF6A00), icon = Icons.Default.PhoneInTalk)
             }
             Box(modifier = Modifier.weight(1f)) {
-                StatCard(title = "Pending Leaves", value = pendingLeaves.toString(), subtitle = pendingLeaves.let { if (it > 0) "Awaiting response ⌛" else "All approved! ✅" }, color = Color(0xFF8B5CF6), icon = Icons.Default.WatchLater)
+                StatCard(title = "Pending Leaves", value = pendingLeaves.toString(), subtitle = pendingLeaves.let { if (it > 0) "Awaiting response" else "All approved!" }, color = Color(0xFF8B5CF6), icon = Icons.Default.WatchLater)
             }
         }
     }
@@ -368,7 +404,7 @@ fun QuickActionsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Quick Action Tools 🛠️",
+                text = "Quick Action Tools",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E293B)
@@ -426,7 +462,7 @@ fun ActionTile(icon: ImageVector, label: String, color: Color, onClick: () -> Un
 }
 
 @Composable
-fun TopPerformersCard(performers: List<EmployeeSummary>) {
+fun TopPerformersCard(performers: List<TodayPerformer>) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -437,7 +473,12 @@ fun TopPerformersCard(performers: List<EmployeeSummary>) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "\uD83C\uDFC6", fontSize = 18.sp)
+                Icon(
+                    imageVector = Icons.Default.Leaderboard,
+                    contentDescription = null,
+                    tint = Color(0xFFFF6A00),
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Top Performers Today",
@@ -447,12 +488,9 @@ fun TopPerformersCard(performers: List<EmployeeSummary>) {
                 )
             }
 
-            performers.forEachIndexed { index, emp ->
-                val medal = when (index) {
-                    0 -> "\uD83E\uDD47"
-                    1 -> "\uD83E\uDD48"
-                    else -> "\uD83E\uDD49"
-                }
+            performers.forEachIndexed { index, performer ->
+                val rankText = "${index + 1}."
+                val emp = performer.employee
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -460,20 +498,30 @@ fun TopPerformersCard(performers: List<EmployeeSummary>) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = medal, fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = rankText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF64748B),
+                            modifier = Modifier.width(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
                         Column {
                             Text(text = emp.employeeName, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1E293B))
-                            Text(text = "TL: ${emp.tlName.ifBlank { "None" }}", fontSize = 10.sp, color = Color(0xFF64748B))
+                            Text(
+                                text = "TL: ${emp.tlName.ifBlank { "None" }} | Talk time: ${formatPerformerDuration(performer.callDuration)}",
+                                fontSize = 10.sp,
+                                color = Color(0xFF64748B)
+                            )
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(text = emp.salesDone.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
+                            Text(text = performer.salesCount.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
                             Text(text = "Sales", fontSize = 9.sp, color = Color(0xFF94A3B8))
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(text = emp.connected.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFF6A00))
+                            Text(text = performer.callCount.toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFF6A00))
                             Text(text = "Calls", fontSize = 9.sp, color = Color(0xFF94A3B8))
                         }
                     }
@@ -645,7 +693,7 @@ fun ManageTlsDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "\uD83D\uDC65 Manage Team Leaders", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+                    Text(text = "Manage Team Leaders", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }

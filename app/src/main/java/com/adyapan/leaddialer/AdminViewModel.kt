@@ -22,6 +22,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.flow.collect
@@ -78,6 +79,11 @@ class AdminViewModel : ViewModel() {
     // ── Completed sales across all employees ─────────────────────────────────
     private val _allSales = MutableLiveData<List<SaleRecord>>(emptyList())
     val allSales: LiveData<List<SaleRecord>> = _allSales
+
+    // ── Today's call stats since midnight for Star Performer ─────────────────
+    private val _todayStats = MutableLiveData<Map<String, TodayStats>>(emptyMap())
+    val todayStats: LiveData<Map<String, TodayStats>> = _todayStats
+    private var callRecordsListener: ValueEventListener? = null
 
     // ── Leads for a specific employee (loaded on demand) ─────────────────────
     private val _employeeLeads = MutableLiveData<List<Lead>>(emptyList())
@@ -364,6 +370,50 @@ class AdminViewModel : ViewModel() {
                 }
                 adminTargetsListener = adminTargetListener
                 adminTargetsRef.addValueEventListener(adminTargetListener)
+
+                // ── Today's callRecords listener for daily performer calculations ──
+                val callRecordsRef = FirebaseDatabase.getInstance().getReference("callRecords")
+                val crListener = object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val newStats = mutableMapOf<String, TodayStats>()
+                        val todayStart = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+
+                        snapshot.children.forEach { userNode ->
+                            val userId = userNode.key ?: return@forEach
+                            var sales = 0
+                            var duration = 0
+                            var count = 0
+                            userNode.children.forEach { recordNode ->
+                                val map = recordNode.value as? Map<*, *> ?: return@forEach
+                                val calledAt = (map["calledAt"] as? Number)?.toLong() ?: 0L
+                                if (calledAt >= todayStart) {
+                                    count++
+                                    duration += (map["duration"] as? Number)?.toInt() ?: 0
+                                    val status = map["status"] as? String
+                                    if (status == "Sales Done" || status == "Sale Done") {
+                                        sales++
+                                    }
+                                }
+                            }
+                            if (count > 0 || duration > 0 || sales > 0) {
+                                newStats[userId] = TodayStats(
+                                    salesCount = sales,
+                                    callDuration = duration,
+                                    callCount = count
+                                )
+                            }
+                        }
+                        _todayStats.postValue(newStats)
+                    }
+                    override fun onCancelled(error: DatabaseError) { /* ignore */ }
+                }
+                callRecordsListener = crListener
+                callRecordsRef.addValueEventListener(crListener)
 
                 // ── Step 7: LIVE listener for teamLeaders + users TL assignments ──
                 val tlRef   = FirebaseDatabase.getInstance().getReference("teamLeaders")
@@ -728,6 +778,13 @@ class AdminViewModel : ViewModel() {
                 .removeEventListener(it)
         }
         tlAssignListener = null
+
+        callRecordsListener?.let {
+            FirebaseDatabase.getInstance()
+                .getReference("callRecords")
+                .removeEventListener(it)
+        }
+        callRecordsListener = null
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -857,3 +914,9 @@ class AdminLeadAdapter(
         }
     }
 }
+
+data class TodayStats(
+    val salesCount: Int,
+    val callDuration: Int,
+    val callCount: Int
+)

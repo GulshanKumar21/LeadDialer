@@ -222,12 +222,16 @@ fun DashboardScreen(
 
     // Scroll state
     val scrollState = rememberScrollState()
-    val bgGradientColor = Color(0xFFF2F2F7)
+    val bgGradientColors = listOf(
+        Color(0xFFDCE4EC),
+        Color(0xFFE8EEF5),
+        Color(0xFFF4F7FA)
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradientColor)
+            .background(Brush.verticalGradient(bgGradientColors))
     ) {
         Column(
             modifier = Modifier
@@ -237,15 +241,16 @@ fun DashboardScreen(
 
             // ── HERO HEADER ─────────────────────────────────────────
             Card(
-                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.65f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 24.dp),
+                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 18.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
                     // Top row: Hamburger + Avatar + Bell
@@ -339,7 +344,7 @@ fun DashboardScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Greeting
                     Text(
@@ -357,13 +362,13 @@ fun DashboardScreen(
                     Text(
                         text = "$displayName 👋",
                         color = Color.Black,
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         fontFamily = PoppinsFamily,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (-0.5).sp
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // 4 mini stats row
                     Row(
@@ -378,37 +383,36 @@ fun DashboardScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Banner
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "INDIA'S LARGEST\nSTUDENT COMMUNITY",
-                            textAlign = TextAlign.Center,
-                            style = androidx.compose.ui.text.TextStyle(
-                                color = Color.White,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Black,
-                                fontFamily = PoppinsFamily,
-                                letterSpacing = 1.2.sp,
-                                lineHeight = 28.sp
-                            )
-                        )
-                    }
+                    // Top Row, Greeting, Mini stats etc are closed above this
                 }
             }
 
-            // ── TODAY'S PROGRESS ────────────────────────────────────────
-            Spacer(modifier = Modifier.height(20.dp))
+            // ── STANDALONE BLACK BANNER ──
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "INDIA'S LARGEST STUDENT COMMUNITY",
+                    textAlign = TextAlign.Center,
+                    style = androidx.compose.ui.text.TextStyle(
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = PoppinsFamily,
+                        letterSpacing = 0.5.sp
+                    )
+                )
+            }
+
+            // ── TODAY'S TARGETS ──
+            Spacer(modifier = Modifier.height(14.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -418,87 +422,20 @@ fun DashboardScreen(
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
-                    val progressPercent = if (totalLeads > 0) (totalCalled * 100 / totalLeads) else 0
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.TrendingUp,
-                                    contentDescription = "Progress",
-                                    tint = Color(0xFFD32F2F),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Today's Progress",
-                                    color = Color(0xFFFF7A00),
-                                    fontSize = 12.sp,
-                                    fontFamily = PoppinsFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.3.sp
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "$totalCalled / $totalLeads leads called",
-                                color = Color.Black,
-                                fontSize = 15.sp,
-                                fontFamily = PoppinsFamily,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "$progressPercent%",
-                            color = Color(0xFFFF5100),
-                            fontSize = 28.sp,
-                            fontFamily = PoppinsFamily,
-                            fontWeight = FontWeight.Black
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    val progressVal = if (totalLeads > 0) (totalCalled.toFloat() / totalLeads.toFloat()) else 0f
-                    val animatedProgress by animateFloatAsState(
-                        targetValue = progressVal,
-                        animationSpec = tween(durationMillis = 900, easing = DecelerateInterpolatorEasing)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFF2F2F7))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(animatedProgress)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFFF5100))
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     var showEditExpectedSalesDialog by remember { mutableStateOf(false) }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Expected Sales
+                        // Expected Sales (Translucent Glass tint)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFFECFDF5))
-                                .border(1.dp, Color(0xFFD1FAE5), RoundedCornerShape(14.dp))
-                                .padding(12.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0x73D1FAE5))
+                                .border(1.dp, Color(0x99A7F3D0), RoundedCornerShape(12.dp))
+                                .padding(10.dp)
                         ) {
                             Column {
                                 Text(
@@ -508,20 +445,20 @@ fun DashboardScreen(
                                     fontFamily = PoppinsFamily,
                                     fontWeight = FontWeight.Bold
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = expectedSales.toString(),
                                         color = Color(0xFF065F46),
-                                        fontSize = 20.sp,
+                                        fontSize = 18.sp,
                                         fontFamily = PoppinsFamily,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.weight(1f)
                                     )
                                     Box(
                                         modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .size(22.dp)
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(Color(0xFFA7F3D0))
                                             .clickable {
                                                 showEditExpectedSalesDialog = true
@@ -532,21 +469,21 @@ fun DashboardScreen(
                                             imageVector = Icons.Default.Edit,
                                             contentDescription = "Edit",
                                             tint = Color(0xFF065F46),
-                                            modifier = Modifier.size(12.dp)
+                                            modifier = Modifier.size(10.dp)
                                         )
                                     }
                                 }
                             }
                         }
 
-                        // Admin Target
+                        // Admin Target (Translucent Glass tint)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFFEFF6FF))
-                                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(14.dp))
-                                .padding(12.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0x73DBEAFE))
+                                .border(1.dp, Color(0x99BFDBFE), RoundedCornerShape(12.dp))
+                                .padding(10.dp)
                         ) {
                             Column {
                                 Text(
@@ -556,11 +493,11 @@ fun DashboardScreen(
                                     fontFamily = PoppinsFamily,
                                     fontWeight = FontWeight.Bold
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = adminTarget,
                                     color = Color(0xFF1E40AF),
-                                    fontSize = 20.sp,
+                                    fontSize = 18.sp,
                                     fontFamily = PoppinsFamily,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -976,14 +913,14 @@ fun OverviewCard(
     Box(
         modifier = modifier
             .cleanCardEffect(isClickable = true, onClick = onClick)
-            .height(115.dp)
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .height(100.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -992,10 +929,10 @@ fun OverviewCard(
                         painter = painterResource(id = iconRes),
                         contentDescription = title,
                         tint = color,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 } else if (emoji != null) {
-                    Text(text = emoji, fontSize = 22.sp)
+                    Text(text = emoji, fontSize = 18.sp)
                 }
             }
 
@@ -1004,13 +941,13 @@ fun OverviewCard(
             AnimatedCounter(
                 targetValue = value,
                 color = Color(0xFF0F172A),
-                fontSize = 28.sp
+                fontSize = 22.sp
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(1.dp))
             Text(
                 text = title,
                 color = Color(0xFF64748B),
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontFamily = PoppinsFamily,
                 fontWeight = FontWeight.SemiBold
             )
@@ -1113,7 +1050,7 @@ private fun Modifier.glassy3dCardEffect(
         )
 }
 
-// iOS-style Clean White Card Effect — smooth shadow + scale on press
+// iOS-style Clean White Card Effect — glassmorphism transparent look + smooth shadow + scale on press
 private fun Modifier.cleanCardEffect(
     isClickable: Boolean = true,
     onClick: (() -> Unit)? = null
@@ -1128,20 +1065,20 @@ private fun Modifier.cleanCardEffect(
         )
     )
     val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else 4.dp,
+        targetValue = if (isPressed) 1.dp else 2.dp,
         animationSpec = tween(150)
     )
     this
         .graphicsLayer { scaleX = scale; scaleY = scale }
         .shadow(
             elevation = elevation,
-            shape = RoundedCornerShape(20.dp),
-            ambientColor = Color(0x0D000000),
-            spotColor = Color(0x0D000000)
+            shape = RoundedCornerShape(18.dp),
+            ambientColor = Color(0x0A000000),
+            spotColor = Color(0x0A000000)
         )
-        .clip(RoundedCornerShape(20.dp))
-        .background(Color.White)
-        .border(1.dp, Color(0x0F000000), RoundedCornerShape(20.dp))
+        .clip(RoundedCornerShape(18.dp))
+        .background(Color.White.copy(alpha = 0.65f))
+        .border(1.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
         .then(
             if (isClickable && onClick != null) {
                 Modifier.clickable(
