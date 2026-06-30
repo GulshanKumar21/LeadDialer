@@ -21,6 +21,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -721,6 +724,7 @@ class AdminEmployeesFragment : Fragment() {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         val composeView = androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 HRPortalTheme {
                     ChatThreadScreen(
@@ -733,6 +737,11 @@ class AdminEmployeesFragment : Fragment() {
                 }
             }
         }
+        val activity = requireActivity()
+        composeView.setViewTreeLifecycleOwner(activity)
+        composeView.setViewTreeViewModelStoreOwner(activity)
+        composeView.setViewTreeSavedStateRegistryOwner(activity)
+
         dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,

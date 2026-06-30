@@ -25,6 +25,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -78,6 +81,7 @@ class InboxFragment : Fragment() {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         val composeView = ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 HRPortalTheme {
                     ChatThreadScreen(
@@ -90,6 +94,11 @@ class InboxFragment : Fragment() {
                 }
             }
         }
+        val activity = requireActivity()
+        composeView.setViewTreeLifecycleOwner(activity)
+        composeView.setViewTreeViewModelStoreOwner(activity)
+        composeView.setViewTreeSavedStateRegistryOwner(activity)
+
         dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,

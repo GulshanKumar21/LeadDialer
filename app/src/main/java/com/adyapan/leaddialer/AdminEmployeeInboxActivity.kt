@@ -18,6 +18,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 class AdminEmployeeInboxActivity : AppCompatActivity() {
 
@@ -116,6 +119,7 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         val composeView = androidx.compose.ui.platform.ComposeView(this).apply {
+            setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 HRPortalTheme {
                     ChatThreadScreen(
@@ -128,6 +132,11 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
                 }
             }
         }
+        // Fix ViewTreeLifecycleOwner not found crash in custom Dialog
+        composeView.setViewTreeLifecycleOwner(this)
+        composeView.setViewTreeViewModelStoreOwner(this)
+        composeView.setViewTreeSavedStateRegistryOwner(this)
+
         dialog.setContentView(composeView)
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
