@@ -242,8 +242,8 @@ fun DashboardScreen(
             // ── HERO HEADER ─────────────────────────────────────────
             Card(
                 shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.65f)),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -428,13 +428,13 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Expected Sales (Translucent Glass tint)
+                        // Expected Sales (Solid White card with soft green tint)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0x73D1FAE5))
-                                .border(1.dp, Color(0x99A7F3D0), RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .border(1.dp, Color(0xFF10B981).copy(alpha = 0.2f), RoundedCornerShape(12.dp))
                                 .padding(10.dp)
                         ) {
                             Column {
@@ -476,13 +476,13 @@ fun DashboardScreen(
                             }
                         }
 
-                        // Admin Target (Translucent Glass tint)
+                        // Admin Target (Solid White card with soft blue tint)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0x73DBEAFE))
-                                .border(1.dp, Color(0x99BFDBFE), RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .border(1.dp, Color(0xFF3B82F6).copy(alpha = 0.2f), RoundedCornerShape(12.dp))
                                 .padding(10.dp)
                         ) {
                             Column {
@@ -913,8 +913,8 @@ fun OverviewCard(
     Box(
         modifier = modifier
             .cleanCardEffect(isClickable = true, onClick = onClick)
-            .height(100.dp)
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .height(108.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -1050,7 +1050,7 @@ private fun Modifier.glassy3dCardEffect(
         )
 }
 
-// iOS-style Clean White Card Effect — glassmorphism transparent look + smooth shadow + scale on press
+// iOS-style Clean White Card Effect — solid white background + grey outline border + smooth shadow + scale on press
 private fun Modifier.cleanCardEffect(
     isClickable: Boolean = true,
     onClick: (() -> Unit)? = null
@@ -1077,8 +1077,8 @@ private fun Modifier.cleanCardEffect(
             spotColor = Color(0x0A000000)
         )
         .clip(RoundedCornerShape(18.dp))
-        .background(Color.White.copy(alpha = 0.65f))
-        .border(1.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
+        .background(Color.White)
+        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
         .then(
             if (isClickable && onClick != null) {
                 Modifier.clickable(
