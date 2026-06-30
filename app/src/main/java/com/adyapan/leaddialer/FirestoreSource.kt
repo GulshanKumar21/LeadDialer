@@ -220,11 +220,24 @@ object FirestoreSource {
     }
 
 
-    suspend fun fetchLeadsOnce(): List<Lead> {
+    suspend fun fetchLeadsOnce(statusFilter: String? = null, limitVal: Int? = null): List<Lead> {
         val uid = currentUid() ?: return emptyList()
         return try {
-            val query = if (isAdmin) leadsCol
-            else leadsCol.whereEqualTo("userId", uid)
+            var query: Query = if (isAdmin) leadsCol else leadsCol.whereEqualTo("userId", uid)
+
+            if (!statusFilter.isNullOrBlank() && statusFilter != "All") {
+                if (statusFilter == "Sales") {
+                    query = query.whereEqualTo("salesDone", true)
+                } else {
+                    query = query.whereEqualTo("status", statusFilter)
+                }
+            }
+
+            if (limitVal != null) {
+                // Ensure query is ordered by updatedAt to get the latest synced leads
+                query = query.orderBy("updatedAt", Query.Direction.DESCENDING).limit(limitVal.toLong())
+            }
+
             val snapshot = query.get().await()
             snapshot.documents.mapNotNull { doc ->
                 runCatching {
@@ -303,16 +316,28 @@ object FirestoreSource {
     }
 
     /** One-time fetch of all RTDB leads for the current user (used on app start to populate Room DB). */
-    suspend fun fetchRtdbLeadsOnce(): List<Lead> {
+    suspend fun fetchRtdbLeadsOnce(statusFilter: String? = null, limitVal: Int? = null): List<Lead> {
         val uid = currentUid() ?: return emptyList()
         if (!isAdmin) {
             performLeadRetentionCleanup(uid)
         }
         return try {
             val targetRef = if (isAdmin) rtdb else rtdb.child(uid)
-            val snapshot = targetRef.get().await()
+            var query: com.google.firebase.database.Query = targetRef
+
+            if (!statusFilter.isNullOrBlank() && statusFilter != "All") {
+                if (statusFilter == "Sales") {
+                    query = targetRef.orderByChild("salesDone").equalTo(true)
+                } else {
+                    query = targetRef.orderByChild("status").equalTo(statusFilter)
+                }
+            } else if (limitVal != null) {
+                query = targetRef.orderByChild("updatedAt").limitToLast(limitVal)
+            }
+
+            val snapshot = query.get().await()
             val list = mutableListOf<Lead>()
-            if (isAdmin) {
+            if (isAdmin && (statusFilter.isNullOrBlank() || statusFilter == "All") && limitVal == null) {
                 snapshot.children.forEach { userNode ->
                     userNode.children.forEach { leadNode ->
                         parseRtdbLead(leadNode.key ?: "", leadNode.value as? Map<*, *>)?.let { list.add(it) }

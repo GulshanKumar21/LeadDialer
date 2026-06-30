@@ -74,13 +74,13 @@ class LeadRepository(
         }
     }
 
-    suspend fun syncFromFirestore() {
+    suspend fun syncFromFirestore(statusFilter: String? = null, limitVal: Int? = null) {
         if (!NetworkUtils.isOnline(context)) return
         try {
             // Pull from Firestore (Hot/Interested leads)
-            val remoteLeads = FirestoreSource.fetchLeadsOnce()
+            val remoteLeads = FirestoreSource.fetchLeadsOnce(statusFilter, limitVal)
             // Pull from RTDB (Pending/bulk leads)
-            val rtdbLeads   = FirestoreSource.fetchRtdbLeadsOnce()
+            val rtdbLeads   = FirestoreSource.fetchRtdbLeadsOnce(statusFilter, limitVal)
             val allRemote   = remoteLeads + rtdbLeads
 
             allRemote.forEach { remoteLead ->
@@ -106,7 +106,7 @@ class LeadRepository(
                     Log.d(TAG_REPO, "syncFromFirestore: patched firestoreId for ${remoteLead.phone}")
                 }
             }
-            Log.d(TAG_REPO, "syncFromFirestore: ${allRemote.size} leads pulled (${remoteLeads.size} Firestore + ${rtdbLeads.size} RTDB)")
+            Log.d(TAG_REPO, "syncFromFirestore: ${allRemote.size} leads pulled")
         } catch (e: Exception) {
             Log.e(TAG_REPO, "syncFromFirestore error: ${e.message}")
         }
@@ -171,6 +171,29 @@ class LeadViewModel(application: Application) : AndroidViewModel(application) {
         repo.syncFromFirestore()
         refreshStats()
         Log.d(TAG_REPO, "syncFromFirebaseOnce: done")
+    }
+
+    /**
+     * Syncs only the most recently updated/added leads from Firebase.
+     * Keeps read costs minimal on screen load.
+     */
+    fun syncRecentFromFirebase() = viewModelScope.launch(Dispatchers.IO) {
+        Log.d(TAG_REPO, "syncRecentFromFirebase: starting")
+        repo.syncFromFirestore(limitVal = 50)
+        refreshStats()
+        Log.d(TAG_REPO, "syncRecentFromFirebase: done")
+    }
+
+    /**
+     * Syncs only the leads belonging to a specific status category from Firebase.
+     */
+    fun syncCategoryFromFirebase(status: String) = viewModelScope.launch(Dispatchers.IO) {
+        Log.d(TAG_REPO, "syncCategoryFromFirebase status $status: starting")
+        val filterStatus = if (status == "Sales") "Sales" else status
+        // Limit to latest 100 leads of this status category to save read costs
+        repo.syncFromFirestore(statusFilter = filterStatus, limitVal = 100)
+        refreshStats()
+        Log.d(TAG_REPO, "syncCategoryFromFirebase status $status: done")
     }
 
 

@@ -103,7 +103,9 @@ class LeadsFragment : Fragment() {
                     }
                 }
             }
-            adapter.filterByStatus(statuses[selectedIdx])
+            val status = statuses[selectedIdx]
+            adapter.filterByStatus(status)
+            leadViewModel.syncCategoryFromFirebase(status)
         }
 
         tabs.forEachIndexed { idx, tab ->
@@ -310,7 +312,7 @@ class LeadsFragment : Fragment() {
         //  Call popup is now handled globally in MainActivity.onResume()
         // so the popup shows regardless of which fragment the user is on.
         callInProgress = false
-        leadViewModel.syncFromFirebaseOnce()
+        leadViewModel.syncRecentFromFirebase()
     }
 
     private fun initiateCall(lead: Lead) {
