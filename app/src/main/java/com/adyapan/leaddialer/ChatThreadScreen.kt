@@ -83,9 +83,10 @@ fun ChatThreadScreen(
         repliesListener = db.collection("messages").document(employeeUid)
             .collection("inbox").document(msgId)
             .collection("replies")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(25)
             .addSnapshotListener { snap, _ ->
-                repliesList = snap?.documents?.mapNotNull { doc ->
+                val list = snap?.documents?.mapNotNull { doc ->
                     ChatEntry(
                         id = doc.id,
                         from = doc.getString("from") ?: "",
@@ -97,6 +98,7 @@ fun ChatThreadScreen(
                         fileType = doc.getString("fileType") ?: ""
                     )
                 } ?: emptyList()
+                repliesList = list.reversed()
             }
 
         // Also fetch the parent message once
