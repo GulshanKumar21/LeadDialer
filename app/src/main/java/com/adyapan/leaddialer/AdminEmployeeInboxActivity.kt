@@ -138,6 +138,12 @@ class AdminEmployeeInboxActivity : AppCompatActivity() {
         composeView.setViewTreeSavedStateRegistryOwner(this)
 
         dialog.setContentView(composeView)
+
+        dialog.window?.decorView?.let { decorView ->
+            decorView.setViewTreeLifecycleOwner(this)
+            decorView.setViewTreeViewModelStoreOwner(this)
+            decorView.setViewTreeSavedStateRegistryOwner(this)
+        }
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT

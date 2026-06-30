@@ -743,6 +743,12 @@ class AdminEmployeesFragment : Fragment() {
         composeView.setViewTreeSavedStateRegistryOwner(activity)
 
         dialog.setContentView(composeView)
+
+        dialog.window?.decorView?.let { decorView ->
+            decorView.setViewTreeLifecycleOwner(activity)
+            decorView.setViewTreeViewModelStoreOwner(activity)
+            decorView.setViewTreeSavedStateRegistryOwner(activity)
+        }
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
