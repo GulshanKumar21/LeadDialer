@@ -136,6 +136,7 @@ fun DashboardScreen(
         val listener = FirebaseFirestore.getInstance()
             .collection("announcements")
             .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(10)
             .addSnapshotListener { snap, _ ->
                 if (snap != null) {
                     announcementsList.clear()
